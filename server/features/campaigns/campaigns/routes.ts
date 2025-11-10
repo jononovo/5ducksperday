@@ -309,8 +309,13 @@ export function registerCampaignsRoutes(app: Application, requireAuth: any) {
         return res.status(404).json({ message: 'Campaign not found or access denied' });
       }
       
-      if (campaign.status !== 'active') {
-        return res.status(400).json({ message: 'Campaign must be active to add contacts' });
+      // Allow adding to active or scheduled campaigns (not completed ones)
+      if (campaign.status === 'completed') {
+        return res.status(400).json({ message: 'Cannot add contacts to a completed campaign' });
+      }
+      
+      if (campaign.status === 'paused') {
+        return res.status(400).json({ message: 'Cannot add contacts to a paused campaign. Please resume the campaign first.' });
       }
       
       // Get contact details
@@ -329,7 +334,7 @@ export function registerCampaignsRoutes(app: Application, requireAuth: any) {
           recipientEmail: contact.email,
           recipientFirstName: contact.name?.split(' ')[0] || '',
           recipientLastName: contact.name?.split(' ').slice(1).join(' ') || '',
-          recipientCompany: contact.companyId ? '' : '', // Will be filled if needed
+          recipientCompany: '', // Company name will be populated during email generation if needed
           status: 'queued' as const, // Start with 'queued' for immediate processing
           createdAt: new Date(),
           updatedAt: new Date()
@@ -342,12 +347,17 @@ export function registerCampaignsRoutes(app: Application, requireAuth: any) {
       // Batch insert recipients (duplicates automatically ignored by unique constraint)
       await storage.createCampaignRecipients(recipients);
       
-      console.log(`Added ${recipients.length} new recipients to campaign ${campaignId}`);
+      console.log(`[Add to Campaign] Added ${recipients.length} new recipients to campaign ${campaignId} (${campaign.name})`);
+      console.log(`[Add to Campaign] Campaign status: ${campaign.status}, daily limit: ${campaign.maxEmailsPerDay || 'unlimited'}`);
       
       res.json({ 
         success: true,
-        message: `Successfully added ${recipients.length} contacts to the campaign`,
-        addedCount: recipients.length
+        message: `Successfully added contacts to the campaign`,
+        addedCount: recipients.length,
+        campaignStatus: campaign.status,
+        note: campaign.status === 'active' 
+          ? 'Contacts will be processed in the next email queue cycle (within 30 seconds)' 
+          : 'Campaign is scheduled. Contacts will be processed when the campaign activates.'
       });
       
     } catch (error) {
