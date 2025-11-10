@@ -303,7 +303,7 @@ export function registerCampaignsRoutes(app: Application, requireAuth: any) {
         return res.status(400).json({ message: 'Contact IDs array is required' });
       }
       
-      // Verify campaign exists, belongs to user, and is active
+      // Verify campaign exists and belongs to user
       const campaign = await storage.getCampaign(campaignId, userId);
       if (!campaign) {
         return res.status(404).json({ message: 'Campaign not found or access denied' });
@@ -323,6 +323,13 @@ export function registerCampaignsRoutes(app: Application, requireAuth: any) {
         statusNote = 'Contacts will be processed in the next email queue cycle (within 30 seconds)';
       }
       
+      // Check if campaign has a linked contact list
+      if (!campaign.contactListId) {
+        return res.status(400).json({ 
+          message: 'Campaign does not have a linked contact list. Please configure the campaign with a contact list first.' 
+        });
+      }
+      
       // Get contact details
       const contacts = await storage.getContactsByIds(contactIds, userId);
       
@@ -330,24 +337,39 @@ export function registerCampaignsRoutes(app: Application, requireAuth: any) {
         return res.status(404).json({ message: 'No valid contacts found' });
       }
       
-      // Prepare recipient records
-      const recipients = contacts
-        .filter(contact => contact.email) // Only include contacts with email
-        .map(contact => ({
-          campaignId: campaignId,
-          contactId: contact.id,
-          recipientEmail: contact.email,
-          recipientFirstName: contact.name?.split(' ')[0] || '',
-          recipientLastName: contact.name?.split(' ').slice(1).join(' ') || '',
-          recipientCompany: '', // Company name will be populated during email generation if needed
-          status: 'queued' as const, // Start with 'queued' for immediate processing
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }));
+      // Filter contacts that have valid emails
+      const validContacts = contacts.filter(contact => contact.email);
       
-      if (recipients.length === 0) {
+      if (validContacts.length === 0) {
         return res.status(400).json({ message: 'No contacts with valid email addresses found' });
       }
+      
+      // Step 1: Add contacts to the campaign's linked contact list
+      // This automatically handles duplicates with onConflictDoNothing
+      const validContactIds = validContacts.map(c => c.id);
+      await storage.addContactsToList(
+        campaign.contactListId,
+        validContactIds,
+        'campaign_addition',
+        userId,
+        { campaignId, campaignName: campaign.name }
+      );
+      
+      console.log(`[Add to Campaign] Added ${validContactIds.length} contacts to contact list ${campaign.contactListId}`);
+      
+      // Step 2: Add contacts as campaign recipients
+      // Prepare recipient records for all valid contacts
+      const recipients = validContacts.map(contact => ({
+        campaignId: campaignId,
+        contactId: contact.id,
+        recipientEmail: contact.email,
+        recipientFirstName: contact.name?.split(' ')[0] || '',
+        recipientLastName: contact.name?.split(' ').slice(1).join(' ') || '',
+        recipientCompany: '', // Company name will be populated during email generation if needed
+        status: 'queued' as const, // Start with 'queued' for immediate processing
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }));
       
       // Batch insert recipients (duplicates automatically ignored by unique constraint)
       await storage.createCampaignRecipients(recipients);
@@ -357,10 +379,14 @@ export function registerCampaignsRoutes(app: Application, requireAuth: any) {
       
       res.json({ 
         success: true,
-        message: `Successfully added ${recipients.length} contacts to the campaign`,
-        addedCount: recipients.length,
+        message: `Successfully added ${validContacts.length} contacts to the campaign`,
+        addedCount: validContacts.length,
         campaignStatus: campaign.status,
-        note: statusNote
+        note: statusNote,
+        details: {
+          contactListUpdated: true,
+          recipientsQueued: validContacts.length
+        }
       });
       
     } catch (error) {
