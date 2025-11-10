@@ -645,7 +645,10 @@ export default function CompanyCards({
             pendingApolloIds={pendingApolloIds}
             pendingContactIds={pendingContactIds}
             pendingComprehensiveSearchIds={pendingComprehensiveSearchIds}
-            onContactClick={onContactClick}
+            onContactClick={handleContactCardClick}
+            onContactHover={handleContactHover}
+            onContactLeave={handleContactLeave}
+            shouldShowCheckbox={shouldShowCheckbox}
             setLocation={setLocation}
             topContacts={getTopContacts(companies[currentSlideIndex])}
             viewMode={viewMode}
