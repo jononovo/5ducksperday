@@ -45,6 +45,7 @@ import { ContactWithCompanyInfo } from "@/lib/results-analysis/prospect-filterin
 import { ContactActionColumn } from "@/components/contact-action-column";
 import { ComprehensiveSearchButton } from "@/components/comprehensive-email-search";
 import { cn } from "@/lib/utils";
+import { useRef } from "react";
 
 interface CompanyCardsProps {
   companies: Array<Company & { contacts?: ContactWithCompanyInfo[] }>;
@@ -62,6 +63,8 @@ interface CompanyCardsProps {
   selectedEmailContact?: Contact | null;
   selectedContacts?: Set<number>;
   onContactSelectionChange?: (contactId: number) => void;
+  getCompanySelectionState?: (company: Company & { contacts?: ContactWithCompanyInfo[] }) => 'checked' | 'indeterminate' | 'unchecked';
+  onCompanySelectionChange?: (company: Company & { contacts?: ContactWithCompanyInfo[] }) => void;
   topActionsTrailing?: React.ReactNode;
 }
 
@@ -74,6 +77,9 @@ interface CompanyCardProps {
   onToggleSelection: (e: React.MouseEvent, companyId: number) => void;
   selectedContacts: Set<number>;
   onToggleContactSelection: (e: React.MouseEvent | null, contactId: number) => void;
+  companySelectionState?: 'checked' | 'indeterminate' | 'unchecked';
+  onCompanyCheckboxChange?: () => void;
+  shouldShowCompanyCheckbox?: boolean;
   handleCompanyView: (companyId: number) => void;
   handleHunterSearch?: (contactId: number) => void;
   handleApolloSearch?: (contactId: number) => void;
@@ -101,6 +107,9 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
   onToggleSelection,
   selectedContacts,
   onToggleContactSelection,
+  companySelectionState,
+  onCompanyCheckboxChange,
+  shouldShowCompanyCheckbox,
   handleCompanyView,
   handleHunterSearch,
   handleApolloSearch,
@@ -119,6 +128,17 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
   viewMode,
   selectedEmailContact
 }) => {
+  const checkboxRef = useRef<HTMLButtonElement>(null);
+  
+  // Handle indeterminate state for company checkbox
+  useEffect(() => {
+    if (checkboxRef.current && companySelectionState === 'indeterminate') {
+      const input = checkboxRef.current.querySelector('input');
+      if (input) {
+        input.indeterminate = true;
+      }
+    }
+  }, [companySelectionState]);
   return (
     <Card
       className={cn(
@@ -133,15 +153,18 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
         onClick={onToggleExpand}
         className="p-3"
       >
-        <div className="flex items-center gap-3">
-          {/* Checkbox - hidden completely */}
-          <Checkbox 
-            checked={isSelected}
-            onCheckedChange={() => onToggleSelection({stopPropagation: () => {}} as React.MouseEvent, company.id)}
-            onClick={(e) => e.stopPropagation()}
-            aria-label={`Select ${company.name}`}
-            className="mt-0.5 hidden"
-          />
+        <div className="flex items-center">
+          {/* Company checkbox with sliding animation */}
+          <div className={cn("transition-all duration-300 ease-out overflow-hidden", shouldShowCompanyCheckbox ? "w-6 mr-1" : "w-0 mr-0")}>
+            <Checkbox 
+              ref={checkboxRef}
+              checked={companySelectionState === 'checked' || companySelectionState === 'indeterminate'}
+              onCheckedChange={onCompanyCheckboxChange}
+              onClick={(e) => e.stopPropagation()}
+              aria-label={`Select ${company.name}`}
+              className="mt-0.5"
+            />
+          </div>
           
           {/* Company Info */}
           <div className="flex-1 min-w-0">
@@ -355,6 +378,8 @@ export default function CompanyCards({
   selectedEmailContact,
   selectedContacts = new Set<number>(),
   onContactSelectionChange,
+  getCompanySelectionState,
+  onCompanySelectionChange,
   topActionsTrailing
 }: CompanyCardsProps) {
   const [, setLocation] = useLocation();
@@ -369,10 +394,14 @@ export default function CompanyCards({
   // State to highlight navigation buttons
   const [highlightNavButtons, setHighlightNavButtons] = useState(false);
   
-  // Checkbox visibility state
+  // Checkbox visibility state for contacts
   const [hoveredContactId, setHoveredContactId] = useState<number | null>(null);
   const [hoverTimer, setHoverTimer] = useState<NodeJS.Timeout | null>(null);
   const [globalCheckboxMode, setGlobalCheckboxMode] = useState(false);
+  
+  // Checkbox visibility state for companies
+  const [hoveredCompanyId, setHoveredCompanyId] = useState<number | null>(null);
+  const [companyHoverTimer, setCompanyHoverTimer] = useState<NodeJS.Timeout | null>(null);
   
   // Toggle expansion state for a company card
   const toggleCardExpansion = (companyId: number) => {
@@ -489,6 +518,48 @@ export default function CompanyCards({
     }
   }, [selectedContacts.size]);
   
+  // Handle company card hover
+  const handleCompanyHover = (companyId: number) => {
+    // Clear existing timer
+    if (companyHoverTimer) {
+      clearTimeout(companyHoverTimer);
+    }
+    
+    // Set new timer for 1.5s (same as contacts)
+    const timer = setTimeout(() => {
+      setHoveredCompanyId(companyId);
+    }, 1500);
+    
+    setCompanyHoverTimer(timer);
+  };
+  
+  // Handle company card mouse leave
+  const handleCompanyLeave = () => {
+    // Clear timer
+    if (companyHoverTimer) {
+      clearTimeout(companyHoverTimer);
+      setCompanyHoverTimer(null);
+    }
+    // Clear hovered company
+    setHoveredCompanyId(null);
+  };
+  
+  // Check if company checkbox should be visible
+  const shouldShowCompanyCheckbox = (companyId: number) => {
+    // Always show on mobile/touch devices
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    if (isTouchDevice) return true;
+    
+    // Show if: hovered OR has selected contacts OR global mode active
+    const company = companies.find(c => c.id === companyId);
+    if (!company) return false;
+    
+    const selectionState = getCompanySelectionState?.(company);
+    return hoveredCompanyId === companyId || 
+           selectionState !== 'unchecked' || 
+           globalCheckboxMode;
+  };
+  
   // Auto-expand first company when new search results arrive
   useEffect(() => {
     if (companies.length > 0 && expandedCards.size === 0) {
@@ -602,64 +673,80 @@ export default function CompanyCards({
       {viewMode === 'scroll' ? (
         // Scroll View - Show all companies
         companies.map((company) => (
-          <CompanyCard
+          <div
             key={`company-${company.id}`}
-            company={company}
-            isExpanded={isCardExpanded(company.id)}
-            onToggleExpand={() => toggleCardExpansion(company.id)}
-            isSelected={false}
-            onToggleSelection={() => {}}
-            selectedContacts={selectedContacts}
-            onToggleContactSelection={toggleContactSelection}
-            handleCompanyView={handleCompanyView}
-            handleHunterSearch={handleHunterSearch}
-            handleApolloSearch={handleApolloSearch}
-            handleEnrichContact={handleEnrichContact}
-            handleComprehensiveEmailSearch={handleComprehensiveEmailSearch}
-            pendingHunterIds={pendingHunterIds}
-            pendingApolloIds={pendingApolloIds}
-            pendingContactIds={pendingContactIds}
-            pendingComprehensiveSearchIds={pendingComprehensiveSearchIds}
-            onContactClick={handleContactCardClick}
-            onContactHover={handleContactHover}
-            onContactLeave={handleContactLeave}
-            shouldShowCheckbox={shouldShowCheckbox}
-            setLocation={setLocation}
-            topContacts={getTopContacts(company)}
-            viewMode={viewMode}
-            selectedEmailContact={selectedEmailContact}
-          />
+            onMouseEnter={() => handleCompanyHover(company.id)}
+            onMouseLeave={() => handleCompanyLeave()}
+          >
+            <CompanyCard
+              company={company}
+              isExpanded={isCardExpanded(company.id)}
+              onToggleExpand={() => toggleCardExpansion(company.id)}
+              isSelected={false}
+              onToggleSelection={() => {}}
+              selectedContacts={selectedContacts}
+              onToggleContactSelection={toggleContactSelection}
+              companySelectionState={getCompanySelectionState?.(company)}
+              onCompanyCheckboxChange={() => onCompanySelectionChange?.(company)}
+              shouldShowCompanyCheckbox={shouldShowCompanyCheckbox(company.id)}
+              handleCompanyView={handleCompanyView}
+              handleHunterSearch={handleHunterSearch}
+              handleApolloSearch={handleApolloSearch}
+              handleEnrichContact={handleEnrichContact}
+              handleComprehensiveEmailSearch={handleComprehensiveEmailSearch}
+              pendingHunterIds={pendingHunterIds}
+              pendingApolloIds={pendingApolloIds}
+              pendingContactIds={pendingContactIds}
+              pendingComprehensiveSearchIds={pendingComprehensiveSearchIds}
+              onContactClick={handleContactCardClick}
+              onContactHover={handleContactHover}
+              onContactLeave={handleContactLeave}
+              shouldShowCheckbox={shouldShowCheckbox}
+              setLocation={setLocation}
+              topContacts={getTopContacts(company)}
+              viewMode={viewMode}
+              selectedEmailContact={selectedEmailContact}
+            />
+          </div>
         ))
       ) : (
         // Slides View - Show one company at a time
         companies.length > 0 && (
-          <CompanyCard
-            key={`company-${companies[currentSlideIndex].id}`}
-            company={companies[currentSlideIndex]}
-            isExpanded={isCardExpanded(companies[currentSlideIndex].id)}
-            onToggleExpand={() => toggleCardExpansion(companies[currentSlideIndex].id)}
-            isSelected={false}
-            onToggleSelection={() => {}}
-            selectedContacts={selectedContacts}
-            onToggleContactSelection={toggleContactSelection}
-            handleCompanyView={handleCompanyView}
-            handleHunterSearch={handleHunterSearch}
-            handleApolloSearch={handleApolloSearch}
-            handleEnrichContact={handleEnrichContact}
-            handleComprehensiveEmailSearch={handleComprehensiveEmailSearch}
-            pendingHunterIds={pendingHunterIds}
-            pendingApolloIds={pendingApolloIds}
-            pendingContactIds={pendingContactIds}
-            pendingComprehensiveSearchIds={pendingComprehensiveSearchIds}
-            onContactClick={handleContactCardClick}
-            onContactHover={handleContactHover}
-            onContactLeave={handleContactLeave}
-            shouldShowCheckbox={shouldShowCheckbox}
-            setLocation={setLocation}
-            topContacts={getTopContacts(companies[currentSlideIndex])}
-            viewMode={viewMode}
-            selectedEmailContact={selectedEmailContact}
-          />
+          <div
+            onMouseEnter={() => handleCompanyHover(companies[currentSlideIndex].id)}
+            onMouseLeave={() => handleCompanyLeave()}
+          >
+            <CompanyCard
+              key={`company-${companies[currentSlideIndex].id}`}
+              company={companies[currentSlideIndex]}
+              isExpanded={isCardExpanded(companies[currentSlideIndex].id)}
+              onToggleExpand={() => toggleCardExpansion(companies[currentSlideIndex].id)}
+              isSelected={false}
+              onToggleSelection={() => {}}
+              selectedContacts={selectedContacts}
+              onToggleContactSelection={toggleContactSelection}
+              companySelectionState={getCompanySelectionState?.(companies[currentSlideIndex])}
+              onCompanyCheckboxChange={() => onCompanySelectionChange?.(companies[currentSlideIndex])}
+              shouldShowCompanyCheckbox={shouldShowCompanyCheckbox(companies[currentSlideIndex].id)}
+              handleCompanyView={handleCompanyView}
+              handleHunterSearch={handleHunterSearch}
+              handleApolloSearch={handleApolloSearch}
+              handleEnrichContact={handleEnrichContact}
+              handleComprehensiveEmailSearch={handleComprehensiveEmailSearch}
+              pendingHunterIds={pendingHunterIds}
+              pendingApolloIds={pendingApolloIds}
+              pendingContactIds={pendingContactIds}
+              pendingComprehensiveSearchIds={pendingComprehensiveSearchIds}
+              onContactClick={handleContactCardClick}
+              onContactHover={handleContactHover}
+              onContactLeave={handleContactLeave}
+              shouldShowCheckbox={shouldShowCheckbox}
+              setLocation={setLocation}
+              topContacts={getTopContacts(companies[currentSlideIndex])}
+              viewMode={viewMode}
+              selectedEmailContact={selectedEmailContact}
+            />
+          </div>
         )
       )}
     </div>

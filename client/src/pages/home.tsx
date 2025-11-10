@@ -2005,6 +2005,43 @@ export default function Home() {
     return selectedContacts.has(contactId);
   };
 
+  // Company selection functions (derived from contact selection)
+  const getCompanySelectionState = (company: CompanyWithContacts): 'checked' | 'indeterminate' | 'unchecked' => {
+    const contactsWithEmails = company.contacts?.filter(c => c.email) || [];
+    if (contactsWithEmails.length === 0) return 'unchecked';
+    
+    const selectedCount = contactsWithEmails.filter(c => selectedContacts.has(c.id)).length;
+    
+    if (selectedCount === 0) return 'unchecked';
+    if (selectedCount === contactsWithEmails.length) return 'checked';
+    return 'indeterminate';
+  };
+  
+  const handleCompanyCheckboxChange = (company: CompanyWithContacts) => {
+    const contactsWithEmails = company.contacts?.filter(c => c.email) || [];
+    if (contactsWithEmails.length === 0) return;
+    
+    const currentState = getCompanySelectionState(company);
+    
+    setSelectedContacts(prev => {
+      const newSelected = new Set(prev);
+      
+      if (currentState === 'checked' || currentState === 'indeterminate') {
+        // Deselect all contacts with emails in this company
+        contactsWithEmails.forEach(contact => {
+          newSelected.delete(contact.id);
+        });
+      } else {
+        // Select all contacts with emails in this company
+        contactsWithEmails.forEach(contact => {
+          newSelected.add(contact.id);
+        });
+      }
+      
+      return newSelected;
+    });
+  };
+
   const handleSelectAllContacts = () => {
     const prospects = getTopProspects();
     if (prospects.length === 0) return;
@@ -2298,6 +2335,8 @@ export default function Home() {
                       selectedEmailContact={emailDrawer.selectedContact}
                       selectedContacts={selectedContacts}
                       onContactSelectionChange={handleCheckboxChange}
+                      getCompanySelectionState={getCompanySelectionState}
+                      onCompanySelectionChange={handleCompanyCheckboxChange}
                       topActionsTrailing={selectedContacts.size > 0 ? (
                         <SelectionToolbar
                           selectedCount={selectedContacts.size}
