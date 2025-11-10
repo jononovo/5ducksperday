@@ -309,13 +309,18 @@ export function registerCampaignsRoutes(app: Application, requireAuth: any) {
         return res.status(404).json({ message: 'Campaign not found or access denied' });
       }
       
-      // Allow adding to active or scheduled campaigns (not completed ones)
+      // Allow adding to any campaign, but provide appropriate messaging
+      let statusNote = '';
       if (campaign.status === 'completed') {
-        return res.status(400).json({ message: 'Cannot add contacts to a completed campaign' });
-      }
-      
-      if (campaign.status === 'paused') {
-        return res.status(400).json({ message: 'Cannot add contacts to a paused campaign. Please resume the campaign first.' });
+        statusNote = 'Campaign is completed. Use the restart feature to process these new contacts.';
+      } else if (campaign.status === 'paused') {
+        statusNote = 'Campaign is paused. Contacts will be processed when you resume the campaign.';
+      } else if (campaign.status === 'draft') {
+        statusNote = 'Campaign is in draft. Contacts will be processed when you activate the campaign.';
+      } else if (campaign.status === 'scheduled') {
+        statusNote = 'Campaign is scheduled. Contacts will be processed when the campaign activates.';
+      } else {
+        statusNote = 'Contacts will be processed in the next email queue cycle (within 30 seconds)';
       }
       
       // Get contact details
@@ -352,12 +357,10 @@ export function registerCampaignsRoutes(app: Application, requireAuth: any) {
       
       res.json({ 
         success: true,
-        message: `Successfully added contacts to the campaign`,
+        message: `Successfully added ${recipients.length} contacts to the campaign`,
         addedCount: recipients.length,
         campaignStatus: campaign.status,
-        note: campaign.status === 'active' 
-          ? 'Contacts will be processed in the next email queue cycle (within 30 seconds)' 
-          : 'Campaign is scheduled. Contacts will be processed when the campaign activates.'
+        note: statusNote
       });
       
     } catch (error) {
