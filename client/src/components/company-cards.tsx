@@ -231,7 +231,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
                   onMouseEnter={() => onContactHover?.(contact.id)}
                   onMouseLeave={() => onContactLeave?.()}
                 >
-                  <div className={cn("transition-all duration-300 ease-out overflow-hidden", shouldShowCheckbox?.(contact.id) ? "w-6 mr-3" : "w-0 mr-0")}>
+                  <div className={cn("transition-all duration-300 ease-out overflow-hidden", shouldShowCheckbox?.(contact.id) ? "w-6 mr-1.5" : "w-0 mr-0")}>
                     <Checkbox 
                       checked={selectedContacts.has(contact.id)}
                       onCheckedChange={() => onToggleContactSelection(null, contact.id)}
