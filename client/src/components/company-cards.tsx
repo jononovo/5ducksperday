@@ -219,7 +219,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
                 <div
                   key={`${company.id}-contact-${contact.id}`}
                   className={cn(
-                    "group flex items-center gap-3 p-2 rounded-md cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200",
+                    "group flex items-center p-2 rounded-md cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200",
                     selectedEmailContact?.id === contact.id 
                       ? contact.email 
                         ? "border-l-4 border-dashed border-yellow-400/40 border-4 border-yellow-400/20 border-dashed shadow-md" 
@@ -231,7 +231,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
                   onMouseEnter={() => onContactHover?.(contact.id)}
                   onMouseLeave={() => onContactLeave?.()}
                 >
-                  <div className={cn("transition-all duration-200 overflow-hidden", shouldShowCheckbox?.(contact.id) ? "w-6" : "w-0")}>
+                  <div className={cn("transition-all duration-300 ease-out overflow-hidden", shouldShowCheckbox?.(contact.id) ? "w-6 mr-3" : "w-0 mr-0")}>
                     <Checkbox 
                       checked={selectedContacts.has(contact.id)}
                       onCheckedChange={() => onToggleContactSelection(null, contact.id)}
@@ -241,7 +241,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
                     />
                   </div>
                   
-                  <div className="flex-1 min-w-0 transition-all duration-200">
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1">
                         <div className="font-medium text-sm">{contact.name}</div>
