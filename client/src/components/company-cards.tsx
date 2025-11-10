@@ -511,11 +511,9 @@ export default function CompanyCards({
            globalCheckboxMode;
   };
   
-  // Reset global checkbox mode when no contacts selected
+  // Set global checkbox mode based on whether any contacts are selected
   useEffect(() => {
-    if (selectedContacts.size === 0) {
-      setGlobalCheckboxMode(false);
-    }
+    setGlobalCheckboxMode(selectedContacts.size > 0);
   }, [selectedContacts.size]);
   
   // Handle company card hover
