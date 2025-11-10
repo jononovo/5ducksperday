@@ -141,8 +141,8 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
       });
       setReportDialogOpen(true);
       
-      // Clear selections after successful add
-      onClear();
+      // DON'T clear selections here - wait for report dialog to close
+      // This keeps SelectionToolbar mounted so the dialog can be shown
       setShowListSelector(false);
       setSelectedContactList("");
       setPendingListId(null);
@@ -192,8 +192,8 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
       });
       setReportDialogOpen(true);
       
-      // Clear selections after successful add
-      onClear();
+      // DON'T clear selections here - wait for report dialog to close
+      // This keeps SelectionToolbar mounted so the dialog can be shown
       setShowCampaignSelector(false);
       setSelectedCampaign("");
       setPendingCampaignId(null);
@@ -518,7 +518,10 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
               </div>
             </div>
             <DialogFooter>
-              <Button onClick={() => setReportDialogOpen(false)}>
+              <Button onClick={() => {
+                setReportDialogOpen(false);
+                onClear(); // Clear selections now that user has seen the report
+              }}>
                 OK
               </Button>
             </DialogFooter>
