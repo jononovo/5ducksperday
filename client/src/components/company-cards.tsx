@@ -236,7 +236,12 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
                     onCheckedChange={() => onToggleContactSelection(null, contact.id)}
                     onClick={(e) => e.stopPropagation()}
                     aria-label={`Select ${contact.name}`}
-                    className={cn("mt-0.5", shouldShowCheckbox?.(contact.id) ? "" : "hidden")}
+                    className={cn(
+                      "mt-0.5 transition-all duration-200 ease-in-out",
+                      shouldShowCheckbox?.(contact.id) 
+                        ? "opacity-100 scale-100" 
+                        : "opacity-0 scale-95 pointer-events-none"
+                    )}
                   />
                   
                   <div className="flex-1 min-w-0">
