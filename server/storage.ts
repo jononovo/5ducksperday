@@ -807,8 +807,27 @@ class DatabaseStorage implements IStorage {
   async createCampaignRecipients(recipients: any[]): Promise<void> {
     if (recipients.length === 0) return;
     
-    // Batch insert recipients
-    await db.insert(campaignRecipients).values(recipients);
+    // Batch insert recipients, ignoring conflicts (duplicates)
+    await db.insert(campaignRecipients)
+      .values(recipients)
+      .onConflictDoNothing(); // Unique constraint handles duplicates
+  }
+
+  async getContactsByIds(contactIds: number[], userId: number): Promise<Contact[]> {
+    if (contactIds.length === 0) return [];
+    
+    try {
+      return await db
+        .select()
+        .from(contacts)
+        .where(and(
+          inArray(contacts.id, contactIds),
+          eq(contacts.userId, userId)
+        ));
+    } catch (error) {
+      console.error('Error fetching contacts by IDs:', error);
+      return [];
+    }
   }
 
   async updateCampaign(id: number, data: Partial<Campaign>): Promise<Campaign> {

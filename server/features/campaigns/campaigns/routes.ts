@@ -288,5 +288,75 @@ export function registerCampaignsRoutes(app: Application, requireAuth: any) {
     }
   });
 
+  // Add contacts to an active campaign
+  router.post('/:id/add-contacts', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req);
+      const campaignId = parseInt(req.params.id);
+      const { contactIds } = req.body;
+      
+      if (isNaN(campaignId)) {
+        return res.status(400).json({ message: 'Invalid campaign ID' });
+      }
+      
+      if (!contactIds || !Array.isArray(contactIds) || contactIds.length === 0) {
+        return res.status(400).json({ message: 'Contact IDs array is required' });
+      }
+      
+      // Verify campaign exists, belongs to user, and is active
+      const campaign = await storage.getCampaign(campaignId, userId);
+      if (!campaign) {
+        return res.status(404).json({ message: 'Campaign not found or access denied' });
+      }
+      
+      if (campaign.status !== 'active') {
+        return res.status(400).json({ message: 'Campaign must be active to add contacts' });
+      }
+      
+      // Get contact details
+      const contacts = await storage.getContactsByIds(contactIds, userId);
+      
+      if (contacts.length === 0) {
+        return res.status(404).json({ message: 'No valid contacts found' });
+      }
+      
+      // Prepare recipient records
+      const recipients = contacts
+        .filter(contact => contact.email) // Only include contacts with email
+        .map(contact => ({
+          campaignId: campaignId,
+          contactId: contact.id,
+          recipientEmail: contact.email,
+          recipientFirstName: contact.name?.split(' ')[0] || '',
+          recipientLastName: contact.name?.split(' ').slice(1).join(' ') || '',
+          recipientCompany: contact.companyId ? '' : '', // Will be filled if needed
+          status: 'queued' as const, // Start with 'queued' for immediate processing
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }));
+      
+      if (recipients.length === 0) {
+        return res.status(400).json({ message: 'No contacts with valid email addresses found' });
+      }
+      
+      // Batch insert recipients (duplicates automatically ignored by unique constraint)
+      await storage.createCampaignRecipients(recipients);
+      
+      console.log(`Added ${recipients.length} new recipients to campaign ${campaignId}`);
+      
+      res.json({ 
+        success: true,
+        message: `Successfully added ${recipients.length} contacts to the campaign`,
+        addedCount: recipients.length
+      });
+      
+    } catch (error) {
+      console.error('Error adding contacts to campaign:', error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : 'Failed to add contacts to campaign' 
+      });
+    }
+  });
+
   app.use('/api/campaigns', router);
 }
