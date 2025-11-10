@@ -753,8 +753,11 @@ export function EmailComposer({
   };
 
   const handleGenerateEmail = () => {
-    // Validation checks
-    if (!selectedCompany) {
+    // Check if we're generating a template (campaign mode with merge fields)
+    const isGeneratingTemplate = drawerMode === 'campaign' && generationMode === 'merge_field';
+    
+    // Validation checks - skip company requirement for template generation
+    if (!isGeneratingTemplate && !selectedCompany) {
       toast({
         title: "No Company Selected",
         description: "Please select a company to generate an email.",
