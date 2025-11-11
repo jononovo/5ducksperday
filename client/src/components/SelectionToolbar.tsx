@@ -60,15 +60,6 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
     });
   }, [selectedCount, selectedContactIds]);
 
-  // Set indeterminate state on the checkbox element and apply blue styling
-  useEffect(() => {
-    if (checkboxRef.current) {
-      const input = checkboxRef.current.querySelector('input');
-      if (input) {
-        input.indeterminate = selectedCount > 0;
-      }
-    }
-  }, [selectedCount]);
 
   // Fetch contact lists
   const { data: contactLists = [] } = useQuery<ContactList[]>({
