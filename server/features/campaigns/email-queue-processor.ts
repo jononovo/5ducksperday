@@ -724,8 +724,14 @@ export class EmailQueueProcessor {
             // Always log to communication history (not conditional on contactId)
             // This is critical for preventing duplicates and maintaining audit trail
             try {
+              // Debug: Ensure userIdNum is valid
+              console.log(`[EmailQueueProcessor] DEBUG: userIdNum=${userIdNum}, type=${typeof userIdNum}, recipient.userId=${recipient.userId}`);
+              
+              // Use recipient.userId if userIdNum is somehow undefined
+              const effectiveUserId = userIdNum || recipient.userId;
+              
               await db.insert(communicationHistory).values({
-                user_id: userIdNum,
+                user_id: effectiveUserId,
                 contact_id: recipient.contactId || 1,  // Default to 1 if no contactId (temporary workaround)
                 company_id: 1,  // Default to 1 (temporary workaround)
                 campaign_id: recipient.campaignId,
