@@ -25,7 +25,8 @@ import {
   ChevronLeft,
   ChevronRight,
   ScrollText,
-  Layers
+  Layers,
+  Check
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -587,37 +588,63 @@ export default function CompanyCards({
       {/* View Mode Toggle */}
       <div className="flex items-center justify-between -mt-1 mb-2">
         <div className="flex items-center gap-2">
-          {/* Master Checkbox - Always Visible */}
-          <Checkbox 
-            checked={
-              companies.length > 0 && 
-              companies.some(company => company.contacts && company.contacts.length > 0) &&
-              companies.every(company => 
-                company.contacts?.every(contact => selectedContacts.has(contact.id)) ?? true
-              )
-            }
-            onCheckedChange={(checked) => {
-              if (checked) {
-                // Select all contacts from all companies
-                companies.forEach(company => {
-                  company.contacts?.forEach(contact => {
-                    if (!selectedContacts.has(contact.id)) {
-                      onContactSelectionChange?.(contact.id);
-                    }
-                  });
-                });
-              } else {
-                // Deselect all contacts - create a copy of the set to iterate safely
-                const contactsToDeselect = Array.from(selectedContacts);
-                contactsToDeselect.forEach(id => {
-                  onContactSelectionChange?.(id);
-                });
-              }
-            }}
-            aria-label="Select all contacts"
-            data-testid="checkbox-master-select-all"
-            className="mr-2"
-          />
+          {/* Master Checkbox - Always Visible with Three States */}
+          {(() => {
+            // Calculate total contacts
+            const totalContacts = companies.reduce((acc, company) => 
+              acc + (company.contacts?.length || 0), 0
+            );
+            const selectedCount = selectedContacts.size;
+            
+            // Determine checkbox state
+            const isFullySelected = totalContacts > 0 && selectedCount === totalContacts;
+            const isPartiallySelected = selectedCount > 0 && selectedCount < totalContacts;
+            const isEmpty = selectedCount === 0;
+            
+            return (
+              <button
+                onClick={() => {
+                  if (isFullySelected || isPartiallySelected) {
+                    // Deselect all
+                    const contactsToDeselect = Array.from(selectedContacts);
+                    contactsToDeselect.forEach(id => {
+                      onContactSelectionChange?.(id);
+                    });
+                  } else {
+                    // Select all
+                    companies.forEach(company => {
+                      company.contacts?.forEach(contact => {
+                        if (!selectedContacts.has(contact.id)) {
+                          onContactSelectionChange?.(contact.id);
+                        }
+                      });
+                    });
+                  }
+                }}
+                className={cn(
+                  "h-4 w-4 rounded-sm border ring-offset-background transition-all",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                  "mr-2 flex items-center justify-center",
+                  isFullySelected && "bg-primary border-primary",
+                  isPartiallySelected && "border-primary bg-white dark:bg-gray-950",
+                  isEmpty && "border-input bg-white dark:bg-gray-950 hover:border-primary/50"
+                )}
+                aria-label={
+                  isFullySelected ? "Deselect all contacts" :
+                  isPartiallySelected ? `${selectedCount} of ${totalContacts} selected` :
+                  "Select all contacts"
+                }
+                data-testid="checkbox-master-select-all"
+              >
+                {isFullySelected && (
+                  <Check className="h-3 w-3 text-primary-foreground" />
+                )}
+                {isPartiallySelected && (
+                  <Check className="h-2.5 w-2.5 text-primary" />
+                )}
+              </button>
+            );
+          })()}
           
           {/* Desktop: Selection Toolbar (positioned first) */}
           {topActionsTrailing && (
