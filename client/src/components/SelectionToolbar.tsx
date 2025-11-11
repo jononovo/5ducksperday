@@ -322,13 +322,12 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
           onValueChange={(value) => {
             console.log('[SelectionToolbar] List value changed:', value);
             setSelectedContactList(value);
+            setShowListSelector(false); // Hide selector after selection
           }}
-          open={true}
           onOpenChange={(open) => {
             console.log('[SelectionToolbar] Select open state changed:', open);
-            if (!open) {
-              setShowListSelector(false);
-              // Don't reset selectedContactList here - let the mutation handle cleanup
+            if (!open && !selectedContactList) {
+              setShowListSelector(false); // Only hide if no selection was made
             }
           }}
         >
@@ -354,13 +353,12 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
           onValueChange={(value) => {
             console.log('[SelectionToolbar] Campaign value changed:', value);
             setSelectedCampaign(value);
+            setShowCampaignSelector(false); // Hide selector after selection
           }}
-          open={true}
           onOpenChange={(open) => {
             console.log('[SelectionToolbar] Campaign select open state changed:', open);
-            if (!open) {
-              setShowCampaignSelector(false);
-              // Don't reset selectedCampaign here - let the mutation handle cleanup
+            if (!open && !selectedCampaign) {
+              setShowCampaignSelector(false); // Only hide if no selection was made
             }
           }}
         >
