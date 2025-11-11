@@ -356,7 +356,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
                       e.stopPropagation(); // Prevent card toggle
                       onToggleShowAllContacts();
                     }}
-                    className="w-full text-xs text-muted-foreground hover:text-primary hover:bg-accent/50 transition-all py-2 rounded-md"
+                    className="w-full text-xs text-muted-foreground hover:text-gray-600 dark:hover:text-gray-400 hover:bg-accent/50 transition-all py-2 rounded-md"
                   >
                     {showAllContacts 
                       ? "Show fewer contacts" 
