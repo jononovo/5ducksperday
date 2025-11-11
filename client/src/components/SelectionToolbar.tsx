@@ -225,8 +225,13 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
         const invalidCount = selectedContacts.filter(c => !c.email).length;
         setInvalidContactsCount(invalidCount);
         setPendingListId(listId);
-        setConfirmListDialogOpen(true);
         setShowListSelector(false); // Hide selector immediately
+        
+        // Defer opening the dialog to ensure the dropdown has fully closed
+        // This prevents the selection click from auto-confirming the dialog
+        setTimeout(() => {
+          setConfirmListDialogOpen(true);
+        }, 100);
       } else if (selectedContactIds.length === 0) {
         console.warn('[SelectionToolbar] No contacts selected to add');
         toast({
@@ -256,8 +261,13 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
         const invalidCount = selectedContacts.filter(c => !c.email).length;
         setInvalidContactsCount(invalidCount);
         setPendingCampaignId(campaignId);
-        setConfirmCampaignDialogOpen(true);
         setShowCampaignSelector(false); // Hide selector immediately
+        
+        // Defer opening the dialog to ensure the dropdown has fully closed
+        // This prevents the selection click from auto-confirming the dialog
+        setTimeout(() => {
+          setConfirmCampaignDialogOpen(true);
+        }, 100);
       } else if (selectedContactIds.length === 0) {
         console.warn('[SelectionToolbar] No contacts selected to add to campaign');
         toast({
@@ -323,7 +333,6 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
             console.log('[SelectionToolbar] List value changed:', value);
             setSelectedContactList(value);
           }}
-          open={true}
           onOpenChange={(open) => {
             console.log('[SelectionToolbar] Select open state changed:', open);
             if (!open) {
@@ -355,7 +364,6 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
             console.log('[SelectionToolbar] Campaign value changed:', value);
             setSelectedCampaign(value);
           }}
-          open={true}
           onOpenChange={(open) => {
             console.log('[SelectionToolbar] Campaign select open state changed:', open);
             if (!open) {
