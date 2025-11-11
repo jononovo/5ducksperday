@@ -587,6 +587,32 @@ export default function CompanyCards({
       {/* View Mode Toggle */}
       <div className="flex items-center justify-between -mt-1 mb-2">
         <div className="flex items-center gap-2">
+          {/* Master Checkbox - Always Visible */}
+          <Checkbox 
+            checked={companies.length > 0 && companies.every(company => {
+              if (!company.contacts) return false;
+              return company.contacts.every(contact => selectedContacts.has(contact.id));
+            })}
+            onCheckedChange={(checked) => {
+              if (checked) {
+                // Select all contacts from all companies
+                const allContactIds = new Set<number>();
+                companies.forEach(company => {
+                  company.contacts?.forEach(contact => {
+                    allContactIds.add(contact.id);
+                  });
+                });
+                allContactIds.forEach(id => onContactSelectionChange?.(id));
+              } else {
+                // Deselect all contacts
+                selectedContacts.forEach(id => onContactSelectionChange?.(id));
+              }
+            }}
+            aria-label="Select all contacts"
+            data-testid="checkbox-master-select-all"
+            className="mr-2"
+          />
+          
           {/* Desktop: Selection Toolbar (positioned first) */}
           {topActionsTrailing && (
             <div className="hidden md:flex">
