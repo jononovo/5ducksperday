@@ -329,7 +329,12 @@ export function EmailComposer({
   // Helper functions to get/set the correct state based on generation mode
   const getCurrentSubject = () => {
     if (drawerMode === 'campaign') {
-      return generationMode === 'merge_field' ? templateSubject : aiSubject;
+      // For merge_field mode, always return the original template with raw merge fields
+      // This ensures campaigns are saved with placeholders, not resolved preview values
+      if (generationMode === 'merge_field') {
+        return templateOriginalSubject || templateSubject;
+      }
+      return aiSubject;
     }
     return emailSubject; // Use shared state for compose mode
   };
@@ -343,7 +348,12 @@ export function EmailComposer({
   
   const getCurrentContent = () => {
     if (drawerMode === 'campaign') {
-      return generationMode === 'merge_field' ? templateContent : aiContent;
+      // For merge_field mode, always return the original template with raw merge fields
+      // This ensures campaigns are saved with placeholders, not resolved preview values
+      if (generationMode === 'merge_field') {
+        return templateOriginalContent || templateContent;
+      }
+      return aiContent;
     }
     return emailContent;
   };
