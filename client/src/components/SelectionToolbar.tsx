@@ -1,18 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ChevronDown, CheckSquare } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { CheckSquare } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
@@ -27,6 +14,11 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { ContactList, Campaign, Contact } from "@shared/schema";
+
+// Import extracted components
+import { BulkAddDropdown } from "./selection-toolbar/BulkAddDropdown";
+import { ListSelector } from "./selection-toolbar/ListSelector";
+import { CampaignSelector } from "./selection-toolbar/CampaignSelector";
 
 interface SelectionToolbarProps {
   selectedCount: number;
@@ -319,83 +311,39 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
   const toolbar = (
     <div className={`flex items-center gap-2 ${isMobile ? 'w-full justify-between px-4 py-2 bg-background border-t' : ''}`}>
       {showListSelector ? (
-        <Select
+        <ListSelector
           value={selectedContactList}
           open={listSelectorOpen}
+          contactLists={contactLists}
           onValueChange={(value) => {
-            console.log('[SelectionToolbar] List value changed:', value);
             setSelectedContactList(value);
             setListSelectorOpen(false);
             setShowListSelector(false); // Hide selector after selection
           }}
           onOpenChange={(open) => {
-            console.log('[SelectionToolbar] Select open state changed:', open);
             setListSelectorOpen(open);
             if (!open && !selectedContactList) {
               setShowListSelector(false); // Hide selector if closed without selection
             }
           }}
-        >
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Choose a contact list" />
-          </SelectTrigger>
-          <SelectContent>
-            {contactLists.map((list) => (
-              <SelectItem key={list.id} value={list.id.toString()}>
-                <div className="flex items-center justify-between w-full">
-                  <span>{list.name}</span>
-                  <span className="text-xs text-muted-foreground ml-2">
-                    {list.contactCount} contacts
-                  </span>
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        />
       ) : showCampaignSelector ? (
-        <Select
+        <CampaignSelector
           value={selectedCampaign}
           open={campaignSelectorOpen}
+          campaigns={activeCampaigns}
           onValueChange={(value) => {
-            console.log('[SelectionToolbar] Campaign value changed:', value);
             setSelectedCampaign(value);
             setCampaignSelectorOpen(false);
             setShowCampaignSelector(false); // Hide selector after selection
           }}
           onOpenChange={(open) => {
-            console.log('[SelectionToolbar] Campaign select open state changed:', open);
             setCampaignSelectorOpen(open);
             if (!open && !selectedCampaign) {
               setShowCampaignSelector(false); // Hide selector if closed without selection
             }
           }}
-        >
-          <SelectTrigger className="w-[250px]">
-            <SelectValue placeholder={
-              activeCampaigns.length === 0 
-                ? "No active campaigns available" 
-                : "Choose an active campaign"
-            } />
-          </SelectTrigger>
-          <SelectContent>
-            {activeCampaigns.length === 0 ? (
-              <div className="p-2 text-sm text-muted-foreground">
-                No active campaigns found. Please create and activate a campaign first.
-              </div>
-            ) : (
-              activeCampaigns.map((campaign) => (
-                <SelectItem key={campaign.id} value={campaign.id.toString()}>
-                  <div className="flex flex-col">
-                    <span>{campaign.name}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {campaign.subject ? campaign.subject.substring(0, 50) + '...' : 'No subject'}
-                    </span>
-                  </div>
-                </SelectItem>
-              ))
-            )}
-          </SelectContent>
-        </Select>
+        />
       ) : (
         <div className="flex items-center gap-1.5">
           {/* Gmail-style checkbox with indeterminate state */}
@@ -410,35 +358,16 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
           {/* Selected count displayed separately */}
           <span className="text-primary text-[11px] font-medium">{selectedCount}</span>
           
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="h-6 px-2 text-[11px] font-medium text-gray-600"
-                title="Add selected to list"
-              >
-                Add to
-                <ChevronDown className="h-3 w-3 ml-1" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => {
-                console.log('[SelectionToolbar] "Contact List" clicked, showing selector');
-                setShowListSelector(true);
-                setListSelectorOpen(true); // Automatically open the Select
-              }}>
-                Contact List
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => {
-                console.log('[SelectionToolbar] "Campaign" clicked, showing selector');
-                setShowCampaignSelector(true);
-                setCampaignSelectorOpen(true); // Automatically open the Select
-              }}>
-                Campaign
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <BulkAddDropdown 
+            onSelectList={() => {
+              setShowListSelector(true);
+              setListSelectorOpen(true); // Automatically open the Select
+            }}
+            onSelectCampaign={() => {
+              setShowCampaignSelector(true);
+              setCampaignSelectorOpen(true); // Automatically open the Select
+            }}
+          />
         </div>
       )}
     </div>
