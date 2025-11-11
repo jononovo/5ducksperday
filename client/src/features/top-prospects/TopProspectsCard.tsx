@@ -75,7 +75,7 @@ export function TopProspectsCard({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-10 hidden">
+                <TableHead className="w-10">
                   <Checkbox 
                     checked={prospects.length > 0 && prospects.every(contact => selectedContacts.has(contact.id))}
                     onCheckedChange={handleSelectAllContacts}
@@ -93,7 +93,7 @@ export function TopProspectsCard({
             <TableBody>
               {prospects.map((contact) => (
                 <TableRow key={contact.id} className="group" data-testid={`row-prospect-${contact.id}`}>
-                  <TableCell className="w-10 hidden">
+                  <TableCell className="w-10">
                     <Checkbox 
                       checked={isContactSelected(contact.id)}
                       onCheckedChange={() => onCheckboxChange(contact.id)}
