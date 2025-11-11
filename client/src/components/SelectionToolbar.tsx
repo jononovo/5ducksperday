@@ -37,6 +37,8 @@ interface SelectionToolbarProps {
 export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }: SelectionToolbarProps) {
   const [showListSelector, setShowListSelector] = useState(false);
   const [showCampaignSelector, setShowCampaignSelector] = useState(false);
+  const [listSelectorOpen, setListSelectorOpen] = useState(false);
+  const [campaignSelectorOpen, setCampaignSelectorOpen] = useState(false);
   const [selectedContactList, setSelectedContactList] = useState<string>("");
   const [selectedCampaign, setSelectedCampaign] = useState<string>("");
   const { toast } = useToast();
@@ -319,15 +321,18 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
       {showListSelector ? (
         <Select
           value={selectedContactList}
+          open={listSelectorOpen}
           onValueChange={(value) => {
             console.log('[SelectionToolbar] List value changed:', value);
             setSelectedContactList(value);
+            setListSelectorOpen(false);
             setShowListSelector(false); // Hide selector after selection
           }}
           onOpenChange={(open) => {
             console.log('[SelectionToolbar] Select open state changed:', open);
+            setListSelectorOpen(open);
             if (!open && !selectedContactList) {
-              setShowListSelector(false); // Only hide if no selection was made
+              setShowListSelector(false); // Hide selector if closed without selection
             }
           }}
         >
@@ -350,15 +355,18 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
       ) : showCampaignSelector ? (
         <Select
           value={selectedCampaign}
+          open={campaignSelectorOpen}
           onValueChange={(value) => {
             console.log('[SelectionToolbar] Campaign value changed:', value);
             setSelectedCampaign(value);
+            setCampaignSelectorOpen(false);
             setShowCampaignSelector(false); // Hide selector after selection
           }}
           onOpenChange={(open) => {
             console.log('[SelectionToolbar] Campaign select open state changed:', open);
+            setCampaignSelectorOpen(open);
             if (!open && !selectedCampaign) {
-              setShowCampaignSelector(false); // Only hide if no selection was made
+              setShowCampaignSelector(false); // Hide selector if closed without selection
             }
           }}
         >
@@ -418,12 +426,14 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
               <DropdownMenuItem onClick={() => {
                 console.log('[SelectionToolbar] "Contact List" clicked, showing selector');
                 setShowListSelector(true);
+                setListSelectorOpen(true); // Automatically open the Select
               }}>
                 Contact List
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => {
                 console.log('[SelectionToolbar] "Campaign" clicked, showing selector');
                 setShowCampaignSelector(true);
+                setCampaignSelectorOpen(true); // Automatically open the Select
               }}>
                 Campaign
               </DropdownMenuItem>
