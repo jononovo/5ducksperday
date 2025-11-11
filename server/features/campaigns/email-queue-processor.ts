@@ -725,17 +725,17 @@ export class EmailQueueProcessor {
             // This is critical for preventing duplicates and maintaining audit trail
             try {
               await db.insert(communicationHistory).values({
-                userId: userIdNum,
-                contactId: recipient.contactId || null,  // Can be null
-                companyId: null,  // We don't have this for campaign recipients
-                campaignId: recipient.campaignId,
+                user_id: userIdNum,
+                contact_id: recipient.contactId || 1,  // Default to 1 if no contactId (temporary workaround)
+                company_id: 1,  // Default to 1 (temporary workaround)
+                campaign_id: recipient.campaignId,
                 channel: 'email',
                 direction: 'outbound',
                 status: 'sent',
                 subject: resolvedSubject,
                 content: resolvedContent?.substring(0, 500) || 'Campaign email', // Store first 500 chars for reference
-                contentPreview: resolvedContent?.substring(0, 200) || 'Campaign email',
-                sentAt: new Date(),
+                content_preview: resolvedContent?.substring(0, 200) || 'Campaign email',
+                sent_at: new Date(),
                 metadata: {
                   gmailMessageId: gmailResult?.messageId,
                   gmailThreadId: gmailResult?.threadId,
@@ -744,8 +744,8 @@ export class EmailQueueProcessor {
                   recipientCompany: recipient.recipientCompany,
                   campaignRecipientId: recipient.id
                 },
-                createdAt: new Date(),
-                updatedAt: new Date()
+                created_at: new Date(),
+                updated_at: new Date()
               });
               console.log(`[EmailQueueProcessor] HISTORY-LOGGED: Campaign ${recipient.campaignId}, Recipient ${recipient.recipientEmail}`);
             } catch (historyError) {
