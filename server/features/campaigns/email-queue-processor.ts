@@ -705,7 +705,8 @@ export class EmailQueueProcessor {
               mergeContext
             );
             
-            console.log(`[EmailQueueProcessor] Sending email ${i + 1}/${recipientsToProcess.length} to ${recipient.recipientEmail}`);
+            // Debug log: Track each send attempt
+            console.log(`[EmailQueueProcessor] SENDING: Campaign ${recipient.campaignId}, Email ${i + 1}/${recipientsToProcess.length} to ${recipient.recipientEmail}`);
             
             // Send email via Gmail with resolved content and custom sender name
             const gmailResult = await GmailOAuthService.sendEmail(
@@ -717,31 +718,39 @@ export class EmailQueueProcessor {
               senderProfile?.displayName  // Pass custom sender display name if available
             );
 
-            // Track sent email in communication history (essential fields only)
-            // This prevents duplicate sends and maintains audit trail
-            if (recipient.contactId) {
-              // Get company ID from contact
-              const contact = await db.query.contacts.findFirst({
-                where: eq(contacts.id, recipient.contactId),
-                columns: { companyId: true }
+            // Log Gmail success with message ID for tracking
+            console.log(`[EmailQueueProcessor] GMAIL-SUCCESS: Campaign ${recipient.campaignId}, Recipient ${recipient.recipientEmail}, MessageId: ${gmailResult?.messageId || 'N/A'}`);
+
+            // Always log to communication history (not conditional on contactId)
+            // This is critical for preventing duplicates and maintaining audit trail
+            try {
+              await db.insert(communicationHistory).values({
+                userId: userIdNum,
+                contactId: recipient.contactId || null,  // Can be null
+                companyId: null,  // We don't have this for campaign recipients
+                campaignId: recipient.campaignId,
+                channel: 'email',
+                direction: 'outbound',
+                status: 'sent',
+                subject: resolvedSubject,
+                content: resolvedContent?.substring(0, 500) || 'Campaign email', // Store first 500 chars for reference
+                contentPreview: resolvedContent?.substring(0, 200) || 'Campaign email',
+                sentAt: new Date(),
+                metadata: {
+                  gmailMessageId: gmailResult?.messageId,
+                  gmailThreadId: gmailResult?.threadId,
+                  recipientEmail: recipient.recipientEmail,
+                  recipientName: `${recipient.recipientFirstName || ''} ${recipient.recipientLastName || ''}`.trim(),
+                  recipientCompany: recipient.recipientCompany,
+                  campaignRecipientId: recipient.id
+                },
+                createdAt: new Date(),
+                updatedAt: new Date()
               });
-              
-              if (contact?.companyId) {
-                await db.insert(communicationHistory).values({
-                  userId: userIdNum,
-                  contactId: recipient.contactId,
-                  companyId: contact.companyId,
-                  campaignId: recipient.campaignId,
-                  channel: 'email',
-                  direction: 'outbound',
-                  status: 'sent',
-                  subject: resolvedSubject,
-                  content: 'Campaign email sent', // Minimal content for tracking
-                  sentAt: new Date(),
-                  createdAt: new Date(),
-                  updatedAt: new Date()
-                });
-              }
+              console.log(`[EmailQueueProcessor] HISTORY-LOGGED: Campaign ${recipient.campaignId}, Recipient ${recipient.recipientEmail}`);
+            } catch (historyError) {
+              // Log error but don't fail the send - email was already sent successfully
+              console.error(`[EmailQueueProcessor] WARNING: Failed to log to communication_history for ${recipient.recipientEmail}:`, historyError);
             }
 
             // Update status to sent
@@ -754,7 +763,7 @@ export class EmailQueueProcessor {
               })
               .where(eq(campaignRecipients.id, recipient.id));
 
-            console.log(`[EmailQueueProcessor] Successfully sent email to ${recipient.recipientEmail}`);
+            console.log(`[EmailQueueProcessor] SEND-COMPLETE: Campaign ${recipient.campaignId}, Recipient ${recipient.recipientEmail} marked as sent`);
             results.push({ success: true, recipientId: recipient.id });
             
             // Increment the batch counter for daily limit tracking
