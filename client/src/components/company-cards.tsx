@@ -589,23 +589,29 @@ export default function CompanyCards({
         <div className="flex items-center gap-2">
           {/* Master Checkbox - Always Visible */}
           <Checkbox 
-            checked={companies.length > 0 && companies.every(company => {
-              if (!company.contacts) return false;
-              return company.contacts.every(contact => selectedContacts.has(contact.id));
-            })}
+            checked={
+              companies.length > 0 && 
+              companies.some(company => company.contacts && company.contacts.length > 0) &&
+              companies.every(company => 
+                company.contacts?.every(contact => selectedContacts.has(contact.id)) ?? true
+              )
+            }
             onCheckedChange={(checked) => {
               if (checked) {
                 // Select all contacts from all companies
-                const allContactIds = new Set<number>();
                 companies.forEach(company => {
                   company.contacts?.forEach(contact => {
-                    allContactIds.add(contact.id);
+                    if (!selectedContacts.has(contact.id)) {
+                      onContactSelectionChange?.(contact.id);
+                    }
                   });
                 });
-                allContactIds.forEach(id => onContactSelectionChange?.(id));
               } else {
-                // Deselect all contacts
-                selectedContacts.forEach(id => onContactSelectionChange?.(id));
+                // Deselect all contacts - create a copy of the set to iterate safely
+                const contactsToDeselect = Array.from(selectedContacts);
+                contactsToDeselect.forEach(id => {
+                  onContactSelectionChange?.(id);
+                });
               }
             }}
             aria-label="Select all contacts"
