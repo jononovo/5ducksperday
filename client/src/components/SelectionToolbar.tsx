@@ -410,7 +410,7 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
             <DialogHeader>
               <DialogTitle>Confirm Adding Contacts</DialogTitle>
               <DialogDescription>
-                Adding {selectedCount} contact{selectedCount !== 1 ? 's' : ''} to campaign "{campaigns.find(c => c.id === pendingCampaignId)?.name}".
+                Adding {selectedCount} contact{selectedCount !== 1 ? 's' : ''} to campaign "{activeCampaigns.find(c => c.id === pendingCampaignId)?.name}".
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
@@ -502,7 +502,7 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
           <DialogHeader>
             <DialogTitle>Confirm Adding Contacts</DialogTitle>
             <DialogDescription>
-              Adding {selectedCount} contact{selectedCount !== 1 ? 's' : ''} to campaign "{campaigns.find(c => c.id === pendingCampaignId)?.name}".
+              Adding {selectedCount} contact{selectedCount !== 1 ? 's' : ''} to campaign "{activeCampaigns.find(c => c.id === pendingCampaignId)?.name}".
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
