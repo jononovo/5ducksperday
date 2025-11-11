@@ -21,10 +21,58 @@ app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Add CORS headers for development
-app.use((_req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+// Configure CORS to handle credentials properly
+app.use((req, res, next) => {
+  // Get the origin from the request
+  const origin = req.headers.origin;
+  
+  // In production, use specific allowed origins
+  // In development, allow the requesting origin
+  if (process.env.NODE_ENV === 'production') {
+    // Allow requests from the production domain
+    // The frontend and backend are on the same domain in production (Replit deployment)
+    // So we set the origin to match the request origin if it's from a trusted source
+    const allowedOrigins = [
+      'https://*.replit.app',  // Replit deployed apps
+      'https://*.replit.dev',  // Replit development environment
+      process.env.FRONTEND_URL, // Custom domain if configured
+    ].filter(Boolean);
+    
+    // Check if the origin matches any allowed pattern
+    const isAllowed = origin && allowedOrigins.some(allowed => {
+      if (!allowed) return false;
+      if (allowed.includes('*')) {
+        // Handle wildcard patterns
+        const pattern = allowed.replace('*', '.*');
+        return new RegExp(`^${pattern}$`).test(origin);
+      }
+      return allowed === origin;
+    });
+    
+    if (isAllowed || !origin) {
+      // If no origin (same-origin request) or allowed origin, set it
+      res.header('Access-Control-Allow-Origin', origin || '*');
+    }
+  } else {
+    // In development, allow any origin
+    res.header('Access-Control-Allow-Origin', origin || '*');
+  }
+  
+  // Always set credentials header when cookies are involved
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  // Set allowed headers
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  
+  // Set allowed methods
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  
+  // Handle preflight OPTIONS requests
+  if (req.method === 'OPTIONS') {
+    // Respond immediately to OPTIONS requests
+    return res.sendStatus(200);
+  }
+  
   next();
 });
 
