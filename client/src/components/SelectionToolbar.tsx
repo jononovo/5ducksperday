@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { CheckSquare } from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -34,7 +33,6 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
   const [selectedContactList, setSelectedContactList] = useState<string>("");
   const [selectedCampaign, setSelectedCampaign] = useState<string>("");
   const { toast } = useToast();
-  const checkboxRef = useRef<HTMLButtonElement>(null);
   
   // Confirmation dialog state
   const [confirmListDialogOpen, setConfirmListDialogOpen] = useState(false);
@@ -346,16 +344,7 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
         />
       ) : (
         <div className="flex items-center gap-1.5">
-          {/* Gmail-style checkbox with indeterminate state */}
-          <Checkbox
-            ref={checkboxRef}
-            checked={selectedCount > 0 ? "indeterminate" : false}
-            onCheckedChange={() => onClear()}
-            className="h-4 w-4 ml-1 data-[state=indeterminate]:bg-primary data-[state=indeterminate]:text-primary-foreground data-[state=indeterminate]:border-primary"
-            aria-label={`${selectedCount} selected, click to deselect all`}
-          />
-          
-          {/* Selected count displayed separately */}
+          {/* Selected count */}
           <span className="text-primary text-[11px] font-medium">{selectedCount}</span>
           
           <BulkAddDropdown 
