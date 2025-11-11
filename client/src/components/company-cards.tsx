@@ -348,15 +348,15 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
               ))}
               
               {sortedContacts.length > 3 && (
-                <div className="text-center pt-2">
+                <div className="pt-2">
                   <Button
-                    variant="link"
+                    variant="ghost"
                     size="sm"
                     onClick={(e) => {
                       e.stopPropagation(); // Prevent card toggle
                       onToggleShowAllContacts();
                     }}
-                    className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                    className="w-full text-xs text-muted-foreground hover:text-primary hover:bg-accent/50 transition-all py-2 rounded-md"
                   >
                     {showAllContacts 
                       ? "Show fewer contacts" 
