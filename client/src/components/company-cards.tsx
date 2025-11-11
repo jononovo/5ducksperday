@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -95,9 +95,11 @@ interface CompanyCardProps {
   onContactLeave?: () => void;
   shouldShowCheckbox?: (contactId: number) => boolean;
   setLocation: (path: string) => void;
-  topContacts: ContactWithCompanyInfo[];
+  sortedContacts: ContactWithCompanyInfo[];
   viewMode: 'scroll' | 'slides';
   selectedEmailContact?: Contact | null;
+  showAllContacts: boolean;
+  onToggleShowAllContacts: () => void;
 }
 
 const CompanyCard: React.FC<CompanyCardProps> = ({
@@ -125,9 +127,11 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
   onContactLeave,
   shouldShowCheckbox,
   setLocation,
-  topContacts,
+  sortedContacts,
   viewMode,
-  selectedEmailContact
+  selectedEmailContact,
+  showAllContacts,
+  onToggleShowAllContacts
 }) => {
   const checkboxRef = useRef<HTMLButtonElement>(null);
   
@@ -235,15 +239,21 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
       </div>
       
       {/* Contacts Section - Only visible when expanded */}
-      {isExpanded && topContacts.length > 0 && (
+      {isExpanded && sortedContacts.length > 0 && (
         <CardContent className="pt-0 px-3 pb-3">
           <div className="border-t pt-2">
-            <div className="space-y-1.5">
-              {topContacts.map((contact) => (
+            <div className={cn(
+              "space-y-1.5",
+              showAllContacts && sortedContacts.length > 10 && 
+              "max-h-[400px] overflow-y-auto pr-2"
+            )}>
+              {sortedContacts.map((contact, index) => (
                 <div
                   key={`${company.id}-contact-${contact.id}`}
                   className={cn(
                     "group flex items-center p-2 rounded-md cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200",
+                    // Hide contacts beyond index 2 unless showAllContacts is true
+                    index > 2 && !showAllContacts && "hidden",
                     selectedEmailContact?.id === contact.id 
                       ? contact.email 
                         ? "border-l-4 border-dashed border-yellow-400/40 border-4 border-yellow-400/20 border-dashed shadow-md" 
@@ -337,11 +347,21 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
                 </div>
               ))}
               
-              {company.contacts && company.contacts.length > 3 && (
+              {sortedContacts.length > 3 && (
                 <div className="text-center pt-2">
-                  <span className="text-xs text-muted-foreground">
-                    +{company.contacts.length - 3} more contacts available
-                  </span>
+                  <Button
+                    variant="link"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent card toggle
+                      onToggleShowAllContacts();
+                    }}
+                    className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    {showAllContacts 
+                      ? "Show fewer contacts" 
+                      : `+${sortedContacts.length - 3} more contacts available`}
+                  </Button>
                 </div>
               )}
             </div>
@@ -350,7 +370,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
       )}
       
       {/* No contacts message */}
-      {isExpanded && topContacts.length === 0 && (
+      {isExpanded && sortedContacts.length === 0 && (
         <CardContent className="pt-0 px-4 pb-4">
           <div className="border-t pt-3">
             <div className="text-center py-4 text-sm text-muted-foreground">
@@ -392,6 +412,9 @@ export default function CompanyCards({
   // State to track which company cards are expanded
   const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
   
+  // State to track which companies show all contacts (vs just top 3)
+  const [expandedContactLists, setExpandedContactLists] = useState<Set<number>>(new Set());
+  
   // State to highlight navigation buttons
   const [highlightNavButtons, setHighlightNavButtons] = useState(false);
   
@@ -407,6 +430,19 @@ export default function CompanyCards({
   // Toggle expansion state for a company card
   const toggleCardExpansion = (companyId: number) => {
     setExpandedCards(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(companyId)) {
+        newSet.delete(companyId);
+      } else {
+        newSet.add(companyId);
+      }
+      return newSet;
+    });
+  };
+  
+  // Toggle showing all contacts vs top 3 for a company
+  const toggleContactListExpansion = (companyId: number) => {
+    setExpandedContactLists(prev => {
       const newSet = new Set(prev);
       if (newSet.has(companyId)) {
         newSet.delete(companyId);
@@ -559,29 +595,31 @@ export default function CompanyCards({
            globalCheckboxMode;
   };
   
+  // Memoized map of sorted contacts for each company - sort once, use everywhere
+  const sortedContactsMap = useMemo(() => {
+    const map = new Map<number, ContactWithCompanyInfo[]>();
+    companies.forEach(company => {
+      if (company.contacts && company.contacts.length > 0) {
+        const sorted = [...company.contacts]
+          .sort((a, b) => (b.probability || 0) - (a.probability || 0));
+        map.set(company.id, sorted);
+      }
+    });
+    return map;
+  }, [companies]);
+  
   // Auto-expand first company when new search results arrive
   useEffect(() => {
     if (companies.length > 0 && expandedCards.size === 0) {
       const firstCompany = companies[0];
-      const topContacts = getTopContacts(firstCompany);
+      const sortedContacts = sortedContactsMap.get(firstCompany.id);
       
-      if (topContacts.length > 0) {
+      if (sortedContacts && sortedContacts.length > 0) {
         console.log('Auto-expanding first company to show contacts:', firstCompany.name);
         setExpandedCards(new Set([firstCompany.id]));
       }
     }
-  }, [companies]);
-  
-  // Get top contacts for a company (up to 3)
-  const getTopContacts = (company: Company & { contacts?: ContactWithCompanyInfo[] }) => {
-    if (!company.contacts || company.contacts.length === 0) {
-      return [];
-    }
-    
-    return [...company.contacts]
-      .sort((a, b) => (b.probability || 0) - (a.probability || 0))
-      .slice(0, 3);
-  };
+  }, [companies, sortedContactsMap]);
 
   return (
     <div className="w-full space-y-1">
@@ -760,9 +798,11 @@ export default function CompanyCards({
               onContactLeave={handleContactLeave}
               shouldShowCheckbox={shouldShowCheckbox}
               setLocation={setLocation}
-              topContacts={getTopContacts(company)}
+              sortedContacts={sortedContactsMap.get(company.id) || []}
               viewMode={viewMode}
               selectedEmailContact={selectedEmailContact}
+              showAllContacts={expandedContactLists.has(company.id)}
+              onToggleShowAllContacts={() => toggleContactListExpansion(company.id)}
             />
           </div>
         ))
@@ -799,9 +839,11 @@ export default function CompanyCards({
               onContactLeave={handleContactLeave}
               shouldShowCheckbox={shouldShowCheckbox}
               setLocation={setLocation}
-              topContacts={getTopContacts(companies[currentSlideIndex])}
+              sortedContacts={sortedContactsMap.get(companies[currentSlideIndex].id) || []}
               viewMode={viewMode}
               selectedEmailContact={selectedEmailContact}
+              showAllContacts={expandedContactLists.has(companies[currentSlideIndex].id)}
+              onToggleShowAllContacts={() => toggleContactListExpansion(companies[currentSlideIndex].id)}
             />
           </div>
         )
