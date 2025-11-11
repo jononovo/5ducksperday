@@ -24,48 +24,67 @@ app.use(express.urlencoded({ extended: false }));
 // Configure CORS to handle credentials properly
 app.use((req, res, next) => {
   // Get the origin from the request
-  const origin = req.headers.origin;
+  const origin = req.headers.origin as string | undefined;
   
-  // In production, use specific allowed origins
-  // In development, allow the requesting origin
-  if (process.env.NODE_ENV === 'production') {
-    // Allow requests from the production domain
-    // The frontend and backend are on the same domain in production (Replit deployment)
-    // So we set the origin to match the request origin if it's from a trusted source
-    const allowedOrigins = [
-      'https://*.replit.app',  // Replit deployed apps
-      'https://*.replit.dev',  // Replit development environment
-      process.env.FRONTEND_URL, // Custom domain if configured
-    ].filter(Boolean);
-    
-    // Check if the origin matches any allowed pattern
-    const isAllowed = origin && allowedOrigins.some(allowed => {
-      if (!allowed) return false;
-      if (allowed.includes('*')) {
-        // Handle wildcard patterns
-        const pattern = allowed.replace('*', '.*');
-        return new RegExp(`^${pattern}$`).test(origin);
-      }
-      return allowed === origin;
-    });
-    
-    if (isAllowed || !origin) {
-      // If no origin (same-origin request) or allowed origin, set it
-      res.header('Access-Control-Allow-Origin', origin || '*');
-    }
-  } else {
-    // In development, allow any origin
-    res.header('Access-Control-Allow-Origin', origin || '*');
+  // If no origin header (same-origin request), no CORS needed
+  if (!origin) {
+    // Same-origin requests don't need CORS headers
+    return next();
   }
   
-  // Always set credentials header when cookies are involved
-  res.header('Access-Control-Allow-Credentials', 'true');
+  // Configure allowed origins based on environment
+  let allowedOrigins: string[] = [];
   
-  // Set allowed headers
+  if (process.env.NODE_ENV === 'production') {
+    // In production, be strict about allowed origins
+    allowedOrigins = [
+      // Add your production domains here
+      process.env.FRONTEND_URL,
+      // Replit domains - be specific, no wildcards with credentials
+      ...(process.env.REPLIT_DOMAINS ? process.env.REPLIT_DOMAINS.split(',') : [])
+    ].filter(Boolean) as string[];
+    
+    // If deployed on Replit, also allow the specific Replit app domain
+    if (process.env.REPL_ID && process.env.REPL_OWNER) {
+      // Construct the likely Replit domain
+      const replitDomain = `https://${process.env.REPL_ID}.${process.env.REPL_OWNER}.repl.co`;
+      const replitAppDomain = `https://${process.env.REPL_ID}-${process.env.REPL_OWNER}.replit.app`;
+      allowedOrigins.push(replitDomain, replitAppDomain);
+    }
+  } else {
+    // In development, allow localhost origins
+    allowedOrigins = [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://localhost:5000',
+      'http://localhost:5173',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:5173',
+      origin // Also allow the requesting origin in dev
+    ];
+  }
+  
+  // Check if the origin is allowed
+  const isAllowedOrigin = allowedOrigins.includes(origin);
+  
+  if (isAllowedOrigin) {
+    // Set the specific origin (not wildcard) when credentials are used
+    res.header('Access-Control-Allow-Origin', origin);
+    // Allow credentials
+    res.header('Access-Control-Allow-Credentials', 'true');
+  } else if (process.env.NODE_ENV !== 'production') {
+    // In development only, be more permissive if origin not in list
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Credentials', 'true');
+  }
+  // In production, if origin is not allowed, don't set CORS headers (request will be blocked)
+  
+  // Set allowed headers and methods
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  
-  // Set allowed methods
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  
+  // Cache preflight requests for 10 minutes
+  res.header('Access-Control-Max-Age', '600');
   
   // Handle preflight OPTIONS requests
   if (req.method === 'OPTIONS') {
