@@ -624,7 +624,7 @@ export default function CompanyCards({
                 className={cn(
                   "h-4 w-4 rounded-sm border ring-offset-background transition-all",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                  "mr-2 flex items-center justify-center",
+                  "ml-2 mr-2 flex items-center justify-center",
                   isFullySelected && "bg-primary border-primary",
                   isPartiallySelected && "border-primary bg-white dark:bg-gray-950",
                   isEmpty && "border-input bg-white dark:bg-gray-950 hover:border-primary/50"
