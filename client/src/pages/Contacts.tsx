@@ -328,9 +328,7 @@ export default function Contacts() {
     
     try {
       // Fetch contacts for the list
-      const response = await fetch(`/api/contact-lists/${listId}/contacts`, {
-        credentials: 'include'
-      });
+      const response = await apiRequest("GET", `/api/contact-lists/${listId}/contacts`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch contacts');
