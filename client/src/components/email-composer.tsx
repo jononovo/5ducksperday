@@ -1091,11 +1091,19 @@ export function EmailComposer({
       originalEmailContent={getCurrentOriginalContent()}
       onSubjectChange={(value) => {
         setCurrentSubject(value);
-        setCurrentOriginalSubject(value);
+        // Only update original when user is actually editing the raw template
+        // This preserves merge fields when displaying preview mode
+        if (isMergeViewMode) {
+          setCurrentOriginalSubject(value);
+        }
       }}
       onContentChange={(value) => {
         setCurrentContent(value);
-        setCurrentOriginalContent(value);
+        // Only update original when user is actually editing the raw template
+        // This preserves merge fields when displaying preview mode
+        if (isMergeViewMode) {
+          setCurrentOriginalContent(value);
+        }
       }}
       gmailStatus={gmailStatus}
       gmailUserInfo={gmailUserInfo}
