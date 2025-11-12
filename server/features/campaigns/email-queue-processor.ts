@@ -719,6 +719,7 @@ export class EmailQueueProcessor {
               contactId: recipient.contactId || undefined,
               recipientEmail: recipient.recipientEmail,
               subject: resolvedSubject,
+              status: 'attempting', // Required by TypeScript, will be overridden in logEmailAttempt
               userId: userIdNum,
               metadata: {
                 campaignRecipientId: recipient.id,
