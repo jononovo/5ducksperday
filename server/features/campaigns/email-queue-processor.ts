@@ -8,7 +8,6 @@ import sgMail from '@sendgrid/mail';
 import { GmailOAuthService } from '../../gmail-api-service/oauth/service';
 import { TokenService } from '../billing/tokens/service';
 import { resolveAllMergeFields, buildMergeContext } from '../../lib/merge-field-resolver';
-import { emailSendLogger } from '../email-audit/email-send-logger';
 
 const BATCH_SIZE = 20; // Process 20 recipients at a time
 const PROCESSING_INTERVAL = 30000; // Check every 30 seconds (reduced from 10s for efficiency)
@@ -637,7 +636,6 @@ export class EmailQueueProcessor {
         
           for (let i = 0; i < recipientsToProcess.length; i++) {
             const recipient = recipientsToProcess[i];
-            let logId: number | null = null; // Declare logId here for proper scope
             
             // Check daily limit BEFORE sending each email (using baseline + batch counter)
             if (campaignSettings.maxEmailsPerDay && campaignSettings.maxEmailsPerDay > 0) {
@@ -707,25 +705,8 @@ export class EmailQueueProcessor {
               mergeContext
             );
             
-            // DUPLICATE CHECKING REMOVED - Only logging for diagnostics
-            
             // Debug log: Track each send attempt
             console.log(`[EmailQueueProcessor] SENDING: Campaign ${recipient.campaignId}, Email ${i + 1}/${recipientsToProcess.length} to ${recipient.recipientEmail}`);
-            
-            // Log the attempt
-            logId = await emailSendLogger.logEmailAttempt({
-              service: 'gmail_oauth',
-              campaignId: recipient.campaignId,
-              contactId: recipient.contactId || undefined,
-              recipientEmail: recipient.recipientEmail,
-              subject: resolvedSubject,
-              status: 'attempting', // Required by TypeScript, will be overridden in logEmailAttempt
-              userId: userIdNum,
-              metadata: {
-                campaignRecipientId: recipient.id,
-                senderProfile: senderProfile?.displayName
-              }
-            });
             
             // Send email via Gmail with resolved content and custom sender name
             const gmailResult = await GmailOAuthService.sendEmail(
@@ -739,16 +720,6 @@ export class EmailQueueProcessor {
 
             // Log Gmail success with message ID for tracking
             console.log(`[EmailQueueProcessor] GMAIL-SUCCESS: Campaign ${recipient.campaignId}, Recipient ${recipient.recipientEmail}, MessageId: ${gmailResult?.messageId || 'N/A'}`);
-            
-            // Update the email send log to 'sent' status
-            if (logId) {
-              await emailSendLogger.updateEmailStatus(
-                logId,
-                'sent',
-                gmailResult?.messageId,
-                gmailResult?.threadId
-              );
-            }
 
             // Always log to communication history (not conditional on contactId)
             // This is critical for preventing duplicates and maintaining audit trail
@@ -760,17 +731,17 @@ export class EmailQueueProcessor {
               const effectiveUserId = userIdNum || recipient.userId;
               
               await db.insert(communicationHistory).values({
-                userId: effectiveUserId,
-                contactId: recipient.contactId || 1,  // Default to 1 if no contactId (temporary workaround)
-                companyId: 1,  // Default to 1 (temporary workaround)
-                campaignId: recipient.campaignId,
+                user_id: effectiveUserId,
+                contact_id: recipient.contactId || 1,  // Default to 1 if no contactId (temporary workaround)
+                company_id: 1,  // Default to 1 (temporary workaround)
+                campaign_id: recipient.campaignId,
                 channel: 'email',
                 direction: 'outbound',
                 status: 'sent',
                 subject: resolvedSubject,
                 content: resolvedContent?.substring(0, 500) || 'Campaign email', // Store first 500 chars for reference
-                contentPreview: resolvedContent?.substring(0, 200) || 'Campaign email',
-                sentAt: new Date(),
+                content_preview: resolvedContent?.substring(0, 200) || 'Campaign email',
+                sent_at: new Date(),
                 metadata: {
                   gmailMessageId: gmailResult?.messageId,
                   gmailThreadId: gmailResult?.threadId,
@@ -778,7 +749,9 @@ export class EmailQueueProcessor {
                   recipientName: `${recipient.recipientFirstName || ''} ${recipient.recipientLastName || ''}`.trim(),
                   recipientCompany: recipient.recipientCompany,
                   campaignRecipientId: recipient.id
-                }
+                },
+                created_at: new Date(),
+                updated_at: new Date()
               });
               console.log(`[EmailQueueProcessor] HISTORY-LOGGED: Campaign ${recipient.campaignId}, Recipient ${recipient.recipientEmail}`);
             } catch (historyError) {
@@ -804,17 +777,6 @@ export class EmailQueueProcessor {
             
             } catch (error: any) {
               console.error(`[EmailQueueProcessor] Failed to send email to ${recipient.recipientEmail}:`, error);
-              
-              // Update the email send log to 'failed' status
-              if (logId) {
-                await emailSendLogger.updateEmailStatus(
-                  logId,
-                  'failed',
-                  undefined,
-                  undefined,
-                  error instanceof Error ? error.message : 'Unknown error'
-                );
-              }
               
               // Check if it's an auth error
               if (error.status === 401) {
