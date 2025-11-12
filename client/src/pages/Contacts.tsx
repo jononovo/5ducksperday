@@ -326,26 +326,9 @@ export default function Contacts() {
   const handleDownloadCSV = async (e: React.MouseEvent, listId: number, listName: string) => {
     e.stopPropagation();
     
-    // Debug logging for auth investigation
-    const authToken = localStorage.getItem('authToken');
-    console.log('[CSV Download Debug]', {
-      hasAuthToken: !!authToken,
-      authTokenLength: authToken?.length,
-      listId,
-      timestamp: new Date().toISOString()
-    });
-    
     try {
       // Fetch contacts for the list
       const response = await apiRequest("GET", `/api/contact-lists/${listId}/contacts`);
-      
-      console.log('[CSV Download Debug] Response:', {
-        status: response.status,
-        ok: response.ok,
-        headers: {
-          contentType: response.headers.get('content-type')
-        }
-      });
       
       if (!response.ok) {
         throw new Error('Failed to fetch contacts');

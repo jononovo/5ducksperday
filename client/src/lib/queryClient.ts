@@ -62,19 +62,6 @@ export async function apiRequest(
       headers['Authorization'] = `Bearer ${authToken}`;
     }
     
-    // Debug logging for CSV download issue
-    if (url.includes('/contact-lists') && url.includes('/contacts')) {
-      console.log('[apiRequest Debug - Contact Lists]', {
-        url,
-        method,
-        hasAuthToken: !!authToken,
-        authTokenLength: authToken?.length,
-        isTokenBasedEndpoint,
-        headersBeingSent: headers,
-        timestamp: new Date().toISOString()
-      });
-    }
-    
     const res = await fetch(url, {
       method: method,
       headers,
