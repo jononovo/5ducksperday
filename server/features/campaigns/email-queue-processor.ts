@@ -468,10 +468,13 @@ export class EmailQueueProcessor {
    */
   async processScheduledEmails(): Promise<void> {
     if (this.isSending) {
+      console.log('[EmailQueueProcessor] RACE-CHECK: Already sending, skipping cycle');
       return;
     }
 
     this.isSending = true;
+    const processId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    console.log(`[EmailQueueProcessor] PROCESS-START: ${processId} at ${new Date().toISOString()}`);
 
     try {
       // Find scheduled recipients ready to send - now includes autopilot settings
