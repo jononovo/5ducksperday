@@ -480,6 +480,31 @@ export const dailyOutreachItems = pgTable("daily_outreach_items", {
   index('idx_outreach_item_communication_id').on(table.communicationId),
 ]);
 
+// Email send audit logs for tracking all email sends and preventing duplicates
+export const emailSendLogs = pgTable('email_send_logs', {
+  id: serial('id').primaryKey(),
+  service: text('service').notNull(), // 'gmail_oauth' | 'sendgrid_campaign' | 'sendgrid_nudge' | 'sendgrid_daily_outreach'
+  campaignId: integer('campaign_id').references(() => campaigns.id),
+  contactId: integer('contact_id').references(() => contacts.id),
+  recipientEmail: text('recipient_email').notNull(),
+  subject: text('subject').notNull(),
+  status: text('status').notNull(), // 'attempting' | 'sent' | 'failed' | 'blocked_duplicate'
+  error: text('error'),
+  metadata: jsonb('metadata').$type<Record<string, any>>(),
+  userId: integer('user_id').notNull().references(() => users.id),
+  messageId: text('message_id'), // Gmail message ID or SendGrid message ID
+  threadId: text('thread_id'), // Gmail thread ID
+  createdAt: timestamp('created_at').notNull().defaultNow()
+}, (table) => [
+  index('idx_email_send_campaign_contact').on(table.campaignId, table.contactId),
+  index('idx_email_send_recipient').on(table.recipientEmail),
+  index('idx_email_send_created').on(table.createdAt),
+]);
+
+// Types for email send logs
+export type EmailSendLog = typeof emailSendLogs.$inferSelect;
+export type InsertEmailSendLog = typeof emailSendLogs.$inferInsert;
+
 // CRM Communications History Table
 export const communicationHistory = pgTable("communication_history", {
   // Core identification
