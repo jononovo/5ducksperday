@@ -191,7 +191,12 @@ export function AutopilotModal({
   };
 
   const handleApply = () => {
-    onApply(localSettings);
+    // Ensure the enabled field is set to true when applying settings
+    const settingsToApply = {
+      ...localSettings,
+      enabled: true  // Always set to true when applying autopilot settings
+    };
+    onApply(settingsToApply);
     onOpenChange(false);
   };
 

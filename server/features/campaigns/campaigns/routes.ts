@@ -256,14 +256,14 @@ export function registerCampaignsRoutes(app: Application, requireAuth: any) {
     try {
       const userId = getUserId(req);
       const campaignId = parseInt(req.params.id);
-      const { mode } = req.body; // 'all' or 'unsent'
+      const { mode } = req.body; // 'all' or 'failed'
       
       if (isNaN(campaignId)) {
         return res.status(400).json({ message: 'Invalid campaign ID' });
       }
       
-      if (!mode || !['all', 'unsent'].includes(mode)) {
-        return res.status(400).json({ message: 'Invalid restart mode. Use "all" or "unsent"' });
+      if (!mode || !['all', 'failed'].includes(mode)) {
+        return res.status(400).json({ message: 'Invalid restart mode. Use "all" or "failed"' });
       }
       
       // Verify campaign belongs to user
@@ -284,6 +284,118 @@ export function registerCampaignsRoutes(app: Application, requireAuth: any) {
       console.error('Error restarting campaign:', error);
       res.status(500).json({ 
         message: error instanceof Error ? error.message : 'Failed to restart campaign' 
+      });
+    }
+  });
+
+  // Add contacts to an active campaign
+  router.post('/:id/add-contacts', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req);
+      const campaignId = parseInt(req.params.id);
+      const { contactIds } = req.body;
+      
+      if (isNaN(campaignId)) {
+        return res.status(400).json({ message: 'Invalid campaign ID' });
+      }
+      
+      if (!contactIds || !Array.isArray(contactIds) || contactIds.length === 0) {
+        return res.status(400).json({ message: 'Contact IDs array is required' });
+      }
+      
+      // Verify campaign exists and belongs to user
+      const campaign = await storage.getCampaign(campaignId, userId);
+      if (!campaign) {
+        return res.status(404).json({ message: 'Campaign not found or access denied' });
+      }
+      
+      // Allow adding to any campaign, but provide appropriate messaging
+      let statusNote = '';
+      if (campaign.status === 'completed') {
+        statusNote = 'Campaign is completed. Use the restart feature to process these new contacts.';
+      } else if (campaign.status === 'paused') {
+        statusNote = 'Campaign is paused. Contacts will be processed when you resume the campaign.';
+      } else if (campaign.status === 'draft') {
+        statusNote = 'Campaign is in draft. Contacts will be processed when you activate the campaign.';
+      } else if (campaign.status === 'scheduled') {
+        statusNote = 'Campaign is scheduled. Contacts will be processed when the campaign activates.';
+      } else {
+        statusNote = 'Contacts will be processed in the next email queue cycle (within 30 seconds)';
+      }
+      
+      // Check if campaign has a linked contact list
+      if (!campaign.contactListId) {
+        return res.status(400).json({ 
+          message: 'Campaign does not have a linked contact list. Please configure the campaign with a contact list first.' 
+        });
+      }
+      
+      // Get contact details
+      const contacts = await storage.getContactsByIds(contactIds, userId);
+      
+      if (contacts.length === 0) {
+        return res.status(404).json({ message: 'No valid contacts found' });
+      }
+      
+      // Filter contacts that have valid emails
+      const validContacts = contacts.filter(contact => contact.email);
+      const noEmailCount = contacts.filter(contact => !contact.email).length;
+      
+      if (validContacts.length === 0) {
+        return res.status(400).json({ message: 'No contacts with valid email addresses found' });
+      }
+      
+      // Step 1: Add contacts to the campaign's linked contact list
+      // This automatically handles duplicates with onConflictDoNothing
+      const validContactIds = validContacts.map(c => c.id);
+      const listResult = await storage.addContactsToList(
+        campaign.contactListId,
+        validContactIds,
+        'campaign_addition',
+        userId,
+        { campaignId, campaignName: campaign.name }
+      );
+      
+      console.log(`[Add to Campaign] Added ${listResult.addedCount} new contacts to contact list ${campaign.contactListId}, ${listResult.duplicateCount} duplicates skipped`);
+      
+      // Step 2: Add contacts as campaign recipients
+      // Prepare recipient records for all valid contacts
+      const recipients = validContacts.map(contact => ({
+        campaignId: campaignId,
+        contactId: contact.id,
+        recipientEmail: contact.email,
+        recipientFirstName: contact.name?.split(' ')[0] || '',
+        recipientLastName: contact.name?.split(' ').slice(1).join(' ') || '',
+        recipientCompany: '', // Company name will be populated during email generation if needed
+        status: 'queued' as const, // Start with 'queued' for immediate processing
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }));
+      
+      // Batch insert recipients (duplicates automatically ignored by unique constraint)
+      await storage.createCampaignRecipients(recipients);
+      
+      console.log(`[Add to Campaign] Added ${recipients.length} new recipients to campaign ${campaignId} (${campaign.name})`);
+      console.log(`[Add to Campaign] Campaign status: ${campaign.status}, daily limit: ${campaign.maxEmailsPerDay || 'unlimited'}`);
+      
+      res.json({ 
+        success: true,
+        message: `Successfully added ${listResult.addedCount} contacts to the campaign`,
+        addedCount: listResult.addedCount,
+        duplicateCount: listResult.duplicateCount,
+        noEmailCount: noEmailCount,
+        campaignStatus: campaign.status,
+        note: statusNote,
+        details: {
+          contactListUpdated: true,
+          recipientsQueued: listResult.addedCount  // Only new contacts get queued
+        }
+      });
+      
+    } catch (error) {
+      console.error('Error adding contacts to campaign:', error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : 'Failed to add contacts to campaign' 
       });
     }
   });

@@ -73,7 +73,7 @@ export const useEmailGeneration = (props: UseEmailGenerationProps) => {
       const payload: EmailGenerationPayload = {
         emailPrompt: enhancedPrompt,
         contact: selectedContact,
-        company: selectedCompany!,
+        company: selectedCompany || { name: 'your company' } as any, // Fallback for templates
         tone,
         offerStrategy,
         toEmail,
@@ -136,14 +136,17 @@ export const useEmailGeneration = (props: UseEmailGenerationProps) => {
   });
 
   const handleGenerateEmail = () => {
-    const validation = validateEmailGenerationRequest(emailPrompt, selectedCompany);
+    console.log('[handleGenerateEmail] Starting generation:', {
+      generateTemplate,
+      hasCompany: !!selectedCompany,
+      companyName: selectedCompany?.name
+    });
     
-    if (!validation.isValid) {
+    // Only validate that we have a prompt
+    if (!emailPrompt || emailPrompt.trim() === '') {
       toast({
-        title: validation.error!,
-        description: validation.error === "No Company Selected" 
-          ? "Please select a company first"
-          : "Please enter an email creation prompt",
+        title: "No Prompt Provided",
+        description: "Please enter an email creation prompt",
         variant: "destructive",
       });
       return;

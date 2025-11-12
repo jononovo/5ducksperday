@@ -18,7 +18,9 @@ import type {
 export const userAccountApi = {
   // Profile endpoints
   getProfile: async (): Promise<UserProfile> => {
-    const response = await fetch("/api/user/profile");
+    const response = await fetch("/api/user/profile", {
+      credentials: 'include'
+    });
     if (!response.ok) throw new Error("Failed to fetch profile");
     return response.json();
   },
@@ -29,7 +31,9 @@ export const userAccountApi = {
 
   // User preferences endpoints
   getPreferences: async (): Promise<UserPreferences> => {
-    const response = await fetch("/api/user/preferences");
+    const response = await fetch("/api/user/preferences", {
+      credentials: 'include'
+    });
     if (!response.ok) throw new Error("Failed to fetch preferences");
     return response.json();
   },
@@ -59,21 +63,27 @@ export const userAccountApi = {
   },
 
   getNotificationStatus: async (): Promise<NotificationStatus> => {
-    const response = await fetch("/api/notifications/status");
+    const response = await fetch("/api/notifications/status", {
+      credentials: 'include'
+    });
     if (!response.ok) throw new Error("Failed to fetch notification status");
     return response.json();
   },
 
   // Subscription endpoints
   getSubscriptionStatus: async (): Promise<SubscriptionStatus> => {
-    const response = await fetch("/api/user/subscription-status");
+    const response = await fetch("/api/user/subscription-status", {
+      credentials: 'include'
+    });
     if (!response.ok) throw new Error("Failed to fetch subscription status");
     return response.json();
   },
 
   // Credits endpoints
   getCredits: async (): Promise<CreditData> => {
-    const response = await fetch("/api/credits");
+    const response = await fetch("/api/credits", {
+      credentials: 'include'
+    });
     if (!response.ok) throw new Error("Failed to fetch credits");
     return response.json();
   },

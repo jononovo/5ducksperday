@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -15,6 +15,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { 
   ArrowLeft, 
   Mail, 
@@ -42,6 +52,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import type { Campaign } from "@shared/schema";
 import { CampaignProgressSection } from "@/components/campaign/CampaignProgressSection";
+import { AutopilotModal, type AutopilotSettings } from "@/components/autopilot-modal";
 
 interface RecipientInfo {
   id: number;
@@ -244,15 +255,79 @@ export default function CampaignDetail() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [isEditMode, setIsEditMode] = useState(false);
+  const [autopilotModalOpen, setAutopilotModalOpen] = useState(false);
+  const [restartDialogOpen, setRestartDialogOpen] = useState(false);
+  const [restartMode, setRestartMode] = useState<'all' | 'failed'>('failed');
+  const [lastRefreshTime, setLastRefreshTime] = useState<Date>(new Date());
 
-  const { data: campaign, isLoading, error } = useQuery<CampaignWithMetrics>({
+  const { data: campaign, isLoading, error, refetch } = useQuery<CampaignWithMetrics>({
     queryKey: ['/api/campaigns', campaignId],
-    enabled: !!campaignId
+    enabled: !!campaignId,
+    // Keep data fresh but don't refetch on window focus since we have auto-refresh
+    refetchOnWindowFocus: false
   });
+  
+  // Auto-refresh campaign data every 20 seconds when page is visible
+  useEffect(() => {
+    // Only set up auto-refresh if we have a campaign
+    if (!campaignId) return;
+    
+    let intervalId: NodeJS.Timeout | null = null;
+    
+    const startAutoRefresh = () => {
+      // Clear any existing interval
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+      
+      // Set up new interval for 20 seconds
+      intervalId = setInterval(() => {
+        // Only refetch if the document is visible
+        if (document.visibilityState === 'visible') {
+          console.log('Auto-refreshing campaign data...');
+          refetch();
+          setLastRefreshTime(new Date());
+        }
+      }, 20000); // 20 seconds
+    };
+    
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // Page became visible - start auto-refresh and do immediate refresh
+        console.log('Page became visible, refreshing campaign data');
+        refetch();
+        setLastRefreshTime(new Date());
+        startAutoRefresh();
+      } else {
+        // Page became hidden - stop auto-refresh to save resources
+        console.log('Page became hidden, pausing auto-refresh');
+        if (intervalId) {
+          clearInterval(intervalId);
+          intervalId = null;
+        }
+      }
+    };
+    
+    // Start auto-refresh if page is currently visible
+    if (document.visibilityState === 'visible') {
+      startAutoRefresh();
+    }
+    
+    // Listen for visibility changes
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Cleanup function
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [campaignId, refetch, setLastRefreshTime]);
 
   const updateCampaignMutation = useMutation({
     mutationFn: async (updates: Partial<Campaign>) => {
-      return apiRequest(`/api/campaigns/${campaignId}`, 'PUT', updates);
+      return apiRequest('PUT', `/api/campaigns/${campaignId}`, updates);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] });
@@ -285,6 +360,31 @@ export default function CampaignDetail() {
       toast({
         title: "Error",
         description: error.message || "Failed to delete campaign",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const restartCampaignMutation = useMutation({
+    mutationFn: async (mode: 'all' | 'failed') => {
+      return apiRequest('POST', `/api/campaigns/${campaignId}/restart`, { mode });
+    },
+    onSuccess: (_, mode) => {
+      // Invalidate both the campaigns list and the specific campaign detail
+      queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/campaigns', campaignId] });
+      setRestartDialogOpen(false);
+      toast({
+        title: "Campaign restarted",
+        description: mode === 'all' 
+          ? "The campaign will re-send to all recipients."
+          : "The campaign will queue failed recipients for retry.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to restart campaign",
         variant: "destructive",
       });
     }
@@ -363,48 +463,11 @@ export default function CampaignDetail() {
         break;
       case 'stop':
         if (confirm('Are you sure you want to stop this campaign? This will permanently halt all sending.')) {
-          updateCampaignMutation.mutate({ status: 'stopped' });
+          updateCampaignMutation.mutate({ status: 'completed' });
         }
         break;
-      case 'restart_all':
-        if (confirm('Are you sure you want to restart this campaign for ALL recipients? This will re-send emails to everyone.')) {
-          // API call to restart for all recipients
-          apiRequest(`/api/campaigns/${campaignId}/restart`, 'POST', { mode: 'all' })
-            .then(() => {
-              queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] });
-              toast({
-                title: "Campaign restarted",
-                description: "The campaign will re-send to all recipients.",
-              });
-            })
-            .catch((error) => {
-              toast({
-                title: "Error",
-                description: error.message || "Failed to restart campaign",
-                variant: "destructive",
-              });
-            });
-        }
-        break;
-      case 'restart_unsent':
-        if (confirm('Are you sure you want to restart this campaign for unsent recipients only?')) {
-          // API call to restart for unsent recipients only
-          apiRequest(`/api/campaigns/${campaignId}/restart`, 'POST', { mode: 'unsent' })
-            .then(() => {
-              queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] });
-              toast({
-                title: "Campaign restarted",
-                description: "The campaign will send to recipients who haven't received emails yet.",
-              });
-            })
-            .catch((error) => {
-              toast({
-                title: "Error",
-                description: error.message || "Failed to restart campaign",
-                variant: "destructive",
-              });
-            });
-        }
+      case 'restart':
+        setRestartDialogOpen(true);
         break;
       case 'edit':
         setIsEditMode(true);
@@ -419,6 +482,10 @@ export default function CampaignDetail() {
         }
         break;
     }
+  };
+
+  const handleRestartConfirm = () => {
+    restartCampaignMutation.mutate(restartMode);
   };
 
   if (isLoading) {
@@ -580,24 +647,14 @@ export default function CampaignDetail() {
                   </DropdownMenuItem>
                 </>
               ) : campaign.status === 'stopped' || campaign.status === 'completed' ? (
-                <>
-                  <DropdownMenuItem 
-                    onClick={() => handleCampaignAction('restart_all')}
-                    className="text-blue-600 dark:text-blue-400"
-                    data-testid="menu-restart-all"
-                  >
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Restart All
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    onClick={() => handleCampaignAction('restart_unsent')}
-                    className="text-blue-600 dark:text-blue-400"
-                    data-testid="menu-restart-unsent"
-                  >
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Restart Unsent
-                  </DropdownMenuItem>
-                </>
+                <DropdownMenuItem 
+                  onClick={() => handleCampaignAction('restart')}
+                  className="text-blue-600 dark:text-blue-400"
+                  data-testid="menu-restart-campaign"
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Restart Campaign
+                </DropdownMenuItem>
               ) : null}
               
               <DropdownMenuItem 
@@ -779,10 +836,52 @@ export default function CampaignDetail() {
                     {campaign.unsubscribeLink ? 'Enabled' : 'Disabled'}
                   </span>
                 </div>
+                
+                {/* Start Date and Time */}
+                {campaign.startDate && (
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Start date/time</span>
+                    <span className="text-sm font-medium">
+                      {format(new Date(campaign.startDate), 'MMM d, yyyy h:mm a')}
+                    </span>
+                  </div>
+                )}
+                
+                {/* Autopilot Status */}
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Autopilot</span>
+                  <span className="text-sm font-medium">
+                    {campaign.autopilotEnabled ? 'Enabled' : 'Disabled'}
+                  </span>
+                </div>
+                
+                {/* Sending Schedule - only show if autopilot is enabled */}
+                {campaign.autopilotEnabled && campaign.autopilotSettings && (
+                  <div className="flex justify-between items-start">
+                    <span className="text-sm text-muted-foreground">Sending schedule</span>
+                    <Button
+                      variant="link"
+                      size="sm"
+                      className="h-auto p-0 text-sm font-medium"
+                      onClick={() => setAutopilotModalOpen(true)}
+                    >
+                      View Schedule
+                    </Button>
+                  </div>
+                )}
+                
+                {/* Timezone - only show if autopilot is enabled */}
+                {campaign.autopilotEnabled && campaign.timezone && (
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Timezone</span>
+                    <span className="text-sm font-medium">{campaign.timezone}</span>
+                  </div>
+                )}
+                
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">Daily cap</span>
                   <span className="text-sm font-medium">
-                    Max {campaign.dailyLeadTarget} emails/day
+                    Max {campaign.maxEmailsPerDay || 20} emails/day
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -1138,6 +1237,75 @@ export default function CampaignDetail() {
           </Card>
         </TabsContent>
       </Tabs>
+      
+      {/* Autopilot Modal for viewing/editing schedule */}
+      {campaign && campaign.autopilotSettings && (
+        <AutopilotModal
+          open={autopilotModalOpen}
+          onOpenChange={setAutopilotModalOpen}
+          settings={typeof campaign.autopilotSettings === 'string' 
+            ? JSON.parse(campaign.autopilotSettings) 
+            : campaign.autopilotSettings}
+          onApply={async (newSettings: AutopilotSettings) => {
+            // Update the campaign with new autopilot settings
+            await updateCampaignMutation.mutateAsync({
+              autopilotSettings: newSettings
+            });
+            setAutopilotModalOpen(false);
+            toast({
+              title: "Schedule Updated",
+              description: "Campaign autopilot schedule has been updated successfully.",
+            });
+          }}
+          totalEmails={campaign.totalRecipients || 100}
+        />
+      )}
+
+      {/* Restart Campaign Dialog */}
+      <Dialog open={restartDialogOpen} onOpenChange={setRestartDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Restart Campaign</DialogTitle>
+            <DialogDescription>
+              Choose how you want to restart this campaign
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <RadioGroup value={restartMode} onValueChange={(value: 'all' | 'failed') => setRestartMode(value)}>
+              <div className="flex items-start space-x-3 space-y-0">
+                <RadioGroupItem value="failed" id="failed" className="mt-1" />
+                <div className="space-y-1 leading-none">
+                  <Label htmlFor="failed" className="cursor-pointer">
+                    Only queue failed recipients
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Re-queue recipients whose emails failed to send or generate
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start space-x-3 space-y-0 mt-4">
+                <RadioGroupItem value="all" id="all" className="mt-1" />
+                <div className="space-y-1 leading-none">
+                  <Label htmlFor="all" className="cursor-pointer">
+                    Resend to all campaign recipients
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Start over and re-send emails to everyone in the campaign
+                  </p>
+                </div>
+              </div>
+            </RadioGroup>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRestartDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleRestartConfirm} disabled={restartCampaignMutation.isPending}>
+              {restartCampaignMutation.isPending ? "Restarting..." : "Restart Campaign"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

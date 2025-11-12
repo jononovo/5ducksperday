@@ -25,6 +25,39 @@ export function registerContactListRoutes(app: Application, requireAuth: any) {
     }
   });
 
+  // Bulk fetch contacts by IDs
+  app.get('/api/contacts/bulk', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req);
+      const { ids } = req.query;
+      
+      if (!ids) {
+        return res.json([]);
+      }
+      
+      // Parse comma-separated IDs and filter out invalid ones
+      const contactIds = String(ids)
+        .split(',')
+        .map(id => parseInt(id))
+        .filter(id => !isNaN(id));
+      
+      if (contactIds.length === 0) {
+        return res.json([]);
+      }
+      
+      // Fetch contacts using the existing storage method
+      const contacts = await storage.getContactsByIds(contactIds, userId);
+      
+      // Return plain array of contacts
+      res.json(contacts);
+    } catch (error) {
+      console.error('Error fetching contacts by IDs:', error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : 'Failed to fetch contacts' 
+      });
+    }
+  });
+
   // List all contact lists for a user
   app.get('/api/contact-lists', requireAuth, async (req: Request, res: Response) => {
     try {
@@ -197,11 +230,10 @@ export function registerContactListRoutes(app: Application, requireAuth: any) {
         return res.status(400).json({ message: 'All contact IDs must be numbers' });
       }
       
-      await storage.addContactsToList(listId, contactIds, source, userId, sourceMetadata);
+      const result = await storage.addContactsToList(listId, contactIds, source, userId, sourceMetadata);
       
-      // Return updated list with new contact count
-      const updatedList = await storage.getContactList(listId, userId);
-      res.json(updatedList);
+      // Return the counts for the report dialog
+      res.json(result);
     } catch (error) {
       console.error('Error adding contacts to list:', error);
       res.status(500).json({ 

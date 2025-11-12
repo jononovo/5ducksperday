@@ -202,9 +202,7 @@ export function EmailComposer({
   const { data: senderProfiles = [] } = useQuery({
     queryKey: ['/api/sender-profiles'],
     queryFn: async () => {
-      const response = await fetch('/api/sender-profiles', {
-        credentials: 'include'
-      });
+      const response = await apiRequest("GET", '/api/sender-profiles');
       if (!response.ok) throw new Error('Failed to fetch sender profiles');
       return response.json();
     },
@@ -329,7 +327,12 @@ export function EmailComposer({
   // Helper functions to get/set the correct state based on generation mode
   const getCurrentSubject = () => {
     if (drawerMode === 'campaign') {
-      return generationMode === 'merge_field' ? templateSubject : aiSubject;
+      // For merge_field mode, always return the original template with raw merge fields
+      // This ensures campaigns are saved with placeholders, not resolved preview values
+      if (generationMode === 'merge_field') {
+        return templateOriginalSubject || templateSubject;
+      }
+      return aiSubject;
     }
     return emailSubject; // Use shared state for compose mode
   };
@@ -343,7 +346,12 @@ export function EmailComposer({
   
   const getCurrentContent = () => {
     if (drawerMode === 'campaign') {
-      return generationMode === 'merge_field' ? templateContent : aiContent;
+      // For merge_field mode, always return the original template with raw merge fields
+      // This ensures campaigns are saved with placeholders, not resolved preview values
+      if (generationMode === 'merge_field') {
+        return templateOriginalContent || templateContent;
+      }
+      return aiContent;
     }
     return emailContent;
   };
@@ -573,7 +581,13 @@ export function EmailComposer({
         
         // Tracking settings
         trackEmails: campaignSettings.trackEmails,
-        unsubscribeLink: campaignSettings.unsubscribeLink
+        unsubscribeLink: campaignSettings.unsubscribeLink,
+        
+        // Human review setting - critical for auto-send functionality
+        requiresHumanReview: campaignSettings.requiresHumanReview,
+        
+        // Sender profile - links campaign to specific sender identity
+        senderProfileId: selectedSenderProfileId
       };
       
       // Only include productId and strategicProfileId if they have valid values
@@ -747,16 +761,6 @@ export function EmailComposer({
   };
 
   const handleGenerateEmail = () => {
-    // Validation checks
-    if (!selectedCompany) {
-      toast({
-        title: "No Company Selected",
-        description: "Please select a company to generate an email.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     // Check if either a product is selected OR prompt is provided
     if (!selectedProductData && (!emailPrompt || emailPrompt.trim() === '')) {
       toast({
@@ -1087,11 +1091,19 @@ export function EmailComposer({
       originalEmailContent={getCurrentOriginalContent()}
       onSubjectChange={(value) => {
         setCurrentSubject(value);
-        setCurrentOriginalSubject(value);
+        // Only update original when user is actually editing the raw template
+        // This preserves merge fields when displaying preview mode
+        if (isMergeViewMode) {
+          setCurrentOriginalSubject(value);
+        }
       }}
       onContentChange={(value) => {
         setCurrentContent(value);
-        setCurrentOriginalContent(value);
+        // Only update original when user is actually editing the raw template
+        // This preserves merge fields when displaying preview mode
+        if (isMergeViewMode) {
+          setCurrentOriginalContent(value);
+        }
       }}
       gmailStatus={gmailStatus}
       gmailUserInfo={gmailUserInfo}

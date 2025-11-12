@@ -12,6 +12,17 @@
   outline-offset: 1px;
 }
 
+/* Gmail-style indeterminate checkbox - blue styling */
+input[type="checkbox"]:indeterminate {
+  background-color: rgb(59, 130, 246) !important; /* blue-500 */
+  border-color: rgb(59, 130, 246) !important;
+}
+
+/* Ensure the indeterminate indicator (dash) is white/visible */
+input[type="checkbox"]:indeterminate::before {
+  background-color: white !important;
+}
+
 /* iOS Safari auto-zoom prevention - mobile only */
 .mobile-input-text-fix {
   font-size: 16px;

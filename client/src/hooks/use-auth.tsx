@@ -344,6 +344,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${idToken}`
           },
+          credentials: 'include', // Essential for session cookies to be set/received
           body: JSON.stringify({
             email: firebaseUser.email,
             username: firebaseUser.displayName || firebaseUser.email?.split('@')[0],

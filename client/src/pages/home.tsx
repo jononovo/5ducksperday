@@ -19,6 +19,7 @@ import { OnboardingFlowOrchestrator } from "@/components/onboarding/OnboardingFl
 import { EmailDrawer, useEmailDrawer } from "@/features/email-drawer";
 import { SearchManagementDrawer, useSearchManagementDrawer } from "@/features/search-management-drawer";
 import { TopProspectsCard } from "@/features/top-prospects";
+import { SelectionToolbar } from "@/components/SelectionToolbar";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
@@ -165,13 +166,8 @@ export default function Home() {
     // Open the drawer with the selected contact
     emailDrawer.openDrawer(contact, company, companyContacts);
     
-    // Check if contact has an email and show appropriate notification
-    if (contact.email) {
-      toast({
-        title: "Email populated",
-        description: `${contact.name}'s email added to recipient field`,
-      });
-    } else {
+    // Check if contact has an email and handle accordingly
+    if (!contact.email) {
       // Check if we've already searched comprehensively for this contact
       const hasSearchedComprehensively = contact.completedSearches?.includes('comprehensive_search');
       
@@ -548,16 +544,28 @@ export default function Home() {
     };
   }, []); // Remove dependencies to prevent re-running
 
-  // Listen for the drawer open event from the header
+  // Listen for drawer events from global navigation
   useEffect(() => {
     const handleOpenDrawer = () => {
       setSavedSearchesDrawerOpen(true);
     };
+    
+    const handleLoadSearchEvent = (event: CustomEvent) => {
+      handleLoadSavedSearch(event.detail);
+    };
+    
+    const handleNewSearchEvent = () => {
+      handleNewSearch();
+    };
 
     window.addEventListener('openSavedSearchesDrawer', handleOpenDrawer);
+    window.addEventListener('loadSavedSearch', handleLoadSearchEvent as EventListener);
+    window.addEventListener('startNewSearch', handleNewSearchEvent);
     
     return () => {
       window.removeEventListener('openSavedSearchesDrawer', handleOpenDrawer);
+      window.removeEventListener('loadSavedSearch', handleLoadSearchEvent as EventListener);
+      window.removeEventListener('startNewSearch', handleNewSearchEvent);
     };
   }, []);
 
@@ -854,15 +862,10 @@ export default function Home() {
     // Detect if this is a new search (different from current query)
     const isNewSearch = currentQuery !== query;
     
-    // Check if this is the user's first successful search and trigger onboarding
-    const hasCompletedOnboarding = localStorage.getItem('hasCompletedOnboarding');
-    const isFirstSearch = !hasCompletedOnboarding && auth?.user && results.length > 0;
-    
-    if (isFirstSearch && !showOnboarding) {
-      console.log('First search detected - triggering onboarding flow');
+    // Store search results for potential AI training (but don't auto-trigger modal)
+    if (results.length > 0) {
       setOnboardingSearchQuery(query);
       setOnboardingSearchResults(results);
-      setShowOnboarding(true);
     }
     
     // Clear any stale localStorage data that might conflict with new search results
@@ -2002,6 +2005,43 @@ export default function Home() {
     return selectedContacts.has(contactId);
   };
 
+  // Company selection functions (derived from contact selection)
+  const getCompanySelectionState = (company: CompanyWithContacts): 'checked' | 'indeterminate' | 'unchecked' => {
+    const contactsWithEmails = company.contacts?.filter(c => c.email) || [];
+    if (contactsWithEmails.length === 0) return 'unchecked';
+    
+    const selectedCount = contactsWithEmails.filter(c => selectedContacts.has(c.id)).length;
+    
+    if (selectedCount === 0) return 'unchecked';
+    if (selectedCount === contactsWithEmails.length) return 'checked';
+    return 'indeterminate';
+  };
+  
+  const handleCompanyCheckboxChange = (company: CompanyWithContacts) => {
+    const contactsWithEmails = company.contacts?.filter(c => c.email) || [];
+    if (contactsWithEmails.length === 0) return;
+    
+    const currentState = getCompanySelectionState(company);
+    
+    setSelectedContacts(prev => {
+      const newSelected = new Set(prev);
+      
+      if (currentState === 'checked' || currentState === 'indeterminate') {
+        // Deselect all contacts with emails in this company
+        contactsWithEmails.forEach(contact => {
+          newSelected.delete(contact.id);
+        });
+      } else {
+        // Select all contacts with emails in this company
+        contactsWithEmails.forEach(contact => {
+          newSelected.add(contact.id);
+        });
+      }
+      
+      return newSelected;
+    });
+  };
+
   const handleSelectAllContacts = () => {
     const prospects = getTopProspects();
     if (prospects.length === 0) return;
@@ -2293,6 +2333,17 @@ export default function Home() {
                       onContactClick={handleContactClick}
                       onViewModeChange={setCompaniesViewMode}
                       selectedEmailContact={emailDrawer.selectedContact}
+                      selectedContacts={selectedContacts}
+                      onContactSelectionChange={handleCheckboxChange}
+                      getCompanySelectionState={getCompanySelectionState}
+                      onCompanySelectionChange={handleCompanyCheckboxChange}
+                      topActionsTrailing={selectedContacts.size > 0 ? (
+                        <SelectionToolbar
+                          selectedCount={selectedContacts.size}
+                          onClear={() => setSelectedContacts(new Set())}
+                          selectedContactIds={Array.from(selectedContacts)}
+                        />
+                      ) : undefined}
                   />
                   </Suspense>
                 </div>
@@ -2346,7 +2397,7 @@ export default function Home() {
         onClose={emailDrawer.closeDrawer}
         onModeChange={emailDrawer.setMode}
         onContactChange={handleEmailContactChange}
-        onResizeStart={() => emailDrawer.handleMouseDown({} as React.MouseEvent)}
+        onResizeStart={emailDrawer.handleMouseDown}
       />
       
       {/* Search Management Drawer */}
@@ -2356,6 +2407,8 @@ export default function Home() {
         isResizing={searchManagementDrawer.isResizing}
         onClose={searchManagementDrawer.closeDrawer}
         onResizeStart={searchManagementDrawer.handleMouseDown}
+        onTrainAI={() => setShowOnboarding(true)}
+        hasSearchResults={onboardingSearchResults && onboardingSearchResults.length > 0}
       />
 
       {/* Notification System - Outside flex container */}
@@ -2363,6 +2416,8 @@ export default function Home() {
         notificationState={notificationState}
         onClose={closeNotification}
       />
+      
+      {/* Mobile Selection Toolbar - Shows at bottom */}
       
       {/* Onboarding Flow */}
       {showOnboarding && (

@@ -1,0 +1,61 @@
+Found the Bug!
+I've analyzed the database and execution timeline. Here's exactly what happened:
+
+The Timeline:
+17:52:29 - First email sent
+17:57:30 - Second email sent (exactly 300 seconds later)
+18:02:30 - Third email sent (exactly 300 seconds later)
+18:07:30 - Fourth email sent (exactly 300 seconds later)
+All 4 emails were sent with the configured 5-minute delay between them, which proves they were all processed in a single batch.
+
+The Bug Location:
+Looking at lines 580-611 in processScheduledEmails:
+
+if (campaignSettings.maxEmailsPerDay && campaignSettings.maxEmailsPerDay > 0) {
+  // Count emails already sent today
+  const todayUTC = new Date();
+  todayUTC.setUTCHours(0, 0, 0, 0);
+  
+  const [result] = await db.select({ count: sql`count(*)::int` })
+    .from(campaignRecipients)
+    .where(
+      and(
+        eq(campaignRecipients.campaignId, campaignIdNum),
+        eq(campaignRecipients.status, 'sent'),
+        sql`${campaignRecipients.updatedAt} >= ${todayUTC}`
+      )
+    );
+  
+  const sentToday = result?.count || 0;
+  const remainingAllowance = campaignSettings.maxEmailsPerDay - sentToday;
+  
+  if (remainingAllowance <= 0) {
+    console.log(`Daily limit reached...`);
+    continue; // Skip this campaign
+  }
+  
+  // Only process as many as we're allowed
+  if (userRecipients.length > remainingAllowance) {
+    console.log(`Limiting batch to ${remainingAllowance} emails...`);
+    recipientsToProcess = userRecipients.slice(0, remainingAllowance);
+  }
+}
+
+The Problem:
+The issue is on line 567: maxEmailsPerDay: firstRecipient.maxEmailsPerDay
+
+This retrieves maxEmailsPerDay from the recipient record (which doesn't have this field!), not from the campaign. The recipient record join only includes certain campaign fields, and maxEmailsPerDay comes through as campaigns.maxEmailsPerDay in the SQL query (line 495), but it's being accessed incorrectly.
+
+Since firstRecipient.maxEmailsPerDay is undefined, the condition on line 580 if (campaignSettings.maxEmailsPerDay && campaignSettings.maxEmailsPerDay > 0) evaluates to false, and the entire daily limit check is skipped!
+
+Why This Happened:
+When emails were approved, all 4 became 'scheduled'
+processScheduledEmails fetched all 4
+It tried to check the daily limit but maxEmailsPerDay was undefined
+The daily limit check was skipped entirely
+All 4 emails were sent (with proper delays between them)
+The Fix:
+The maxEmailsPerDay value needs to be accessed correctly from the recipient object. Since it's selected as campaigns.maxEmailsPerDay in the query (line 495), it should be accessed as firstRecipient.maxEmailsPerDay in the JavaScript object after the query results are mapped.
+
+However, the real issue is that the property name in the select might not match how it's being accessed. We need to verify how Drizzle ORM maps the selected fields to the resulting object properties.
+

@@ -112,7 +112,7 @@ export interface IStorage {
   createCampaign(data: InsertCampaign): Promise<Campaign>;
   updateCampaign(id: number, data: Partial<Campaign>): Promise<Campaign>;
   deleteCampaign(id: number, userId: number): Promise<void>;
-  restartCampaign(id: number, userId: number, mode: 'all' | 'unsent'): Promise<Campaign>;
+  restartCampaign(id: number, userId: number, mode: 'all' | 'failed'): Promise<Campaign>;
 
   // Search Jobs
   createSearchJob(data: InsertSearchJob): Promise<SearchJob>;
@@ -131,7 +131,11 @@ export interface IStorage {
   
   // Contact List Members
   listContactsByListId(listId: number): Promise<any[]>;
-  addContactsToList(listId: number, contactIds: number[], source: string, addedBy: number, metadata?: any): Promise<void>;
+  addContactsToList(listId: number, contactIds: number[], source: string, addedBy: number, metadata?: any): Promise<{
+    addedCount: number;
+    duplicateCount: number;
+    noEmailCount: number;
+  }>;
   removeContactsFromList(listId: number, contactIds: number[]): Promise<void>;
   isContactInList(listId: number, contactId: number): Promise<boolean>;
   getListMemberCount(listId: number): Promise<number>;
@@ -807,8 +811,27 @@ class DatabaseStorage implements IStorage {
   async createCampaignRecipients(recipients: any[]): Promise<void> {
     if (recipients.length === 0) return;
     
-    // Batch insert recipients
-    await db.insert(campaignRecipients).values(recipients);
+    // Batch insert recipients, ignoring conflicts (duplicates)
+    await db.insert(campaignRecipients)
+      .values(recipients)
+      .onConflictDoNothing(); // Unique constraint handles duplicates
+  }
+
+  async getContactsByIds(contactIds: number[], userId: number): Promise<Contact[]> {
+    if (contactIds.length === 0) return [];
+    
+    try {
+      return await db
+        .select()
+        .from(contacts)
+        .where(and(
+          inArray(contacts.id, contactIds),
+          eq(contacts.userId, userId)
+        ));
+    } catch (error) {
+      console.error('Error fetching contacts by IDs:', error);
+      return [];
+    }
   }
 
   async updateCampaign(id: number, data: Partial<Campaign>): Promise<Campaign> {
@@ -824,7 +847,7 @@ class DatabaseStorage implements IStorage {
       .where(and(eq(campaigns.id, id), eq(campaigns.userId, userId)));
   }
 
-  async restartCampaign(id: number, userId: number, mode: 'all' | 'unsent'): Promise<Campaign> {
+  async restartCampaign(id: number, userId: number, mode: 'all' | 'failed'): Promise<Campaign> {
     // Verify campaign exists and belongs to user
     const campaign = await this.getCampaign(id, userId);
     if (!campaign) {
@@ -847,7 +870,7 @@ class DatabaseStorage implements IStorage {
       // Clear recipient statuses for all recipients
       await db.update(campaignRecipients)
         .set({
-          status: 'pending',
+          status: 'scheduled',
           sentAt: null,
           openedAt: null,
           clickedAt: null,
@@ -859,16 +882,20 @@ class DatabaseStorage implements IStorage {
           updatedAt: new Date()
         })
         .where(eq(campaignRecipients.campaignId, id));
-    } else if (mode === 'unsent') {
-      // Only reset unsent recipients
+    } else if (mode === 'failed') {
+      // Only reset failed recipients (failed_generation, failed_send, manual_send_required)
       await db.update(campaignRecipients)
         .set({
-          status: 'pending',
+          status: 'scheduled',
           updatedAt: new Date()
         })
         .where(and(
           eq(campaignRecipients.campaignId, id),
-          isNull(campaignRecipients.sentAt)
+          or(
+            eq(campaignRecipients.status, 'failed_generation'),
+            eq(campaignRecipients.status, 'failed_send'),
+            eq(campaignRecipients.status, 'manual_send_required')
+          )
         ));
     }
 
@@ -1043,27 +1070,70 @@ class DatabaseStorage implements IStorage {
     }));
   }
 
-  async addContactsToList(listId: number, contactIds: number[], source: string, addedBy: number, metadata?: any): Promise<void> {
-    if (contactIds.length === 0) return;
+  async addContactsToList(listId: number, contactIds: number[], source: string, addedBy: number, metadata?: any): Promise<{
+    addedCount: number;
+    duplicateCount: number;
+    noEmailCount: number;
+  }> {
+    if (contactIds.length === 0) {
+      return { addedCount: 0, duplicateCount: 0, noEmailCount: 0 };
+    }
     
-    const values = contactIds.map(contactId => ({
-      listId,
-      contactId,
-      source,
-      addedBy,
-      sourceMetadata: metadata
-    }));
+    // 1. Fetch contact details to check for emails
+    const contactDetails = await db.select({
+      id: contacts.id,
+      email: contacts.email
+    })
+      .from(contacts)
+      .where(inArray(contacts.id, contactIds));
     
-    // Insert with ON CONFLICT DO NOTHING to handle duplicates
-    await db.insert(contactListMembers)
-      .values(values)
-      .onConflictDoNothing();
+    // Count contacts without email
+    const noEmailCount = contactDetails.filter(c => !c.email).length;
+    const contactsWithEmail = contactDetails.filter(c => c.email).map(c => c.id);
     
-    // Update contact count
-    const count = await this.getListMemberCount(listId);
-    await db.update(contactLists)
-      .set({ contactCount: count })
-      .where(eq(contactLists.id, listId));
+    // 2. Check which contacts are already in the list (duplicates)
+    const existingMembers = await db.select({
+      contactId: contactListMembers.contactId
+    })
+      .from(contactListMembers)
+      .where(and(
+        eq(contactListMembers.listId, listId),
+        inArray(contactListMembers.contactId, contactsWithEmail)
+      ));
+    
+    const existingContactIds = new Set(existingMembers.map(m => m.contactId));
+    const duplicateCount = existingContactIds.size;
+    
+    // 3. Filter out duplicates and prepare new entries
+    const newContactIds = contactsWithEmail.filter(id => !existingContactIds.has(id));
+    const addedCount = newContactIds.length;
+    
+    if (newContactIds.length > 0) {
+      const values = newContactIds.map(contactId => ({
+        listId,
+        contactId,
+        source,
+        addedBy,
+        sourceMetadata: metadata
+      }));
+      
+      // Insert new contacts
+      await db.insert(contactListMembers)
+        .values(values)
+        .onConflictDoNothing();
+      
+      // Update contact count
+      const count = await this.getListMemberCount(listId);
+      await db.update(contactLists)
+        .set({ contactCount: count })
+        .where(eq(contactLists.id, listId));
+    }
+    
+    return {
+      addedCount,
+      duplicateCount,
+      noEmailCount
+    };
   }
 
   async removeContactsFromList(listId: number, contactIds: number[]): Promise<void> {

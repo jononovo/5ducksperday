@@ -1,6 +1,6 @@
 import { storage } from "../../storage";
 import { db } from "../../db";
-import { campaignRecipients, campaigns, communicationHistory } from "@shared/schema";
+import { campaignRecipients, campaigns, communicationHistory, contacts } from "@shared/schema";
 import { eq, and, sql, inArray } from "drizzle-orm";
 import { generateEmailContent } from "../email-generation/generator";
 import type { Campaign, CampaignRecipient } from "@shared/schema";
@@ -24,6 +24,118 @@ export class EmailQueueProcessor {
   private intervalId: NodeJS.Timeout | null = null;
   private sendingIntervalId: NodeJS.Timeout | null = null;
   private processingCampaigns = new Set<number>();
+
+  /**
+   * Check if current time is within autopilot time window
+   */
+  private isWithinAutopilotWindow(campaign: any): boolean {
+    // If autopilot is not enabled, always allow sending
+    if (!campaign.autopilotEnabled) {
+      return true;
+    }
+
+    // If no autopilot settings, allow sending (backward compatibility)
+    if (!campaign.autopilotSettings || !campaign.autopilotSettings.days) {
+      return true;
+    }
+
+    const now = new Date();
+    const timezone = campaign.timezone || 'America/New_York';
+    
+    // Convert current time to campaign timezone
+    // Using toLocaleString to get the time in the campaign's timezone
+    const campaignTime = new Date(now.toLocaleString("en-US", {timeZone: timezone}));
+    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const currentDay = dayNames[campaignTime.getDay()];
+    const currentHour = campaignTime.getHours();
+    const currentMinute = campaignTime.getMinutes();
+    const currentTimeInMinutes = currentHour * 60 + currentMinute;
+
+    // Check if today is enabled
+    const daySettings = campaign.autopilotSettings.days[currentDay];
+    if (!daySettings || !daySettings.enabled) {
+      console.log(`[EmailQueueProcessor] Campaign ${campaign.id}: Autopilot not enabled for ${currentDay}`);
+      return false;
+    }
+
+    // Parse start and end times
+    const [startHour, startMinute] = daySettings.startTime.split(':').map(Number);
+    const [endHour, endMinute] = daySettings.endTime.split(':').map(Number);
+    const startTimeInMinutes = startHour * 60 + startMinute;
+    const endTimeInMinutes = endHour * 60 + endMinute;
+
+    // Check if current time is within window
+    const withinWindow = currentTimeInMinutes >= startTimeInMinutes && currentTimeInMinutes <= endTimeInMinutes;
+    
+    if (!withinWindow) {
+      console.log(`[EmailQueueProcessor] Campaign ${campaign.id}: Outside autopilot window for ${currentDay} (${daySettings.startTime}-${daySettings.endTime})`);
+    }
+    
+    return withinWindow;
+  }
+
+  /**
+   * Check if campaign has reached daily email limit
+   */
+  private async hasReachedDailyLimit(campaign: any): Promise<boolean> {
+    // If autopilot is not enabled, no daily limit
+    if (!campaign.autopilotEnabled) {
+      return false;
+    }
+
+    // If no max emails per day set, no limit
+    if (!campaign.maxEmailsPerDay || campaign.maxEmailsPerDay <= 0) {
+      return false;
+    }
+
+    const timezone = campaign.timezone || 'America/New_York';
+    const now = new Date();
+    
+    // Get the current date in the campaign's timezone
+    // We'll use a simple approach: get the offset and adjust
+    // For a more robust solution, consider using a library like date-fns-tz
+    const nowString = now.toLocaleString("en-US", { timeZone: timezone });
+    const campaignDate = new Date(nowString);
+    
+    // Create start of day in the campaign's timezone
+    const year = campaignDate.getFullYear();
+    const month = campaignDate.getMonth();
+    const day = campaignDate.getDate();
+    
+    // Create a new date at start of day
+    const startOfDayLocal = new Date(year, month, day, 0, 0, 0, 0);
+    
+    // For the database query, we'll use the start of today in the server's timezone
+    // Since we're comparing UTC timestamps in the DB, we need to be careful
+    const todayUTC = new Date();
+    todayUTC.setUTCHours(0, 0, 0, 0);
+    
+    // Use todayUTC for the SQL query
+    const utcStartOfDay = todayUTC;
+
+    // Count emails sent today for this campaign
+    const [result] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(campaignRecipients)
+      .where(
+        and(
+          eq(campaignRecipients.campaignId, campaign.id),
+          eq(campaignRecipients.status, 'sent'),
+          sql`${campaignRecipients.updatedAt} >= ${utcStartOfDay}`
+        )
+      );
+
+    const sentToday = result?.count || 0;
+    const hasReachedLimit = sentToday >= campaign.maxEmailsPerDay;
+    
+    if (hasReachedLimit) {
+      console.log(`[EmailQueueProcessor] Campaign ${campaign.id}: Daily limit reached (${sentToday}/${campaign.maxEmailsPerDay})`);
+    } else {
+      console.log(`[EmailQueueProcessor] Campaign ${campaign.id}: Daily progress (${sentToday}/${campaign.maxEmailsPerDay})`);
+    }
+    
+    return hasReachedLimit;
+  }
 
   /**
    * Start the queue processor
@@ -174,12 +286,15 @@ export class EmailQueueProcessor {
           }
         });
 
-        // Update successful recipients to in_review
+        // Update successful recipients based on human review requirement
         if (successful.length > 0) {
+          // Check if campaign requires human review
+          const targetStatus = campaign.requiresHumanReview ? 'in_review' : 'scheduled';
+          
           await db
             .update(campaignRecipients)
             .set({ 
-              status: 'in_review',
+              status: targetStatus,
               updatedAt: new Date()
             })
             .where(
@@ -188,7 +303,7 @@ export class EmailQueueProcessor {
                 inArray(campaignRecipients.id, successful)
               )
             );
-          console.log(`[EmailQueueProcessor] Generated emails for ${successful.length} recipients`);
+          console.log(`[EmailQueueProcessor] Generated emails for ${successful.length} recipients (status: ${targetStatus})`);
         }
 
         // Update failed recipients
@@ -359,11 +474,12 @@ export class EmailQueueProcessor {
     this.isSending = true;
 
     try {
-      // Find scheduled recipients ready to send - now includes delay_between_emails
+      // Find scheduled recipients ready to send - now includes autopilot settings
       const scheduledRecipients = await db
         .select({
           id: campaignRecipients.id,
           campaignId: campaignRecipients.campaignId,
+          contactId: campaignRecipients.contactId, // Added for communication history tracking
           userId: campaigns.userId,
           senderProfileId: campaigns.senderProfileId,
           recipientEmail: campaignRecipients.recipientEmail,
@@ -373,6 +489,11 @@ export class EmailQueueProcessor {
           emailSubject: campaignRecipients.emailSubject,
           emailContent: campaignRecipients.emailContent,
           delayBetweenEmails: campaigns.delayBetweenEmails,
+          // Add autopilot settings
+          autopilotEnabled: campaigns.autopilotEnabled,
+          autopilotSettings: campaigns.autopilotSettings,
+          maxEmailsPerDay: campaigns.maxEmailsPerDay,
+          timezone: campaigns.timezone,
         })
         .from(campaignRecipients)
         .innerJoin(campaigns, eq(campaignRecipients.campaignId, campaigns.id))
@@ -400,7 +521,7 @@ export class EmailQueueProcessor {
       }, {} as Record<number, typeof scheduledRecipients>);
 
       // Process each user's recipients
-      for (const [userId, userRecipients] of Object.entries(recipientsByUser)) {
+      for (const [userId, allUserRecipients] of Object.entries(recipientsByUser)) {
         const userIdNum = parseInt(userId);
         
         // Check if user has Gmail connected
@@ -418,55 +539,127 @@ export class EmailQueueProcessor {
               updatedAt: new Date()
             })
             .where(
-              inArray(campaignRecipients.id, userRecipients.map(r => r.id))
+              inArray(campaignRecipients.id, allUserRecipients.map(r => r.id))
             );
           
           continue;
         }
 
-        // Get user info for sending
-        const user = await storage.getUserById(userIdNum);
-        if (!user) {
-          console.error(`[EmailQueueProcessor] User ${userIdNum} not found`);
-          continue;
-        }
+        // Group recipients by campaign to check autopilot settings per campaign
+        const recipientsByCampaign = allUserRecipients.reduce((acc, recipient) => {
+          if (!acc[recipient.campaignId]) {
+            acc[recipient.campaignId] = [];
+          }
+          acc[recipient.campaignId].push(recipient);
+          return acc;
+        }, {} as Record<number, typeof allUserRecipients>);
 
-        // Get the sender profile for the campaign (if specified)
-        let senderProfile = null;
-        const campaignSenderProfileId = userRecipients[0].senderProfileId; // All recipients in this group have same campaign
-        
-        if (campaignSenderProfileId) {
-          senderProfile = await storage.getSenderProfile(campaignSenderProfileId, userIdNum);
+        // Process each campaign's recipients separately
+        for (const [campaignId, userRecipients] of Object.entries(recipientsByCampaign)) {
+          const campaignIdNum = parseInt(campaignId);
+          const firstRecipient = userRecipients[0];
+          
+          // Create a campaign object with the autopilot settings
+          const campaignSettings = {
+            id: campaignIdNum,
+            autopilotEnabled: firstRecipient.autopilotEnabled,
+            autopilotSettings: firstRecipient.autopilotSettings,
+            maxEmailsPerDay: firstRecipient.maxEmailsPerDay,
+            timezone: firstRecipient.timezone
+          };
+
+          // Check if we're within autopilot time window
+          if (!this.isWithinAutopilotWindow(campaignSettings)) {
+            console.log(`[EmailQueueProcessor] Campaign ${campaignIdNum}: Outside autopilot window, skipping batch`);
+            continue; // Skip this campaign's recipients for now
+          }
+
+          // We'll check daily limits inside the loop for each email
+          let recipientsToProcess = userRecipients;
+
+          // Continue with the existing processing logic for this campaign's recipients
+          
+          // Get user info for sending
+          const user = await storage.getUserById(userIdNum);
+          if (!user) {
+            console.error(`[EmailQueueProcessor] User ${userIdNum} not found`);
+            continue;
+          }
+
+          // Get the sender profile for the campaign (if specified)
+          let senderProfile = null;
+          const campaignSenderProfileId = userRecipients[0].senderProfileId; // All recipients in this group have same campaign
+          
+          if (campaignSenderProfileId) {
+            senderProfile = await storage.getSenderProfile(campaignSenderProfileId, userIdNum);
+            if (!senderProfile) {
+              console.warn(`[EmailQueueProcessor] Sender profile ${campaignSenderProfileId} not found, using default`);
+            }
+          }
+          
+          // If no sender profile, try to get the default one for the user
           if (!senderProfile) {
-            console.warn(`[EmailQueueProcessor] Sender profile ${campaignSenderProfileId} not found, using default`);
-          }
-        }
-        
-        // If no sender profile, try to get the default one for the user
-        if (!senderProfile) {
-          const userProfiles = await storage.listSenderProfiles(userIdNum);
-          senderProfile = userProfiles.find(p => p.isDefault) || userProfiles[0];
-        }
-        
-        // Process each email for this user SEQUENTIALLY with delays
-        const results: Array<{ success: boolean; recipientId?: number; error?: any }> = [];
-        
-        // Get delay setting (default to 30 seconds if not set, convert minutes to milliseconds)
-        const delayBetweenEmails = (userRecipients[0].delayBetweenEmails || 0.5) * 60 * 1000;
-        console.log(`[EmailQueueProcessor] Using delay of ${delayBetweenEmails / 1000} seconds between emails`);
-        
-        for (let i = 0; i < userRecipients.length; i++) {
-          const recipient = userRecipients[i];
-          
-          // Add delay between emails (except for the first one)
-          if (i > 0 && delayBetweenEmails > 0) {
-            console.log(`[EmailQueueProcessor] Waiting ${delayBetweenEmails / 1000} seconds before sending next email...`);
-            await new Promise(resolve => setTimeout(resolve, delayBetweenEmails));
+            const userProfiles = await storage.listSenderProfiles(userIdNum);
+            senderProfile = userProfiles.find(p => p.isDefault) || userProfiles[0];
           }
           
-          try {
-            // Build merge context for this recipient
-            const recipientData = {
+          // Process each email for this user SEQUENTIALLY with delays
+          const results: Array<{ success: boolean; recipientId?: number; error?: any }> = [];
+          
+          // Get delay setting (default to 30 seconds if not set, convert minutes to milliseconds)
+          const delayBetweenEmails = (userRecipients[0].delayBetweenEmails || 0.5) * 60 * 1000;
+          console.log(`[EmailQueueProcessor] Using delay of ${delayBetweenEmails / 1000} seconds between emails`);
+        
+          // Query the database ONCE to get baseline count of emails sent today
+          let baselineSentToday = 0;
+          if (campaignSettings.maxEmailsPerDay && campaignSettings.maxEmailsPerDay > 0) {
+            const todayUTC = new Date();
+            todayUTC.setUTCHours(0, 0, 0, 0);
+            
+            const [result] = await db
+              .select({ count: sql<number>`count(*)::int` })
+              .from(campaignRecipients)
+              .where(
+                and(
+                  eq(campaignRecipients.campaignId, campaignIdNum),
+                  eq(campaignRecipients.status, 'sent'),
+                  sql`${campaignRecipients.updatedAt} >= ${todayUTC}`
+                )
+              );
+            
+            baselineSentToday = result?.count || 0;
+            console.log(`[EmailQueueProcessor] Campaign ${campaignIdNum}: Starting with ${baselineSentToday}/${campaignSettings.maxEmailsPerDay} emails already sent today`);
+          }
+        
+          // Track emails sent in this batch to add to baseline count
+          let emailsSentInThisBatch = 0;
+        
+          for (let i = 0; i < recipientsToProcess.length; i++) {
+            const recipient = recipientsToProcess[i];
+            
+            // Check daily limit BEFORE sending each email (using baseline + batch counter)
+            if (campaignSettings.maxEmailsPerDay && campaignSettings.maxEmailsPerDay > 0) {
+              const totalSentToday = baselineSentToday + emailsSentInThisBatch;
+              
+              if (totalSentToday >= campaignSettings.maxEmailsPerDay) {
+                console.log(`[EmailQueueProcessor] Campaign ${campaignIdNum}: Daily limit reached (${totalSentToday}/${campaignSettings.maxEmailsPerDay}). Stopping batch processing.`);
+                console.log(`[EmailQueueProcessor] ${recipientsToProcess.length - i} emails remaining in scheduled status for next processing cycle.`);
+                break; // Exit the loop, leaving remaining emails in 'scheduled' status
+              }
+              
+              const remainingAllowance = campaignSettings.maxEmailsPerDay - totalSentToday;
+              console.log(`[EmailQueueProcessor] Campaign ${campaignIdNum}: Sending email ${i + 1}/${recipientsToProcess.length}. Daily progress: ${totalSentToday}/${campaignSettings.maxEmailsPerDay}, remaining today: ${remainingAllowance}`);
+            }
+            
+            // Add delay between emails (except for the first one)
+            if (i > 0 && delayBetweenEmails > 0) {
+              console.log(`[EmailQueueProcessor] Waiting ${delayBetweenEmails / 1000} seconds before sending next email...`);
+              await new Promise(resolve => setTimeout(resolve, delayBetweenEmails));
+            }
+          
+            try {
+              // Build merge context for this recipient
+              const recipientData = {
               email: recipient.recipientEmail,
               firstName: recipient.recipientFirstName || undefined,
               lastName: recipient.recipientLastName || undefined,
@@ -512,16 +705,59 @@ export class EmailQueueProcessor {
               mergeContext
             );
             
-            console.log(`[EmailQueueProcessor] Sending email ${i + 1}/${userRecipients.length} to ${recipient.recipientEmail}`);
+            // Debug log: Track each send attempt
+            console.log(`[EmailQueueProcessor] SENDING: Campaign ${recipient.campaignId}, Email ${i + 1}/${recipientsToProcess.length} to ${recipient.recipientEmail}`);
             
-            // Send email via Gmail with resolved content
+            // Send email via Gmail with resolved content and custom sender name
             const gmailResult = await GmailOAuthService.sendEmail(
               userIdNum,
               user.email,
               recipient.recipientEmail,
               resolvedSubject,
-              resolvedContent
+              resolvedContent,
+              senderProfile?.displayName  // Pass custom sender display name if available
             );
+
+            // Log Gmail success with message ID for tracking
+            console.log(`[EmailQueueProcessor] GMAIL-SUCCESS: Campaign ${recipient.campaignId}, Recipient ${recipient.recipientEmail}, MessageId: ${gmailResult?.messageId || 'N/A'}`);
+
+            // Always log to communication history (not conditional on contactId)
+            // This is critical for preventing duplicates and maintaining audit trail
+            try {
+              // Debug: Ensure userIdNum is valid
+              console.log(`[EmailQueueProcessor] DEBUG: userIdNum=${userIdNum}, type=${typeof userIdNum}, recipient.userId=${recipient.userId}`);
+              
+              // Use recipient.userId if userIdNum is somehow undefined
+              const effectiveUserId = userIdNum || recipient.userId;
+              
+              await db.insert(communicationHistory).values({
+                user_id: effectiveUserId,
+                contact_id: recipient.contactId || 1,  // Default to 1 if no contactId (temporary workaround)
+                company_id: 1,  // Default to 1 (temporary workaround)
+                campaign_id: recipient.campaignId,
+                channel: 'email',
+                direction: 'outbound',
+                status: 'sent',
+                subject: resolvedSubject,
+                content: resolvedContent?.substring(0, 500) || 'Campaign email', // Store first 500 chars for reference
+                content_preview: resolvedContent?.substring(0, 200) || 'Campaign email',
+                sent_at: new Date(),
+                metadata: {
+                  gmailMessageId: gmailResult?.messageId,
+                  gmailThreadId: gmailResult?.threadId,
+                  recipientEmail: recipient.recipientEmail,
+                  recipientName: `${recipient.recipientFirstName || ''} ${recipient.recipientLastName || ''}`.trim(),
+                  recipientCompany: recipient.recipientCompany,
+                  campaignRecipientId: recipient.id
+                },
+                created_at: new Date(),
+                updated_at: new Date()
+              });
+              console.log(`[EmailQueueProcessor] HISTORY-LOGGED: Campaign ${recipient.campaignId}, Recipient ${recipient.recipientEmail}`);
+            } catch (historyError) {
+              // Log error but don't fail the send - email was already sent successfully
+              console.error(`[EmailQueueProcessor] WARNING: Failed to log to communication_history for ${recipient.recipientEmail}:`, historyError);
+            }
 
             // Update status to sent
             await db
@@ -533,48 +769,83 @@ export class EmailQueueProcessor {
               })
               .where(eq(campaignRecipients.id, recipient.id));
 
-            console.log(`[EmailQueueProcessor] Successfully sent email to ${recipient.recipientEmail}`);
+            console.log(`[EmailQueueProcessor] SEND-COMPLETE: Campaign ${recipient.campaignId}, Recipient ${recipient.recipientEmail} marked as sent`);
             results.push({ success: true, recipientId: recipient.id });
             
-          } catch (error: any) {
-            console.error(`[EmailQueueProcessor] Failed to send email to ${recipient.recipientEmail}:`, error);
+            // Increment the batch counter for daily limit tracking
+            emailsSentInThisBatch++;
             
-            // Check if it's an auth error
-            if (error.status === 401) {
-              // Mark as manual send required
-              await db
-                .update(campaignRecipients)
-                .set({
-                  status: 'manual_send_required',
-                  errorMessage: 'Gmail authentication expired - manual send required',
-                  updatedAt: new Date()
-                })
-                .where(eq(campaignRecipients.id, recipient.id));
-            } else {
-              // Update status to failed_send
-              await db
-                .update(campaignRecipients)
-                .set({
-                  status: 'failed_send',
-                  errorMessage: error instanceof Error ? error.message : 'Send failed',
-                  updatedAt: new Date()
-                })
-                .where(eq(campaignRecipients.id, recipient.id));
+            } catch (error: any) {
+              console.error(`[EmailQueueProcessor] Failed to send email to ${recipient.recipientEmail}:`, error);
+              
+              // Check if it's an auth error
+              if (error.status === 401) {
+                // Mark as manual send required
+                await db
+                  .update(campaignRecipients)
+                  .set({
+                    status: 'manual_send_required',
+                    errorMessage: 'Gmail authentication expired - manual send required',
+                    updatedAt: new Date()
+                  })
+                  .where(eq(campaignRecipients.id, recipient.id));
+              } else {
+                // Update status to failed_send
+                await db
+                  .update(campaignRecipients)
+                  .set({
+                    status: 'failed_send',
+                    errorMessage: error instanceof Error ? error.message : 'Send failed',
+                    updatedAt: new Date()
+                  })
+                  .where(eq(campaignRecipients.id, recipient.id));
+              }
+              
+              results.push({ success: false, recipientId: recipient.id, error });
             }
-            
-            results.push({ success: false, recipientId: recipient.id, error });
           }
-        }
 
-        // Log results for this user
-        const successful = results.filter(r => r.success).length;
-        const failed = results.filter(r => !r.success).length;
-        
-        if (successful > 0) {
-          console.log(`[EmailQueueProcessor] Successfully sent ${successful} emails for user ${userIdNum}`);
-        }
-        if (failed > 0) {
-          console.log(`[EmailQueueProcessor] Failed to send ${failed} emails for user ${userIdNum}`);
+          // Log results for this campaign
+          const successful = results.filter(r => r.success).length;
+          const failed = results.filter(r => !r.success).length;
+          
+          if (successful > 0) {
+            console.log(`[EmailQueueProcessor] Successfully sent ${successful} emails for user ${userIdNum}`);
+            
+            // Check if all emails in the campaign have been sent
+            const campaignStats = await db
+              .select({
+                totalRecipients: sql<number>`count(*)::int`,
+                sentCount: sql<number>`sum(case when status = 'sent' then 1 else 0 end)::int`,
+                failedCount: sql<number>`sum(case when status in ('failed_send', 'failed_generation', 'manual_send_required') then 1 else 0 end)::int`
+              })
+              .from(campaignRecipients)
+              .where(eq(campaignRecipients.campaignId, campaignIdNum));
+            
+            if (campaignStats[0]) {
+              const { totalRecipients, sentCount, failedCount } = campaignStats[0];
+              const processedCount = sentCount + failedCount;
+              
+              // If all recipients have been processed (either sent or failed)
+              if (processedCount >= totalRecipients) {
+                console.log(`[EmailQueueProcessor] Campaign ${campaignIdNum} completed: ${sentCount} sent, ${failedCount} failed out of ${totalRecipients} total`);
+                
+                // Mark the campaign as completed
+                await db
+                  .update(campaigns)
+                  .set({
+                    status: 'completed',
+                    updatedAt: new Date()
+                  })
+                  .where(eq(campaigns.id, campaignIdNum));
+                
+                console.log(`[EmailQueueProcessor] Campaign ${campaignIdNum} marked as completed`);
+              }
+            }
+          }
+          if (failed > 0) {
+            console.log(`[EmailQueueProcessor] Failed to send ${failed} emails for user ${userIdNum}`);
+          }
         }
       }
 

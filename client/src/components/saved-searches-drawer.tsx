@@ -59,7 +59,7 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch, onNewSea
         >
         <div className="h-full overflow-auto">
           {/* New Search Button */}
-          <div className="px-3 pb-2">
+          <div className="px-3 pb-1">
             <button
               onClick={() => {
                 onNewSearch();
@@ -73,7 +73,7 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch, onNewSea
           </div>
           
           {/* Streak Link */}
-          <div className="px-3 pb-2">
+          <div className="px-3 pb-1">
             <Link href="/streak">
               <button
                 onClick={() => onOpenChange(false)}
@@ -86,7 +86,7 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch, onNewSea
           </div>
           
           {/* Campaigns Link */}
-          <div className="px-3 pb-2">
+          <div className="px-3 pb-1">
             <Link href="/campaigns">
               <button
                 onClick={() => onOpenChange(false)}
@@ -99,7 +99,7 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch, onNewSea
           </div>
           
           {/* Contacts Link */}
-          <div className="px-3 pb-3">
+          <div className="px-3 pb-2">
             <Link href="/contacts">
               <button
                 onClick={() => onOpenChange(false)}

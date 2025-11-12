@@ -67,10 +67,9 @@ export function validateEmailGenerationRequest(
   emailPrompt: string,
   company: Company | null
 ): { isValid: boolean; error?: string } {
-  if (!company) {
-    return { isValid: false, error: "No Company Selected" };
-  }
-
+  // This function is kept for backward compatibility but simplified
+  // Company is no longer required - fallback to "your company" works for all cases
+  
   if (!emailPrompt || emailPrompt.trim() === '') {
     return { isValid: false, error: "No Prompt Provided" };
   }

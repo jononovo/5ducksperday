@@ -103,7 +103,8 @@ export class GmailOAuthService {
     userEmail: string,
     to: string,
     subject: string,
-    content: string
+    content: string,
+    senderName?: string  // Optional custom sender name for campaigns
   ): Promise<{ threadId: string; messageId: string }> {
     const userTokens = await TokenService.getUserTokens(userId);
     const gmailToken = userTokens?.gmailAccessToken;
@@ -128,15 +129,17 @@ export class GmailOAuthService {
     const gmailUserInfo = await TokenService.getGmailUserInfo(userId);
     const senderEmail = gmailUserInfo?.email || userEmail;
 
-    const fromHeader = gmailUserInfo?.displayName 
-      ? `From: ${gmailUserInfo.displayName} <${senderEmail}>`
+    // Use custom sender name if provided (for campaigns), otherwise use Gmail account name
+    const displayName = senderName || gmailUserInfo?.name;
+    const fromHeader = displayName 
+      ? `From: ${displayName} <${senderEmail}>`
       : `From: ${senderEmail}`;
 
     const utf8Subject = `=?utf-8?B?${Buffer.from(subject).toString('base64')}?=`;
     const messageParts = [
       fromHeader,
       'To: ' + to,
-      'Content-Type: text/html; charset=utf-8',
+      'Content-Type: text/plain; charset=utf-8',
       'MIME-Version: 1.0',
       `Subject: ${utf8Subject}`,
       '',
