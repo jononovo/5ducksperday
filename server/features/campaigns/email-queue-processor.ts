@@ -707,45 +707,7 @@ export class EmailQueueProcessor {
               mergeContext
             );
             
-            // Check for duplicate sends before proceeding
-            const isDuplicate = await emailSendLogger.wasEmailAlreadySent(
-              recipient.campaignId,
-              recipient.contactId || 0,
-              recipient.recipientEmail
-            );
-            
-            if (isDuplicate) {
-              console.log(`[EmailQueueProcessor] DUPLICATE BLOCKED: Campaign ${recipient.campaignId}, Contact ${recipient.contactId}, Email ${recipient.recipientEmail}`);
-              
-              // Log the blocked duplicate
-              await emailSendLogger.logEmailSend({
-                service: 'gmail_oauth',
-                campaignId: recipient.campaignId,
-                contactId: recipient.contactId || undefined,
-                recipientEmail: recipient.recipientEmail,
-                subject: resolvedSubject,
-                status: 'blocked_duplicate',
-                userId: userIdNum,
-                metadata: {
-                  reason: 'Email already sent within detection window',
-                  campaignRecipientId: recipient.id
-                }
-              });
-              
-              // Mark as sent in campaign_recipients to avoid reprocessing
-              await db
-                .update(campaignRecipients)
-                .set({
-                  status: 'sent',
-                  sentAt: new Date(),
-                  updatedAt: new Date(),
-                  errorMessage: 'Blocked as duplicate'
-                })
-                .where(eq(campaignRecipients.id, recipient.id));
-              
-              results.push({ success: false, recipientId: recipient.id, error: 'Duplicate blocked' });
-              continue; // Skip to next recipient
-            }
+            // DUPLICATE CHECKING REMOVED - Only logging for diagnostics
             
             // Debug log: Track each send attempt
             console.log(`[EmailQueueProcessor] SENDING: Campaign ${recipient.campaignId}, Email ${i + 1}/${recipientsToProcess.length} to ${recipient.recipientEmail}`);
