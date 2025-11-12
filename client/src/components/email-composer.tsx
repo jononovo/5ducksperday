@@ -202,9 +202,7 @@ export function EmailComposer({
   const { data: senderProfiles = [] } = useQuery({
     queryKey: ['/api/sender-profiles'],
     queryFn: async () => {
-      const response = await fetch('/api/sender-profiles', {
-        credentials: 'include'
-      });
+      const response = await apiRequest("GET", '/api/sender-profiles');
       if (!response.ok) throw new Error('Failed to fetch sender profiles');
       return response.json();
     },
