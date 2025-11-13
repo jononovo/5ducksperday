@@ -555,7 +555,7 @@ export class EmailQueueProcessor {
           SET status = 'sending',
               locked_by = ${instanceId},
               locked_at = ${new Date()}
-          WHERE id = ANY(${claimedIds}::int[])
+          WHERE id = ANY(ARRAY[${sql.raw(claimedIds.join(','))}]::int[])
         `);
         
         console.log(`[EmailQueueProcessor] ATOMICALLY-CLAIMED: ${toClaim.length} recipients with instanceId ${instanceId}`);
