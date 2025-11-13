@@ -1075,6 +1075,9 @@ export const campaignRecipients = pgTable("campaign_recipients", {
   errorMessage: text("error_message"),
   openCount: integer("open_count").default(0),
   clickCount: integer("click_count").default(0),
+  // Lock columns to prevent duplicate processing
+  lockedBy: text("locked_by"),
+  lockedAt: timestamp("locked_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
 }, (table) => [

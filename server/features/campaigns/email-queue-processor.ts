@@ -474,39 +474,114 @@ export class EmailQueueProcessor {
 
     this.isSending = true;
     const processId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const instanceId = `instance-${processId}`;
     console.log(`[EmailQueueProcessor] PROCESS-START: ${processId} at ${new Date().toISOString()}`);
 
     try {
-      // Find scheduled recipients ready to send - now includes autopilot settings
-      const scheduledRecipients = await db
-        .select({
-          id: campaignRecipients.id,
-          campaignId: campaignRecipients.campaignId,
-          contactId: campaignRecipients.contactId, // Added for communication history tracking
-          userId: campaigns.userId,
-          senderProfileId: campaigns.senderProfileId,
-          recipientEmail: campaignRecipients.recipientEmail,
-          recipientFirstName: campaignRecipients.recipientFirstName,
-          recipientLastName: campaignRecipients.recipientLastName,
-          recipientCompany: campaignRecipients.recipientCompany,
-          emailSubject: campaignRecipients.emailSubject,
-          emailContent: campaignRecipients.emailContent,
-          delayBetweenEmails: campaigns.delayBetweenEmails,
-          // Add autopilot settings
-          autopilotEnabled: campaigns.autopilotEnabled,
-          autopilotSettings: campaigns.autopilotSettings,
-          maxEmailsPerDay: campaigns.maxEmailsPerDay,
-          timezone: campaigns.timezone,
+      // First, clean up stale locks (older than 5 minutes)
+      const staleThreshold = new Date(Date.now() - 5 * 60 * 1000);
+      await db
+        .update(campaignRecipients)
+        .set({
+          status: 'scheduled',
+          lockedBy: null,
+          lockedAt: null
         })
-        .from(campaignRecipients)
-        .innerJoin(campaigns, eq(campaignRecipients.campaignId, campaigns.id))
         .where(
           and(
-            eq(campaignRecipients.status, 'scheduled'),
-            eq(campaigns.status, 'active')
+            eq(campaignRecipients.status, 'sending'),
+            sql`${campaignRecipients.lockedAt} < ${staleThreshold}`
           )
-        )
-        .limit(10); // Send up to 10 at a time
+        );
+      
+      // Atomically claim recipients for sending using SELECT FOR UPDATE SKIP LOCKED
+      const claimedRecipients = await db.transaction(async (tx) => {
+        // Select and lock recipients atomically
+        const toClaimQuery = sql<{
+          id: number;
+          campaign_id: number;
+          contact_id: number | null;
+          recipient_email: string;
+          recipient_first_name: string | null;
+          recipient_last_name: string | null;
+          recipient_company: string | null;
+          email_subject: string | null;
+          email_content: string | null;
+          user_id: number;
+          sender_profile_id: number | null;
+          delay_between_emails: number | null;
+          autopilot_enabled: boolean | null;
+          autopilot_settings: any;
+          max_emails_per_day: number | null;
+          timezone: string | null;
+        }>`
+          SELECT 
+            cr.id,
+            cr.campaign_id,
+            cr.contact_id,
+            cr.recipient_email,
+            cr.recipient_first_name,
+            cr.recipient_last_name,
+            cr.recipient_company,
+            cr.email_subject,
+            cr.email_content,
+            c.user_id,
+            c.sender_profile_id,
+            c.delay_between_emails,
+            c.autopilot_enabled,
+            c.autopilot_settings,
+            c.max_emails_per_day,
+            c.timezone
+          FROM campaign_recipients cr
+          INNER JOIN campaigns c ON cr.campaign_id = c.id
+          WHERE cr.status = 'scheduled'
+            AND c.status = 'active'
+            AND (cr.locked_by IS NULL OR cr.locked_at < ${staleThreshold})
+          LIMIT 10
+          FOR UPDATE OF cr SKIP LOCKED
+        `;
+        
+        const result = await tx.execute(toClaimQuery);
+        const toClaim = result.rows as any[];
+        
+        if (toClaim.length === 0) {
+          return [];
+        }
+        
+        // Mark claimed recipients as being sent with lock info
+        const claimedIds = toClaim.map((r: any) => r.id as number);
+        await tx.execute(sql`
+          UPDATE campaign_recipients
+          SET status = 'sending',
+              locked_by = ${instanceId},
+              locked_at = ${new Date()}
+          WHERE id = ANY(${claimedIds}::int[])
+        `);
+        
+        console.log(`[EmailQueueProcessor] ATOMICALLY-CLAIMED: ${toClaim.length} recipients with instanceId ${instanceId}`);
+        
+        // Transform to expected format
+        return toClaim.map((r: any) => ({
+          id: r.id as number,
+          campaignId: r.campaign_id as number,
+          contactId: r.contact_id as number | null,
+          userId: r.user_id as number,
+          senderProfileId: r.sender_profile_id as number | null,
+          recipientEmail: r.recipient_email as string,
+          recipientFirstName: r.recipient_first_name as string | null,
+          recipientLastName: r.recipient_last_name as string | null,
+          recipientCompany: r.recipient_company as string | null,
+          emailSubject: r.email_subject as string | null,
+          emailContent: r.email_content as string | null,
+          delayBetweenEmails: r.delay_between_emails as number | null,
+          autopilotEnabled: r.autopilot_enabled as boolean | null,
+          autopilotSettings: r.autopilot_settings,
+          maxEmailsPerDay: r.max_emails_per_day as number | null,
+          timezone: r.timezone as string | null
+        }));
+      });
+      
+      const scheduledRecipients = claimedRecipients;
 
       if (scheduledRecipients.length === 0) {
         return;
@@ -734,27 +809,29 @@ export class EmailQueueProcessor {
               const effectiveUserId = userIdNum || recipient.userId;
               
               await db.insert(communicationHistory).values({
-                user_id: effectiveUserId,
-                contact_id: recipient.contactId || 1,  // Default to 1 if no contactId (temporary workaround)
-                company_id: 1,  // Default to 1 (temporary workaround)
-                campaign_id: recipient.campaignId,
+                userId: effectiveUserId,
+                contactId: recipient.contactId || 1,  // Default to 1 if no contactId (temporary workaround)
+                companyId: 1,  // Default to 1 (temporary workaround)
+                campaignId: recipient.campaignId,
                 channel: 'email',
                 direction: 'outbound',
                 status: 'sent',
                 subject: resolvedSubject,
                 content: resolvedContent?.substring(0, 500) || 'Campaign email', // Store first 500 chars for reference
-                content_preview: resolvedContent?.substring(0, 200) || 'Campaign email',
-                sent_at: new Date(),
+                contentPreview: resolvedContent?.substring(0, 200) || 'Campaign email',
+                sentAt: new Date(),
                 metadata: {
-                  gmailMessageId: gmailResult?.messageId,
-                  gmailThreadId: gmailResult?.threadId,
-                  recipientEmail: recipient.recipientEmail,
-                  recipientName: `${recipient.recipientFirstName || ''} ${recipient.recipientLastName || ''}`.trim(),
-                  recipientCompany: recipient.recipientCompany,
-                  campaignRecipientId: recipient.id
+                  gmailMessageId: gmailResult?.messageId || null,
+                  gmailThreadId: gmailResult?.threadId || null,
+                  recipientEmail: recipient.recipientEmail || null,
+                  recipientName: `${recipient.recipientFirstName || ''} ${recipient.recipientLastName || ''}`.trim() || null,
+                  recipientCompany: recipient.recipientCompany || null,
+                  campaignRecipientId: recipient.id || null,
+                  sentBy: 'EmailQueueProcessor',
+                  processId: processId
                 },
-                created_at: new Date(),
-                updated_at: new Date()
+                createdAt: new Date(),
+                updatedAt: new Date()
               });
               console.log(`[EmailQueueProcessor] HISTORY-LOGGED: Campaign ${recipient.campaignId}, Recipient ${recipient.recipientEmail}`);
             } catch (historyError) {
@@ -762,13 +839,15 @@ export class EmailQueueProcessor {
               console.error(`[EmailQueueProcessor] WARNING: Failed to log to communication_history for ${recipient.recipientEmail}:`, historyError);
             }
 
-            // Update status to sent
+            // Update status to sent and clear lock
             await db
               .update(campaignRecipients)
               .set({
                 status: 'sent',
                 sentAt: new Date(),
-                updatedAt: new Date()
+                updatedAt: new Date(),
+                lockedBy: null,
+                lockedAt: null
               })
               .where(eq(campaignRecipients.id, recipient.id));
 
@@ -783,23 +862,27 @@ export class EmailQueueProcessor {
               
               // Check if it's an auth error
               if (error.status === 401) {
-                // Mark as manual send required
+                // Mark as manual send required and clear lock
                 await db
                   .update(campaignRecipients)
                   .set({
                     status: 'manual_send_required',
                     errorMessage: 'Gmail authentication expired - manual send required',
-                    updatedAt: new Date()
+                    updatedAt: new Date(),
+                    lockedBy: null,
+                    lockedAt: null
                   })
                   .where(eq(campaignRecipients.id, recipient.id));
               } else {
-                // Update status to failed_send
+                // Update status to failed_send and clear lock
                 await db
                   .update(campaignRecipients)
                   .set({
                     status: 'failed_send',
                     errorMessage: error instanceof Error ? error.message : 'Send failed',
-                    updatedAt: new Date()
+                    updatedAt: new Date(),
+                    lockedBy: null,
+                    lockedAt: null
                   })
                   .where(eq(campaignRecipients.id, recipient.id));
               }
