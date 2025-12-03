@@ -243,10 +243,10 @@ function ContactListModal({
                       <FormLabel className="text-sm font-normal text-muted-foreground">
                         No duplicates with other lists
                       </FormLabel>
-                      <TooltipProvider>
+                      <TooltipProvider delayDuration={100}>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Info className="h-4 w-4 text-muted-foreground" />
+                            <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
                           </TooltipTrigger>
                           <TooltipContent className="max-w-[280px]">
                             <p>When enabled, contacts will be filtered out if their email already exists in any of your other contact lists.</p>
