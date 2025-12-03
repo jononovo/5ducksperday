@@ -45,6 +45,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import {
   Users,
@@ -62,6 +63,7 @@ import {
   Target,
   Calendar,
   Download,
+  Info,
 } from "lucide-react";
 import type { ContactList, Contact, InsertContactList } from "@shared/schema";
 import { format } from "date-fns";
@@ -83,6 +85,7 @@ interface ContactStats {
 const newListFormSchema = z.object({
   name: z.string().min(1, "List name is required"),
   description: z.string().optional(),
+  noDuplicatesWithOtherLists: z.boolean().default(false),
 });
 
 type NewListFormValues = z.infer<typeof newListFormSchema>;
@@ -103,6 +106,7 @@ function NewListModal({
     defaultValues: {
       name: "",
       description: "",
+      noDuplicatesWithOtherLists: false,
     },
   });
 
@@ -185,6 +189,41 @@ function NewListModal({
                     Briefly describe the purpose of this list
                   </FormDescription>
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="noDuplicatesWithOtherLists"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <FormLabel className="text-sm font-medium">
+                        No duplicates with other lists
+                      </FormLabel>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-[280px]">
+                            <p>When enabled, contacts will be filtered out if their email already exists in any of your other contact lists.</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                    <FormDescription className="text-xs">
+                      Filter contacts whose email exists in your other lists
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      data-testid="switch-no-duplicates"
+                    />
+                  </FormControl>
                 </FormItem>
               )}
             />
