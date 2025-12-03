@@ -167,11 +167,12 @@ export function registerContactListRoutes(app: Application, requireAuth: any) {
         return res.status(404).json({ message: 'Contact list not found' });
       }
       
-      const { name, description } = req.body;
+      const { name, description, noDuplicatesWithOtherLists } = req.body;
       
       const updated = await storage.updateContactList(listId, {
         name: name || existingList.name,
-        description: description !== undefined ? description : existingList.description
+        description: description !== undefined ? description : existingList.description,
+        noDuplicatesWithOtherLists: noDuplicatesWithOtherLists !== undefined ? noDuplicatesWithOtherLists : existingList.noDuplicatesWithOtherLists
       });
       
       res.json(updated);

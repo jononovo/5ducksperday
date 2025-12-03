@@ -82,27 +82,30 @@ interface ContactStats {
 }
 
 // Form validation schema
-const newListFormSchema = z.object({
+const listFormSchema = z.object({
   name: z.string().min(1, "List name is required"),
   description: z.string().optional(),
   noDuplicatesWithOtherLists: z.boolean().default(false),
 });
 
-type NewListFormValues = z.infer<typeof newListFormSchema>;
+type ListFormValues = z.infer<typeof listFormSchema>;
 
-// NewListModal component
-function NewListModal({ 
+// ContactListModal component - unified for create and edit modes
+function ContactListModal({ 
   open, 
-  onOpenChange 
+  onOpenChange,
+  list
 }: { 
   open: boolean; 
   onOpenChange: (open: boolean) => void;
+  list?: ContactList | null;
 }) {
   const { toast } = useToast();
   const { user } = useAuth();
+  const isEditMode = !!list;
 
-  const form = useForm<NewListFormValues>({
-    resolver: zodResolver(newListFormSchema),
+  const form = useForm<ListFormValues>({
+    resolver: zodResolver(listFormSchema),
     defaultValues: {
       name: "",
       description: "",
@@ -110,8 +113,25 @@ function NewListModal({
     },
   });
 
+  // Reset form when modal opens/closes or list changes
+  useEffect(() => {
+    if (open && list) {
+      form.reset({
+        name: list.name,
+        description: list.description || "",
+        noDuplicatesWithOtherLists: list.noDuplicatesWithOtherLists ?? false,
+      });
+    } else if (open && !list) {
+      form.reset({
+        name: "",
+        description: "",
+        noDuplicatesWithOtherLists: false,
+      });
+    }
+  }, [open, list, form]);
+
   const createListMutation = useMutation({
-    mutationFn: async (values: NewListFormValues) => {
+    mutationFn: async (values: ListFormValues) => {
       const response = await apiRequest("POST", "/api/contact-lists", {
         ...values,
         userId: user?.id,
@@ -123,11 +143,8 @@ function NewListModal({
         title: "Success",
         description: "Contact list created successfully",
       });
-      // Invalidate and refetch contact lists
       queryClient.invalidateQueries({ queryKey: ["/api/contact-lists"] });
-      // Close modal
       onOpenChange(false);
-      // Reset form
       form.reset();
     },
     onError: (error: any) => {
@@ -139,17 +156,45 @@ function NewListModal({
     },
   });
 
-  const onSubmit = (values: NewListFormValues) => {
-    createListMutation.mutate(values);
+  const updateListMutation = useMutation({
+    mutationFn: async (values: ListFormValues) => {
+      const response = await apiRequest("PUT", `/api/contact-lists/${list!.id}`, values);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Contact list updated successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/contact-lists"] });
+      onOpenChange(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update contact list",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onSubmit = (values: ListFormValues) => {
+    if (isEditMode) {
+      updateListMutation.mutate(values);
+    } else {
+      createListMutation.mutate(values);
+    }
   };
+
+  const isPending = createListMutation.isPending || updateListMutation.isPending;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Create New Contact List</DialogTitle>
+          <DialogTitle>{isEditMode ? "Edit Contact List" : "Create New Contact List"}</DialogTitle>
           <DialogDescription>
-            Create a new list to organize your contacts
+            {isEditMode ? "Update your contact list settings" : "Create a new list to organize your contacts"}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -225,10 +270,12 @@ function NewListModal({
               <Button
                 type="submit"
                 className="bg-blue-600 hover:bg-blue-700 text-white"
-                disabled={createListMutation.isPending}
-                data-testid="button-create-list"
+                disabled={isPending}
+                data-testid={isEditMode ? "button-update-list" : "button-create-list"}
               >
-                {createListMutation.isPending ? "Creating..." : "Create"}
+                {isPending 
+                  ? (isEditMode ? "Updating..." : "Creating...") 
+                  : (isEditMode ? "Update" : "Create")}
               </Button>
             </DialogFooter>
           </form>
@@ -239,7 +286,8 @@ function NewListModal({
 }
 
 export default function Contacts() {
-  const [newListModalOpen, setNewListModalOpen] = useState(false);
+  const [listModalOpen, setListModalOpen] = useState(false);
+  const [editingList, setEditingList] = useState<ContactList | null>(null);
   const [selectedLists, setSelectedLists] = useState<Set<number>>(new Set());
   const [selectAll, setSelectAll] = useState(false);
   const [, navigate] = useLocation();
@@ -280,8 +328,20 @@ export default function Contacts() {
   } = usePagination(contactLists, { itemsPerPage: 10 });
 
   const handleNewList = () => {
-    // Open the new list modal
-    setNewListModalOpen(true);
+    setEditingList(null);
+    setListModalOpen(true);
+  };
+
+  const handleEditList = (list: ContactList) => {
+    setEditingList(list);
+    setListModalOpen(true);
+  };
+
+  const handleCloseListModal = (open: boolean) => {
+    setListModalOpen(open);
+    if (!open) {
+      setEditingList(null);
+    }
   };
 
   const handleListClick = (listId: number) => {
@@ -629,11 +689,11 @@ export default function Contacts() {
                                   <DropdownMenuItem
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      navigate(`/contact-lists/${list.id}`);
+                                      handleEditList(list);
                                     }}
                                   >
                                     <Edit className="h-4 w-4 mr-2" />
-                                    View & Edit
+                                    Edit
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
                                     onClick={(e) => {
@@ -744,10 +804,11 @@ export default function Contacts() {
         </Card>
       </div>
 
-      {/* New List Modal */}
-      <NewListModal 
-        open={newListModalOpen} 
-        onOpenChange={setNewListModalOpen}
+      {/* Contact List Modal - Create/Edit */}
+      <ContactListModal 
+        open={listModalOpen} 
+        onOpenChange={handleCloseListModal}
+        list={editingList}
       />
     </>
   );
