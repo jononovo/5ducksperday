@@ -204,7 +204,7 @@ function ContactListModal({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>Name <span className="text-red-500">*</span></FormLabel>
                   <FormControl>
                     <Input
                       placeholder="e.g., Q1 2025 Prospects"
@@ -221,13 +221,12 @@ function ContactListModal({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description (Optional)</FormLabel>
+                  <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea
+                    <Input
                       placeholder="Add a description..."
-                      className="min-h-[80px]"
                       {...field}
-                      data-testid="textarea-list-description"
+                      data-testid="input-list-description"
                     />
                   </FormControl>
                   <FormMessage />
