@@ -729,12 +729,6 @@ export class EmailQueueProcessor {
               console.log(`[EmailQueueProcessor] Campaign ${campaignIdNum}: Sending email ${i + 1}/${recipientsToProcess.length}. Daily progress: ${totalSentToday}/${campaignSettings.maxEmailsPerDay}, remaining today: ${remainingAllowance}`);
             }
             
-            // Add delay between emails (except for the first one)
-            if (i > 0 && delayBetweenEmails > 0) {
-              console.log(`[EmailQueueProcessor] Waiting ${delayBetweenEmails / 1000} seconds before sending next email...`);
-              await new Promise(resolve => setTimeout(resolve, delayBetweenEmails));
-            }
-          
             try {
               // Build merge context for this recipient
               const recipientData = {
@@ -856,6 +850,12 @@ export class EmailQueueProcessor {
             
             // Increment the batch counter for daily limit tracking
             emailsSentInThisBatch++;
+            
+            // Add delay between emails (except after the last one)
+            if (i < recipientsToProcess.length - 1 && delayBetweenEmails > 0) {
+              console.log(`[EmailQueueProcessor] Email sent. Waiting ${delayBetweenEmails / 1000} seconds before next email...`);
+              await new Promise(resolve => setTimeout(resolve, delayBetweenEmails));
+            }
             
             } catch (error: any) {
               console.error(`[EmailQueueProcessor] Failed to send email to ${recipient.recipientEmail}:`, error);

@@ -22,7 +22,7 @@ import {
   type CampaignRecipient, type InsertCampaignRecipient
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, or, sql, desc, lt, inArray, isNull } from "drizzle-orm";
+import { eq, and, or, sql, desc, lt, inArray, isNull, ne } from "drizzle-orm";
 import { encrypt, decrypt } from "./utils/encryption";
 
 export interface IStorage {
@@ -135,6 +135,7 @@ export interface IStorage {
     addedCount: number;
     duplicateCount: number;
     noEmailCount: number;
+    otherListDuplicateCount: number;
   }>;
   removeContactsFromList(listId: number, contactIds: number[]): Promise<void>;
   isContactInList(listId: number, contactId: number): Promise<boolean>;
@@ -1074,9 +1075,10 @@ class DatabaseStorage implements IStorage {
     addedCount: number;
     duplicateCount: number;
     noEmailCount: number;
+    otherListDuplicateCount: number;
   }> {
     if (contactIds.length === 0) {
-      return { addedCount: 0, duplicateCount: 0, noEmailCount: 0 };
+      return { addedCount: 0, duplicateCount: 0, noEmailCount: 0, otherListDuplicateCount: 0 };
     }
     
     // 1. Fetch contact details to check for emails
@@ -1089,7 +1091,8 @@ class DatabaseStorage implements IStorage {
     
     // Count contacts without email
     const noEmailCount = contactDetails.filter(c => !c.email).length;
-    const contactsWithEmail = contactDetails.filter(c => c.email).map(c => c.id);
+    const contactsWithEmail = contactDetails.filter(c => c.email);
+    const contactIdsWithEmail = contactsWithEmail.map(c => c.id);
     
     // 2. Check which contacts are already in the list (duplicates)
     const existingMembers = await db.select({
@@ -1098,14 +1101,60 @@ class DatabaseStorage implements IStorage {
       .from(contactListMembers)
       .where(and(
         eq(contactListMembers.listId, listId),
-        inArray(contactListMembers.contactId, contactsWithEmail)
+        inArray(contactListMembers.contactId, contactIdsWithEmail)
       ));
     
     const existingContactIds = new Set(existingMembers.map(m => m.contactId));
     const duplicateCount = existingContactIds.size;
     
-    // 3. Filter out duplicates and prepare new entries
-    const newContactIds = contactsWithEmail.filter(id => !existingContactIds.has(id));
+    // 3. Filter out duplicates
+    let newContactIds = contactIdsWithEmail.filter(id => !existingContactIds.has(id));
+    let otherListDuplicateCount = 0;
+    
+    // 4. Check for cross-list duplicates if the setting is enabled
+    const [targetList] = await db.select({
+      noDuplicatesWithOtherLists: contactLists.noDuplicatesWithOtherLists,
+      userId: contactLists.userId
+    })
+      .from(contactLists)
+      .where(eq(contactLists.id, listId));
+    
+    if (targetList?.noDuplicatesWithOtherLists && newContactIds.length > 0) {
+      // Get emails of the remaining contacts
+      const contactEmailMap = new Map<number, string>();
+      contactsWithEmail.forEach(c => {
+        if (c.email && newContactIds.includes(c.id)) {
+          contactEmailMap.set(c.id, c.email.toLowerCase());
+        }
+      });
+      
+      // Get all emails from other lists belonging to this user
+      const otherListEmails = await db.selectDistinct({
+        email: contacts.email
+      })
+        .from(contactListMembers)
+        .innerJoin(contactLists, eq(contactListMembers.listId, contactLists.id))
+        .innerJoin(contacts, eq(contactListMembers.contactId, contacts.id))
+        .where(and(
+          eq(contactLists.userId, targetList.userId),
+          ne(contactLists.id, listId)
+        ));
+      
+      const otherListEmailSet = new Set(
+        otherListEmails
+          .map(e => e.email?.toLowerCase())
+          .filter((email): email is string => !!email)
+      );
+      
+      // Filter out contacts whose emails exist in other lists
+      const beforeFilterCount = newContactIds.length;
+      newContactIds = newContactIds.filter(id => {
+        const email = contactEmailMap.get(id);
+        return !email || !otherListEmailSet.has(email);
+      });
+      otherListDuplicateCount = beforeFilterCount - newContactIds.length;
+    }
+    
     const addedCount = newContactIds.length;
     
     if (newContactIds.length > 0) {
@@ -1132,7 +1181,8 @@ class DatabaseStorage implements IStorage {
     return {
       addedCount,
       duplicateCount,
-      noEmailCount
+      noEmailCount,
+      otherListDuplicateCount
     };
   }
 

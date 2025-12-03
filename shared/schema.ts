@@ -1035,6 +1035,7 @@ export const contactLists = pgTable("contact_lists", {
   name: text("name").notNull(),
   description: text("description"),
   contactCount: integer("contact_count").notNull().default(0),
+  noDuplicatesWithOtherLists: boolean("no_duplicates_with_other_lists").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
 });
