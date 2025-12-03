@@ -185,9 +185,6 @@ function NewListModal({
                       data-testid="textarea-list-description"
                     />
                   </FormControl>
-                  <FormDescription>
-                    Briefly describe the purpose of this list
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -205,7 +202,7 @@ function NewListModal({
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                            <Info className="h-4 w-4 text-muted-foreground" />
                           </TooltipTrigger>
                           <TooltipContent className="max-w-[280px]">
                             <p>When enabled, contacts will be filtered out if their email already exists in any of your other contact lists.</p>
@@ -213,9 +210,6 @@ function NewListModal({
                         </Tooltip>
                       </TooltipProvider>
                     </div>
-                    <FormDescription className="text-xs">
-                      Filter contacts whose email exists in your other lists
-                    </FormDescription>
                   </div>
                   <FormControl>
                     <Switch
