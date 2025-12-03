@@ -237,10 +237,10 @@ function ContactListModal({
               control={form.control}
               name="noDuplicatesWithOtherLists"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                <FormItem className="flex flex-row items-center justify-between py-2">
                   <div className="space-y-0.5">
                     <div className="flex items-center gap-2">
-                      <FormLabel className="text-sm font-medium">
+                      <FormLabel className="text-sm font-normal text-muted-foreground">
                         No duplicates with other lists
                       </FormLabel>
                       <TooltipProvider>
