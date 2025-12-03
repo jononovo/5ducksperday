@@ -223,14 +223,6 @@ function NewListModal({
             />
             <DialogFooter>
               <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-                data-testid="button-cancel"
-              >
-                Cancel
-              </Button>
-              <Button
                 type="submit"
                 className="bg-blue-600 hover:bg-blue-700 text-white"
                 disabled={createListMutation.isPending}
