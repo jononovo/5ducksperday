@@ -47,6 +47,7 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
     totalSubmitted: number;
     noEmailError: number;
     duplicationError: number;
+    otherListDuplicateError: number;
     successfullyAdded: number;
     operationType: 'list' | 'campaign';
   } | null>(null);
@@ -119,6 +120,7 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
         totalSubmitted: selectedContactIds.length,
         noEmailError: data.noEmailCount || 0,
         duplicationError: data.duplicateCount || 0,
+        otherListDuplicateError: data.otherListDuplicateCount || 0,
         successfullyAdded: data.addedCount || 0,
         operationType: 'list'
       });
@@ -170,6 +172,7 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
         totalSubmitted: selectedContactIds.length,
         noEmailError: data.noEmailCount || 0,
         duplicationError: data.duplicateCount || 0,
+        otherListDuplicateError: 0, // Not applicable for campaigns
         successfullyAdded: data.addedCount || 0,
         operationType: 'campaign'
       });
@@ -429,6 +432,12 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
                 <span className="text-sm text-muted-foreground">Duplication error:</span>
                 <span className="text-sm font-medium text-amber-600">{reportData?.duplicationError || 0}</span>
               </div>
+              {reportData?.otherListDuplicateError ? (
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Email in other lists:</span>
+                  <span className="text-sm font-medium text-amber-600">{reportData.otherListDuplicateError}</span>
+                </div>
+              ) : null}
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">Successfully added:</span>
                 <span className="text-sm font-medium text-green-600">{reportData?.successfullyAdded || 0}</span>
@@ -521,6 +530,12 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
               <span className="text-sm text-muted-foreground">Duplication error:</span>
               <span className="text-sm font-medium text-amber-600">{reportData?.duplicationError || 0}</span>
             </div>
+            {reportData?.otherListDuplicateError ? (
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Email in other lists:</span>
+                <span className="text-sm font-medium text-amber-600">{reportData.otherListDuplicateError}</span>
+              </div>
+            ) : null}
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Successfully added:</span>
               <span className="text-sm font-medium text-green-600">{reportData?.successfullyAdded || 0}</span>
