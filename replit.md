@@ -106,16 +106,16 @@ Two approaches now available for individual person search for comparison:
 - Pros: Simpler, single API call
 - Cons: Sometimes returns fewer candidates (1-2 vs 3-5)
 
-**Option 2: Find Individual (Search)** - NEW alternative approach
+**Option 2: Find Individual (Search)** - Alternative approach using Perplexity only
 - Perplexity Search API returns raw web results (up to 20)
-- OpenAI GPT-4 extracts and scores 3-5 candidates from results
-- Flow: Query → Perplexity Search API → OpenAI Extraction → Create Records → Apollo Enrichment
-- Pros: More control over extraction, better candidate count (3-5)
+- Perplexity Sonar extracts and scores 3-5 candidates from results
+- Flow: Query → Perplexity Search API → Sonar Extraction → Create Records → Apollo Enrichment
+- Pros: More control over extraction, better candidate count (3-5), single API provider
 - Cons: Two API calls, slightly higher latency
 
 **Files**:
 - Sonar: `server/search/individual/perplexity-search.ts`, `individual-search-service.ts`
-- Search API: `server/search/individual/perplexity-search-api.ts`, `openai-extraction.ts`, `individual-search-api-service.ts`
+- Search API: `server/search/individual/perplexity-search-api.ts`, `sonar-extraction.ts`, `individual-search-api-service.ts`
 
 **Cost**: 180 credits per individual search (both approaches)
 

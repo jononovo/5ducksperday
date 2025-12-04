@@ -1,4 +1,3 @@
-import OpenAI from 'openai';
 import type { SearchResult } from './perplexity-search-api';
 import type { CandidateResult } from './types';
 
@@ -12,19 +11,25 @@ export interface ExtractionResult {
   candidates: CandidateResult[];
 }
 
-export async function extractCandidatesWithOpenAI(
+interface PerplexityResponse {
+  choices?: Array<{
+    message: {
+      content: string;
+    };
+  }>;
+}
+
+export async function extractCandidatesWithSonar(
   originalQuery: string,
   searchResults: SearchResult[]
 ): Promise<ExtractionResult> {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.PERPLEXITY_API_KEY;
   if (!apiKey) {
-    console.error('[OpenAIExtraction] OpenAI API key is not configured');
-    throw new Error('OpenAI API key is not configured. Please add OPENAI_API_KEY to enable individual search extraction.');
+    console.error('[SonarExtraction] Perplexity API key is not configured');
+    throw new Error('Perplexity API key is not configured. Please add PERPLEXITY_API_KEY to enable individual search extraction.');
   }
 
-  const openai = new OpenAI({ apiKey });
-  
-  console.log(`[OpenAIExtraction] Extracting candidates from ${searchResults.length} search results`);
+  console.log(`[SonarExtraction] Extracting candidates from ${searchResults.length} search results`);
 
   const searchResultsText = searchResults
     .map((r, i) => `[${i + 1}] Title: ${r.title}\nURL: ${r.url}\nSnippet: ${r.snippet}\n`)
@@ -83,33 +88,54 @@ Return ONLY valid JSON in this exact format:
 }`;
 
   try {
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a professional researcher extracting candidate information from search results. Always return valid JSON.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      temperature: 0.1,
-      max_tokens: 2000,
-      response_format: { type: 'json_object' }
+    const response = await fetch('https://api.perplexity.ai/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'sonar',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a professional researcher extracting candidate information from search results. Always return valid JSON.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        temperature: 0.1,
+        max_tokens: 2000,
+        stream: false
+      })
     });
 
-    const content = response.choices[0]?.message?.content;
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[SonarExtraction] API error: ${response.status} - ${errorText}`);
+      throw new Error(`Perplexity Sonar API error: ${response.status}`);
+    }
+
+    const data = await response.json() as PerplexityResponse;
+    const content = data.choices?.[0]?.message?.content;
+    
     if (!content) {
-      console.error('[OpenAIExtraction] No content in response');
+      console.error('[SonarExtraction] No content in response');
       return getDefaultResult(originalQuery);
     }
 
-    console.log(`[OpenAIExtraction] Raw response length: ${content.length} chars`);
+    console.log(`[SonarExtraction] Raw response length: ${content.length} chars`);
 
     try {
-      const result = JSON.parse(content) as ExtractionResult;
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        console.error('[SonarExtraction] No JSON found in response');
+        return getDefaultResult(originalQuery);
+      }
+
+      const result = JSON.parse(jsonMatch[0]) as ExtractionResult;
       
       const searchContext = {
         interpretedName: result.searchContext?.interpretedName || extractNameFromQuery(originalQuery),
@@ -129,18 +155,18 @@ Return ONLY valid JSON in this exact format:
         .sort((a, b) => b.score - a.score)
         .slice(0, 5);
 
-      console.log(`[OpenAIExtraction] Interpreted query:`, searchContext);
-      console.log(`[OpenAIExtraction] Extracted ${candidates.length} candidates`);
+      console.log(`[SonarExtraction] Interpreted query:`, searchContext);
+      console.log(`[SonarExtraction] Extracted ${candidates.length} candidates`);
 
       return { searchContext, candidates };
 
     } catch (parseError) {
-      console.error('[OpenAIExtraction] Failed to parse JSON:', parseError);
+      console.error('[SonarExtraction] Failed to parse JSON:', parseError);
       return getDefaultResult(originalQuery);
     }
 
   } catch (error) {
-    console.error('[OpenAIExtraction] OpenAI API error:', error);
+    console.error('[SonarExtraction] Perplexity API error:', error);
     throw error;
   }
 }
