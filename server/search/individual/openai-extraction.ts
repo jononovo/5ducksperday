@@ -2,10 +2,6 @@ import OpenAI from 'openai';
 import type { SearchResult } from './perplexity-search-api';
 import type { CandidateResult } from './types';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
-
 export interface ExtractionResult {
   searchContext: {
     interpretedName: string;
@@ -20,6 +16,14 @@ export async function extractCandidatesWithOpenAI(
   originalQuery: string,
   searchResults: SearchResult[]
 ): Promise<ExtractionResult> {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    console.error('[OpenAIExtraction] OpenAI API key is not configured');
+    throw new Error('OpenAI API key is not configured. Please add OPENAI_API_KEY to enable individual search extraction.');
+  }
+
+  const openai = new OpenAI({ apiKey });
+  
   console.log(`[OpenAIExtraction] Extracting candidates from ${searchResults.length} search results`);
 
   const searchResultsText = searchResults
