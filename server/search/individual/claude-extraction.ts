@@ -1,3 +1,4 @@
+import Anthropic from '@anthropic-ai/sdk';
 import type { SearchResult } from './perplexity-search-api';
 import type { CandidateResult } from './types';
 
@@ -11,25 +12,21 @@ export interface ExtractionResult {
   candidates: CandidateResult[];
 }
 
-interface PerplexityResponse {
-  choices?: Array<{
-    message: {
-      content: string;
-    };
-  }>;
-}
+const DEFAULT_MODEL = "claude-sonnet-4-20250514";
 
-export async function extractCandidatesWithSonar(
+export async function extractCandidatesWithClaude(
   originalQuery: string,
   searchResults: SearchResult[]
 ): Promise<ExtractionResult> {
-  const apiKey = process.env.PERPLEXITY_API_KEY;
+  const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    console.error('[SonarExtraction] Perplexity API key is not configured');
-    throw new Error('Perplexity API key is not configured. Please add PERPLEXITY_API_KEY to enable individual search extraction.');
+    console.error('[ClaudeExtraction] Anthropic API key is not configured');
+    throw new Error('Anthropic API key is not configured. Please add ANTHROPIC_API_KEY to enable individual search extraction.');
   }
 
-  console.log(`[SonarExtraction] Extracting candidates from ${searchResults.length} search results`);
+  const anthropic = new Anthropic({ apiKey });
+
+  console.log(`[ClaudeExtraction] Extracting candidates from ${searchResults.length} search results`);
 
   const searchResultsText = searchResults
     .map((r, i) => `[${i + 1}] Title: ${r.title}\nURL: ${r.url}\nSnippet: ${r.snippet}\n`)
@@ -88,50 +85,30 @@ Return ONLY valid JSON in this exact format:
 }`;
 
   try {
-    const response = await fetch('https://api.perplexity.ai/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'sonar',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a professional researcher extracting candidate information from search results. Always return valid JSON.'
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        temperature: 0.1,
-        max_tokens: 2000,
-        stream: false
-      })
+    const response = await anthropic.messages.create({
+      model: DEFAULT_MODEL,
+      max_tokens: 2000,
+      messages: [
+        {
+          role: 'user',
+          content: prompt
+        }
+      ],
+      system: 'You are a professional researcher extracting candidate information from search results. Always return valid JSON only, with no additional text or explanation.'
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`[SonarExtraction] API error: ${response.status} - ${errorText}`);
-      throw new Error(`Perplexity Sonar API error: ${response.status}`);
-    }
-
-    const data = await response.json() as PerplexityResponse;
-    const content = data.choices?.[0]?.message?.content;
-    
-    if (!content) {
-      console.error('[SonarExtraction] No content in response');
+    const content = response.content[0];
+    if (content.type !== 'text' || !content.text) {
+      console.error('[ClaudeExtraction] No text content in response');
       return getDefaultResult(originalQuery);
     }
 
-    console.log(`[SonarExtraction] Raw response length: ${content.length} chars`);
+    console.log(`[ClaudeExtraction] Raw response length: ${content.text.length} chars`);
 
     try {
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      const jsonMatch = content.text.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
-        console.error('[SonarExtraction] No JSON found in response');
+        console.error('[ClaudeExtraction] No JSON found in response');
         return getDefaultResult(originalQuery);
       }
 
@@ -155,18 +132,18 @@ Return ONLY valid JSON in this exact format:
         .sort((a, b) => b.score - a.score)
         .slice(0, 5);
 
-      console.log(`[SonarExtraction] Interpreted query:`, searchContext);
-      console.log(`[SonarExtraction] Extracted ${candidates.length} candidates`);
+      console.log(`[ClaudeExtraction] Interpreted query:`, searchContext);
+      console.log(`[ClaudeExtraction] Extracted ${candidates.length} candidates`);
 
       return { searchContext, candidates };
 
     } catch (parseError) {
-      console.error('[SonarExtraction] Failed to parse JSON:', parseError);
+      console.error('[ClaudeExtraction] Failed to parse JSON:', parseError);
       return getDefaultResult(originalQuery);
     }
 
   } catch (error) {
-    console.error('[SonarExtraction] Perplexity API error:', error);
+    console.error('[ClaudeExtraction] Claude API error:', error);
     throw error;
   }
 }

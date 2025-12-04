@@ -1,7 +1,7 @@
 import { storage } from '../../storage';
 import { CreditService } from '../../features/billing/credits/service';
 import { searchPerplexityApi } from './perplexity-search-api';
-import { extractCandidatesWithSonar } from './sonar-extraction';
+import { extractCandidatesWithClaude } from './claude-extraction';
 import { enrichIndividualWithEmail } from './individual-search';
 import type { SearchJob } from '@shared/schema';
 import type { SearchType } from '../../features/billing/credits/types';
@@ -10,13 +10,13 @@ import type { CandidateResult } from './types';
 /**
  * Individual Search API Service
  * 
- * Uses Perplexity Search API + Sonar for extraction:
+ * Uses Perplexity Search API + Claude for extraction:
  * 1. Perplexity Search API → Get 20 raw web results
- * 2. Perplexity Sonar → Extract & score 3-5 candidates
+ * 2. Claude → Extract & score 3-5 candidates
  * 3. Create company/contact records
  * 4. Apollo → Enrich with email addresses
  * 
- * Single provider (Perplexity) for both search and extraction.
+ * Best of both: Perplexity for search, Claude for structured extraction.
  */
 export class IndividualSearchApiService {
   static async executeIndividualSearchJob(job: SearchJob, jobId: string): Promise<void> {
@@ -94,8 +94,8 @@ export class IndividualSearchApiService {
         }
       });
 
-      // Step 2: Send to Perplexity Sonar to extract and score candidates
-      const { candidates, searchContext } = await extractCandidatesWithSonar(job.query, searchResults);
+      // Step 2: Send to Claude to extract and score candidates
+      const { candidates, searchContext } = await extractCandidatesWithClaude(job.query, searchResults);
 
       console.log(`[IndividualSearchApiService] AI interpreted query as:`, searchContext);
 
