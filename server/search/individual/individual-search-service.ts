@@ -1,21 +1,22 @@
 import { storage } from '../../storage';
 import { CreditService } from '../../features/billing/credits/service';
 import { parseIndividualQuery } from './query-parser';
-import { discoverIndividual, enrichIndividualWithEmail } from './individual-search';
+import { discoverCandidates, enrichIndividualWithEmail } from './individual-search';
 import type { SearchJob } from '@shared/schema';
 import type { SearchType } from '../../features/billing/credits/types';
+import type { CandidateResult } from './types';
 
 export class IndividualSearchService {
   static async executeIndividualJob(job: SearchJob, jobId: string): Promise<void> {
     try {
-      console.log(`[IndividualSearchService] Starting individual search for job ${jobId}`);
+      console.log(`[IndividualSearchService] Starting multi-candidate search for job ${jobId}`);
       console.log(`[IndividualSearchService] Query: "${job.query}"`);
 
       await storage.updateSearchJob(job.id, {
         progress: {
           phase: 'Parsing query',
           completed: 1,
-          total: 6,
+          total: 7,
           message: 'Analyzing your search...'
         }
       });
@@ -53,17 +54,17 @@ export class IndividualSearchService {
 
       await storage.updateSearchJob(job.id, {
         progress: {
-          phase: 'Finding individual',
+          phase: 'Searching web',
           completed: 2,
-          total: 6,
+          total: 7,
           message: `Searching for ${parsed.personName}...`
         }
       });
 
-      const discoveryResult = await discoverIndividual(parsed);
+      const candidates = await discoverCandidates(parsed);
 
-      if (!discoveryResult || discoveryResult.confidence < 30) {
-        console.log(`[IndividualSearchService] Could not find individual with confidence`);
+      if (candidates.length === 0) {
+        console.log(`[IndividualSearchService] No candidates found for "${parsed.personName}"`);
         await storage.updateSearchJob(job.id, {
           status: 'completed',
           completedAt: new Date(),
@@ -74,7 +75,7 @@ export class IndividualSearchService {
             totalContacts: 0,
             searchType: 'individual',
             metadata: {
-              message: `Could not find "${parsed.personName}" with sufficient confidence. Try adding more context like their company or role.`
+              message: `Could not find anyone matching "${parsed.personName}". Try adding more context like their company, role, or location.`
             }
           },
           resultCount: 0
@@ -82,108 +83,68 @@ export class IndividualSearchService {
         return;
       }
 
-      if (!discoveryResult.currentCompany || discoveryResult.currentCompany.trim() === '') {
-        console.log(`[IndividualSearchService] Could not determine current company for individual`);
-        await storage.updateSearchJob(job.id, {
-          status: 'completed',
-          completedAt: new Date(),
-          results: {
-            companies: [],
-            contacts: [],
-            totalCompanies: 0,
-            totalContacts: 0,
-            searchType: 'individual',
-            metadata: {
-              message: `Found ${discoveryResult.personName} but could not determine their current company. Try adding their company name to your search.`
-            }
-          },
-          resultCount: 0
-        });
-        return;
-      }
+      console.log(`[IndividualSearchService] Found ${candidates.length} candidates`);
 
       await storage.updateSearchJob(job.id, {
         progress: {
-          phase: 'Creating company record',
+          phase: 'Creating records',
           completed: 3,
-          total: 6,
-          message: `Found ${discoveryResult.personName} at ${discoveryResult.currentCompany}`
+          total: 7,
+          message: `Found ${candidates.length} potential matches, creating records...`
         }
       });
 
-      const companyData = {
-        userId: job.userId,
-        name: discoveryResult.currentCompany,
-        website: discoveryResult.companyWebsite || null,
-        description: null,
-        size: null,
-        age: null,
-        alternativeProfileUrl: null,
-        defaultContactEmail: null,
-        ranking: null,
-        linkedinProminence: null,
-        customerCount: null,
-        rating: null,
-        services: null,
-        validationPoints: null,
-        differentiation: null,
-        totalScore: null,
-        snapshot: null,
-        listId: (job.metadata as any)?.listId || null
-      };
+      const createdCompanies: any[] = [];
+      const createdContacts: any[] = [];
+      const listId = (job.metadata as any)?.listId || null;
 
-      const savedCompany = await storage.createCompany(companyData);
-      console.log(`[IndividualSearchService] Created company ${savedCompany.id}: ${savedCompany.name}`);
+      for (const candidate of candidates) {
+        const { company, contact } = await this.createCandidateRecords(
+          job.userId,
+          candidate,
+          listId
+        );
+        createdCompanies.push(company);
+        createdContacts.push(contact);
+      }
+
+      console.log(`[IndividualSearchService] Created ${createdCompanies.length} companies and ${createdContacts.length} contacts`);
 
       await storage.updateSearchJob(job.id, {
         progress: {
-          phase: 'Creating contact record',
+          phase: 'Finding emails',
           completed: 4,
-          total: 6,
-          message: `Adding ${discoveryResult.personName} as contact...`
+          total: 7,
+          message: `Searching for email addresses for ${createdContacts.length} candidates...`
         }
       });
 
-      const contactData = {
-        userId: job.userId,
-        name: discoveryResult.personName,
-        companyId: savedCompany.id,
-        role: discoveryResult.currentRole || null,
-        email: null,
-        probability: null,
-        linkedinUrl: discoveryResult.linkedinUrl || null,
-        twitterHandle: null,
-        phoneNumber: null,
-        department: null,
-        location: null,
-        verificationSource: 'individual_search',
-        nameConfidenceScore: discoveryResult.confidence,
-        userFeedbackScore: null,
-        feedbackCount: null
-      };
+      for (let i = 0; i < createdContacts.length; i++) {
+        const contact = createdContacts[i];
+        const company = createdCompanies[i];
+        
+        await storage.updateSearchJob(job.id, {
+          progress: {
+            phase: 'Finding emails',
+            completed: 4,
+            total: 7,
+            message: `Finding email for ${contact.name} (${i + 1}/${createdContacts.length})...`
+          }
+        });
+        
+        await enrichIndividualWithEmail(contact.id, company.id, job.userId);
+      }
 
-      const savedContact = await storage.createContact(contactData);
-      console.log(`[IndividualSearchService] Created contact ${savedContact.id}: ${savedContact.name}`);
-
-      await storage.updateSearchJob(job.id, {
-        progress: {
-          phase: 'Finding email',
-          completed: 5,
-          total: 6,
-          message: 'Searching for email address...'
-        }
-      });
-
-      await enrichIndividualWithEmail(savedContact.id, savedCompany.id, job.userId);
-
-      const enrichedContact = await storage.getContact(savedContact.id, job.userId);
+      const enrichedContacts = await Promise.all(
+        createdContacts.map(c => storage.getContact(c.id, job.userId))
+      );
 
       if (job.source !== 'cron') {
         await storage.updateSearchJob(job.id, {
           progress: {
             phase: 'Processing credits',
             completed: 6,
-            total: 6,
+            total: 7,
             message: 'Updating account credits'
           }
         });
@@ -198,30 +159,40 @@ export class IndividualSearchService {
         console.log(`[IndividualSearchService] Deducted credits for individual search, new balance: ${creditResult.newBalance}`);
       }
 
-      const companyWithContacts = {
-        ...savedCompany,
-        contacts: enrichedContact ? [enrichedContact] : [savedContact]
-      };
+      const companiesWithContacts = createdCompanies.map((company, index) => ({
+        ...company,
+        contacts: enrichedContacts[index] ? [enrichedContacts[index]] : [createdContacts[index]]
+      }));
 
       await storage.updateSearchJob(job.id, {
         status: 'completed',
         completedAt: new Date(),
+        progress: {
+          phase: 'Complete',
+          completed: 7,
+          total: 7,
+          message: `Found ${candidates.length} candidates`
+        },
         results: {
-          companies: [companyWithContacts],
-          contacts: enrichedContact ? [enrichedContact] : [savedContact],
-          totalCompanies: 1,
-          totalContacts: 1,
+          companies: companiesWithContacts,
+          contacts: enrichedContacts.filter(Boolean),
+          totalCompanies: createdCompanies.length,
+          totalContacts: createdContacts.length,
           searchType: 'individual',
           metadata: {
-            personName: discoveryResult.personName,
-            confidence: discoveryResult.confidence,
-            notes: discoveryResult.notes
+            candidateCount: candidates.length,
+            searchedName: parsed.personName,
+            hints: {
+              company: parsed.companyHint,
+              location: parsed.locationHint,
+              role: parsed.roleHint
+            }
           }
         },
-        resultCount: 1
+        resultCount: candidates.length
       });
 
-      console.log(`[IndividualSearchService] Completed individual search job ${jobId}`);
+      console.log(`[IndividualSearchService] Completed multi-candidate search job ${jobId} with ${candidates.length} results`);
 
     } catch (error) {
       console.error(`[IndividualSearchService] Error in individual search:`, error);
@@ -238,5 +209,58 @@ export class IndividualSearchService {
         throw error;
       }
     }
+  }
+
+  private static async createCandidateRecords(
+    userId: number,
+    candidate: CandidateResult,
+    listId: number | null
+  ): Promise<{ company: any; contact: any }> {
+    const companyData = {
+      userId,
+      name: candidate.currentCompany || 'Unknown Company',
+      website: candidate.companyWebsite || null,
+      description: null,
+      size: null,
+      age: null,
+      alternativeProfileUrl: null,
+      defaultContactEmail: null,
+      ranking: null,
+      linkedinProminence: null,
+      customerCount: null,
+      rating: null,
+      services: null,
+      validationPoints: null,
+      differentiation: null,
+      totalScore: candidate.score || null,
+      snapshot: null,
+      listId
+    };
+
+    const savedCompany = await storage.createCompany(companyData);
+    console.log(`[IndividualSearchService] Created company ${savedCompany.id}: ${savedCompany.name}`);
+
+    const contactData = {
+      userId,
+      name: candidate.name,
+      companyId: savedCompany.id,
+      role: candidate.currentRole || null,
+      email: null,
+      probability: candidate.score || null,
+      linkedinUrl: candidate.linkedinUrl || null,
+      twitterHandle: null,
+      phoneNumber: null,
+      department: null,
+      location: null,
+      verificationSource: 'individual_search',
+      nameConfidenceScore: candidate.score,
+      userFeedbackScore: null,
+      feedbackCount: null
+    };
+
+    const savedContact = await storage.createContact(contactData);
+    console.log(`[IndividualSearchService] Created contact ${savedContact.id}: ${savedContact.name} (score: ${candidate.score})`);
+
+    return { company: savedCompany, contact: savedContact };
   }
 }
