@@ -96,19 +96,30 @@ The `lists` table has TWO different ID fields that can cause confusion:
 
 ## Recent Updates (December 2025)
 
-### Individual Search - Multi-Candidate AI-Driven Approach (December 4, 2025)
-- **Simplified AI-driven individual person search** replacing complex regex parsing
-  - Single Perplexity API call interprets query AND extracts candidates
-  - Returns structured JSON with `searchContext` and `candidates`
-  - Robust error handling with sensible defaults for malformed responses
-- **Flow**: Query → Perplexity Search + AI Extraction → Create Records → Enrich Emails
-- **Cost**: 180 credits per individual search
-- **Files**:
-  - `server/search/individual/perplexity-search.ts` - Search + extraction
-  - `server/search/individual/individual-search.ts` - Main orchestration
-  - `server/search/individual/individual-search-service.ts` - Job processing
-- **Removed**: Complex regex-based query parser (over-engineered)
-- **Tests**: "Satya Nadella CEO at Microsoft" → email found, "Sarah Johnson VP Sales" → 3 candidates
+### Individual Search - Dual Approach A/B Testing (December 4, 2025)
+Two approaches now available for individual person search for comparison:
+
+**Option 1: Find Individual (Sonar)** - Original approach
+- Single Perplexity Sonar API call interprets query AND extracts candidates
+- AI-driven search+extraction combined in one call
+- Flow: Query → Perplexity Sonar (LLM+Search) → Create Records → Apollo Enrichment
+- Pros: Simpler, single API call
+- Cons: Sometimes returns fewer candidates (1-2 vs 3-5)
+
+**Option 2: Find Individual (Search)** - NEW alternative approach
+- Perplexity Search API returns raw web results (up to 20)
+- OpenAI GPT-4 extracts and scores 3-5 candidates from results
+- Flow: Query → Perplexity Search API → OpenAI Extraction → Create Records → Apollo Enrichment
+- Pros: More control over extraction, better candidate count (3-5)
+- Cons: Two API calls, slightly higher latency
+
+**Files**:
+- Sonar: `server/search/individual/perplexity-search.ts`, `individual-search-service.ts`
+- Search API: `server/search/individual/perplexity-search-api.ts`, `openai-extraction.ts`, `individual-search-api-service.ts`
+
+**Cost**: 180 credits per individual search (both approaches)
+
+**Tests**: "Tim Cook CEO Apple" → 4 candidates found with emails
 
 ## Recent Updates (November 2025)
 
