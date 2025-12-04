@@ -9,8 +9,15 @@ const LOCATION_PATTERNS = [
 ];
 
 const ROLE_PATTERNS = [
-  /\b(CEO|CFO|CTO|COO|CMO|CIO|CISO|CPO|CDO|VP|Director|Manager|Head|Lead|Principal|Senior|Chief|Founder|Owner|Partner|President|Executive|Analyst|Engineer|Developer|Architect|Consultant|Specialist|Coordinator)\b/gi,
-  /\b(Financial\s+Analyst|Software\s+Engineer|Product\s+Manager|Data\s+Scientist|Marketing\s+Director|Sales\s+Manager|HR\s+Director|Operations\s+Manager|Business\s+Development)\b/gi,
+  /\b(?:Global|International|National|Regional|Senior|Executive)?\s*(?:Vice\s+President|VP|SVP|EVP|AVP|Director|Manager|Head|Lead|Principal)(?:\s+of|\s*,)?\s*(?:Global\s+)?([A-Za-z][A-Za-z-]+(?:\s+(?:&|and|,)?\s*[A-Za-z][A-Za-z-]+)*)\b/gi,
+  /\b(Chief\s+[A-Za-z-]+(?:\s*(?:&|and)\s*[A-Za-z-]+)*\s*(?:Officer)?)\b/gi,
+  /\b(CEO|CFO|CTO|COO|CMO|CIO|CISO|CPO|CDO|CRO|CSO|CHRO|CLO)\b/gi,
+  /\b(?:Senior|Executive|Global|Regional)?\s*(?:Vice\s+President|VP|SVP|EVP|AVP|Director|Manager|Head|Lead|Principal)\b/gi,
+  /\b(Founder|Co-Founder|Owner|Partner|President|Executive|Managing\s+Director|General\s+Manager)\b/gi,
+  /\b(?:Senior|Staff|Principal|Lead)\s+(Engineer|Developer|Architect|Designer|Analyst|Consultant|Manager|Scientist)\b/gi,
+  /\b(Software\s+Engineer|Product\s+Manager|Data\s+Scientist|Business\s+Analyst|Project\s+Manager|Program\s+Manager|Account\s+Executive|Sales\s+Rep(?:resentative)?)\b/gi,
+  /\b([A-Za-z][A-Za-z-]+(?:\s+(?:&|and|,)?\s*[A-Za-z][A-Za-z-]+)*)\s+(?:Director|Manager|Lead|Head|Specialist|Coordinator)\b/gi,
+  /\b(Global|International|National|Regional)\s+(?:Head|Director|Manager|Lead)(?:\s+of\s+[A-Za-z][A-Za-z-]+(?:\s+(?:&|and|,)?\s*[A-Za-z][A-Za-z-]+)*)?\b/gi,
 ];
 
 const COMPANY_PATTERNS = [

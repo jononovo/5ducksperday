@@ -1,8 +1,9 @@
 export { IndividualSearchService } from './individual-search-service';
-export { parseIndividualQuery, formatSearchContext } from './query-parser';
-export { discoverIndividual, enrichIndividualWithEmail } from './individual-search';
+export { parseIndividualQuery, formatSearchQuery } from './query-parser';
+export { discoverCandidates, enrichIndividualWithEmail } from './individual-search';
 export type {
   ParsedIndividualQuery,
-  IndividualDiscoveryResult,
-  IndividualSearchResult
+  WebSearchResult,
+  CandidateResult,
+  MultiCandidateSearchResult
 } from './types';
