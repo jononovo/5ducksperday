@@ -121,7 +121,7 @@ export class SearchJobService {
         return;
       }
       
-      // Handle individual search via Search API + OpenAI (alternative approach)
+      // Handle individual search via Search API + Claude (alternative approach)
       if (job.searchType === 'individual_search') {
         const { IndividualSearchApiService } = await import('../individual');
         await IndividualSearchApiService.executeIndividualSearchJob(job, jobId);
