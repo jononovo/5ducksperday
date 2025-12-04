@@ -27,7 +27,7 @@ export async function searchPerplexityApi(query: string): Promise<SearchResult[]
       },
       body: JSON.stringify({
         query: query,
-        max_results: 20,
+        max_results: 10,
         max_tokens_per_page: 1024,
         search_recency_filter: 'year'
       })
