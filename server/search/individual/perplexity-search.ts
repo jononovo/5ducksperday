@@ -1,4 +1,4 @@
-import type { WebSearchResult, CandidateResult } from './types';
+import type { CandidateResult } from './types';
 
 interface PerplexitySearchResponse {
   results?: Array<{
@@ -180,18 +180,3 @@ Return JSON with searchContext and candidates.`
   }
 }
 
-// Legacy exports for compatibility - can be removed after full migration
-export async function searchWebForPerson(parsed: { personName: string; companyHint?: string; roleHint?: string; locationHint?: string }): Promise<WebSearchResult[]> {
-  const query = [parsed.personName, parsed.companyHint, parsed.roleHint, parsed.locationHint].filter(Boolean).join(' ');
-  const result = await searchAndExtractCandidates(query);
-  // Return empty since we now do extraction in one step
-  return [];
-}
-
-export async function extractCandidatesFromResults(
-  results: WebSearchResult[],
-  parsed: { personName: string; companyHint?: string; roleHint?: string; locationHint?: string }
-): Promise<CandidateResult[]> {
-  // This is now handled by searchAndExtractCandidates
-  return [];
-}
