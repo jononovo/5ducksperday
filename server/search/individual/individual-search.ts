@@ -1,25 +1,28 @@
-import type { ParsedIndividualQuery, CandidateResult } from './types';
-import { searchWebForPerson, extractCandidatesFromResults } from './perplexity-search';
+import type { CandidateResult } from './types';
+import { searchAndExtractCandidates } from './perplexity-search';
 
+/**
+ * Simplified individual search - takes raw query, returns candidates.
+ * All parsing and extraction is handled by the AI.
+ */
 export async function discoverCandidates(
-  parsed: ParsedIndividualQuery
-): Promise<CandidateResult[]> {
-  console.log(`[IndividualSearch] Starting multi-candidate search for: ${parsed.personName}`);
+  rawQuery: string
+): Promise<{
+  candidates: CandidateResult[];
+  searchContext: {
+    interpretedName: string;
+    interpretedCompany?: string;
+    interpretedRole?: string;
+    interpretedLocation?: string;
+  };
+}> {
+  console.log(`[IndividualSearch] Starting search for: "${rawQuery}"`);
   
-  const searchResults = await searchWebForPerson(parsed);
+  const result = await searchAndExtractCandidates(rawQuery);
   
-  if (searchResults.length === 0) {
-    console.log('[IndividualSearch] No search results found');
-    return [];
-  }
+  console.log(`[IndividualSearch] Found ${result.candidates.length} candidates`);
   
-  console.log(`[IndividualSearch] Found ${searchResults.length} raw results, extracting candidates...`);
-  
-  const candidates = await extractCandidatesFromResults(searchResults, parsed);
-  
-  console.log(`[IndividualSearch] Extracted ${candidates.length} candidates`);
-  
-  return candidates;
+  return result;
 }
 
 export async function enrichIndividualWithEmail(

@@ -1,28 +1,35 @@
 import { storage } from '../../storage';
 import { CreditService } from '../../features/billing/credits/service';
-import { parseIndividualQuery } from './query-parser';
 import { discoverCandidates, enrichIndividualWithEmail } from './individual-search';
 import type { SearchJob } from '@shared/schema';
 import type { SearchType } from '../../features/billing/credits/types';
 import type { CandidateResult } from './types';
 
+/**
+ * Simplified Individual Search Service
+ * 
+ * Flow:
+ * 1. Take raw query from user
+ * 2. Send to Perplexity AI which interprets query AND extracts candidates
+ * 3. Create company/contact records
+ * 4. Enrich with Apollo for emails
+ * 
+ * The AI handles ALL query interpretation - no regex parsing needed!
+ */
 export class IndividualSearchService {
   static async executeIndividualJob(job: SearchJob, jobId: string): Promise<void> {
     try {
-      console.log(`[IndividualSearchService] Starting multi-candidate search for job ${jobId}`);
+      console.log(`[IndividualSearchService] Starting search for job ${jobId}`);
       console.log(`[IndividualSearchService] Query: "${job.query}"`);
 
       await storage.updateSearchJob(job.id, {
         progress: {
-          phase: 'Parsing query',
+          phase: 'Searching',
           completed: 1,
-          total: 7,
-          message: 'Analyzing your search...'
+          total: 5,
+          message: 'Searching for candidates...'
         }
       });
-
-      const parsed = parseIndividualQuery(job.query);
-      console.log(`[IndividualSearchService] Parsed query:`, parsed);
 
       if (job.source !== 'cron') {
         const creditType: SearchType = 'individual_search';
@@ -52,19 +59,13 @@ export class IndividualSearchService {
         }
       }
 
-      await storage.updateSearchJob(job.id, {
-        progress: {
-          phase: 'Searching web',
-          completed: 2,
-          total: 7,
-          message: `Searching for ${parsed.personName}...`
-        }
-      });
+      const result = await discoverCandidates(job.query);
+      const { candidates, searchContext } = result;
 
-      const candidates = await discoverCandidates(parsed);
+      console.log(`[IndividualSearchService] AI interpreted query as:`, searchContext);
 
       if (candidates.length === 0) {
-        console.log(`[IndividualSearchService] No candidates found for "${parsed.personName}"`);
+        console.log(`[IndividualSearchService] No candidates found for "${searchContext.interpretedName}"`);
         await storage.updateSearchJob(job.id, {
           status: 'completed',
           completedAt: new Date(),
@@ -75,7 +76,7 @@ export class IndividualSearchService {
             totalContacts: 0,
             searchType: 'individual',
             metadata: {
-              message: `Could not find anyone matching "${parsed.personName}". Try adding more context like their company, role, or location.`
+              message: `Could not find anyone matching "${searchContext.interpretedName}". Try adding more context like their company, role, or location.`
             }
           },
           resultCount: 0
@@ -88,8 +89,8 @@ export class IndividualSearchService {
       await storage.updateSearchJob(job.id, {
         progress: {
           phase: 'Creating records',
-          completed: 3,
-          total: 7,
+          completed: 2,
+          total: 5,
           message: `Found ${candidates.length} potential matches, creating records...`
         }
       });
@@ -113,8 +114,8 @@ export class IndividualSearchService {
       await storage.updateSearchJob(job.id, {
         progress: {
           phase: 'Finding emails',
-          completed: 4,
-          total: 7,
+          completed: 3,
+          total: 5,
           message: `Searching for email addresses for ${createdContacts.length} candidates...`
         }
       });
@@ -126,8 +127,8 @@ export class IndividualSearchService {
         await storage.updateSearchJob(job.id, {
           progress: {
             phase: 'Finding emails',
-            completed: 4,
-            total: 7,
+            completed: 3,
+            total: 5,
             message: `Finding email for ${contact.name} (${i + 1}/${createdContacts.length})...`
           }
         });
@@ -143,8 +144,8 @@ export class IndividualSearchService {
         await storage.updateSearchJob(job.id, {
           progress: {
             phase: 'Processing credits',
-            completed: 6,
-            total: 7,
+            completed: 4,
+            total: 5,
             message: 'Updating account credits'
           }
         });
@@ -169,8 +170,8 @@ export class IndividualSearchService {
         completedAt: new Date(),
         progress: {
           phase: 'Complete',
-          completed: 7,
-          total: 7,
+          completed: 5,
+          total: 5,
           message: `Found ${candidates.length} candidates`
         },
         results: {
@@ -181,18 +182,18 @@ export class IndividualSearchService {
           searchType: 'individual',
           metadata: {
             candidateCount: candidates.length,
-            searchedName: parsed.personName,
+            searchedName: searchContext.interpretedName,
             hints: {
-              company: parsed.companyHint,
-              location: parsed.locationHint,
-              role: parsed.roleHint
+              company: searchContext.interpretedCompany,
+              location: searchContext.interpretedLocation,
+              role: searchContext.interpretedRole
             }
           }
         },
         resultCount: candidates.length
       });
 
-      console.log(`[IndividualSearchService] Completed multi-candidate search job ${jobId} with ${candidates.length} results`);
+      console.log(`[IndividualSearchService] Completed search job ${jobId} with ${candidates.length} results`);
 
     } catch (error) {
       console.error(`[IndividualSearchService] Error in individual search:`, error);

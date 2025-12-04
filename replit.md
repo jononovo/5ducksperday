@@ -94,6 +94,22 @@ The `lists` table has TWO different ID fields that can cause confusion:
 - `requireAuth` middleware - Protected routes
 - `ENABLE_AI_TEST_MODE` - Testing bypass (demo user ID 1)
 
+## Recent Updates (December 2025)
+
+### Individual Search - Multi-Candidate AI-Driven Approach (December 4, 2025)
+- **Simplified AI-driven individual person search** replacing complex regex parsing
+  - Single Perplexity API call interprets query AND extracts candidates
+  - Returns structured JSON with `searchContext` and `candidates`
+  - Robust error handling with sensible defaults for malformed responses
+- **Flow**: Query → Perplexity Search + AI Extraction → Create Records → Enrich Emails
+- **Cost**: 180 credits per individual search
+- **Files**:
+  - `server/search/individual/perplexity-search.ts` - Search + extraction
+  - `server/search/individual/individual-search.ts` - Main orchestration
+  - `server/search/individual/individual-search-service.ts` - Job processing
+- **Removed**: Complex regex-based query parser (over-engineered)
+- **Tests**: "Satya Nadella CEO at Microsoft" → email found, "Sarah Johnson VP Sales" → 3 candidates
+
 ## Recent Updates (November 2025)
 
 ### Search Endpoint Consolidation (November 6, 2025)
