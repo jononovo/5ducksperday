@@ -1,6 +1,6 @@
 import { storage } from '../../storage';
 import { CreditService } from '../../features/billing/credits/service';
-import { searchPerplexityApi } from './perplexity-search-api';
+import { searchPerplexityApi, type StructuredSearchData } from './perplexity-search-api';
 import { extractCandidatesWithClaude } from './claude-extraction';
 import { enrichIndividualWithEmail } from './individual-search';
 import type { SearchJob } from '@shared/schema';
@@ -23,6 +23,22 @@ export class IndividualSearchApiService {
     try {
       console.log(`[IndividualSearchApiService] Starting search for job ${jobId}`);
       console.log(`[IndividualSearchApiService] Query: "${job.query}"`);
+
+      const metadata = job.metadata as Record<string, any> || {};
+      const structuredSearch: StructuredSearchData | undefined = metadata.structuredSearch 
+        ? {
+            fullName: metadata.structuredSearch.fullName,
+            location: metadata.structuredSearch.location,
+            role: metadata.structuredSearch.role,
+            company: metadata.structuredSearch.company,
+            otherContext: metadata.structuredSearch.otherContext,
+            knownEmail: metadata.structuredSearch.knownEmail,
+          }
+        : undefined;
+
+      if (structuredSearch) {
+        console.log(`[IndividualSearchApiService] Using structured search:`, structuredSearch);
+      }
 
       await storage.updateSearchJob(job.id, {
         progress: {
@@ -62,7 +78,7 @@ export class IndividualSearchApiService {
       }
 
       // Step 1: Call Perplexity Search API for raw web results
-      const searchResults = await searchPerplexityApi(job.query);
+      const searchResults = await searchPerplexityApi(job.query, structuredSearch);
       
       console.log(`[IndividualSearchApiService] Got ${searchResults.length} web results`);
 
@@ -95,7 +111,7 @@ export class IndividualSearchApiService {
       });
 
       // Step 2: Send to Claude to extract and score candidates
-      const { candidates, searchContext } = await extractCandidatesWithClaude(job.query, searchResults);
+      const { candidates, searchContext } = await extractCandidatesWithClaude(job.query, searchResults, structuredSearch);
 
       console.log(`[IndividualSearchApiService] AI interpreted query as:`, searchContext);
 

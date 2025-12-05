@@ -1,5 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
-import type { SearchResult } from './perplexity-search-api';
+import type { SearchResult, StructuredSearchData } from './perplexity-search-api';
 import type { CandidateResult } from './types';
 
 export interface ExtractionResult {
@@ -14,9 +14,66 @@ export interface ExtractionResult {
 
 const DEFAULT_MODEL = "claude-sonnet-4-20250514";
 
+function buildStructuredPrompt(structuredSearch: StructuredSearchData, searchResultsText: string): string {
+  const nameParts = structuredSearch.fullName.split(' ');
+  const lastName = nameParts[nameParts.length - 1];
+  const firstName = nameParts[0];
+  
+  return `You are analyzing web search results to find a specific professional.
+
+SEARCH TARGET (User-Provided Fields):
+- Full Name: "${structuredSearch.fullName}"
+  - First Name: "${firstName}"
+  - Last Name: "${lastName}" (MUST match exactly or be very close)
+${structuredSearch.company ? `- Company: "${structuredSearch.company}"` : '- Company: Not specified'}
+${structuredSearch.role ? `- Role/Title: "${structuredSearch.role}"` : '- Role/Title: Not specified'}
+${structuredSearch.location ? `- Location: "${structuredSearch.location}"` : '- Location: Not specified'}
+${structuredSearch.knownEmail ? `- Known Email: "${structuredSearch.knownEmail}" (use domain to verify company)` : ''}
+${structuredSearch.otherContext ? `- Additional Context: "${structuredSearch.otherContext}"` : ''}
+
+SEARCH RESULTS:
+${searchResultsText}
+
+SCORING RULES (Total: 100 points):
+- LAST NAME EXACT MATCH: 50 points (REQUIRED - candidates without matching last name get 0)
+- First name match: 15 points (exact) or 8 points (nickname like Mike/Michael, Rob/Robert)
+- Company match: 15 points (if company was specified and matches)
+- Role match: 10 points (if role was specified and matches field)
+- Location match: 10 points (if location was specified and matches)
+
+CRITICAL RULES:
+1. LAST NAME MUST MATCH - Only include candidates whose last name matches "${lastName}" (case insensitive)
+2. Handle nickname variations: Mike=Michael, Bob=Robert, Will=William, etc.
+3. Return 3-5 DISTINCT candidates, ranked by score
+4. Use "Unknown" for missing company/role - NEVER leave blank
+5. Include reasoning that explains each score
+
+Return ONLY valid JSON:
+{
+  "searchContext": {
+    "interpretedName": "${structuredSearch.fullName}",
+    "interpretedCompany": ${structuredSearch.company ? `"${structuredSearch.company}"` : 'null'},
+    "interpretedRole": ${structuredSearch.role ? `"${structuredSearch.role}"` : 'null'},
+    "interpretedLocation": ${structuredSearch.location ? `"${structuredSearch.location}"` : 'null'}
+  },
+  "candidates": [
+    {
+      "name": "Full Name",
+      "currentCompany": "Company Name",
+      "currentRole": "Job Title",
+      "companyWebsite": "https://...",
+      "linkedinUrl": "https://linkedin.com/in/...",
+      "score": 85,
+      "reasoning": "Last name Smith matches exactly (+50), first name John matches (+15), works at Acme Corp as specified (+15) = 80 pts"
+    }
+  ]
+}`;
+}
+
 export async function extractCandidatesWithClaude(
   originalQuery: string,
-  searchResults: SearchResult[]
+  searchResults: SearchResult[],
+  structuredSearch?: StructuredSearchData
 ): Promise<ExtractionResult> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
@@ -27,12 +84,17 @@ export async function extractCandidatesWithClaude(
   const anthropic = new Anthropic({ apiKey });
 
   console.log(`[ClaudeExtraction] Extracting candidates from ${searchResults.length} search results`);
+  if (structuredSearch) {
+    console.log(`[ClaudeExtraction] Using structured search:`, structuredSearch);
+  }
 
   const searchResultsText = searchResults
     .map((r, i) => `[${i + 1}] Title: ${r.title}\nURL: ${r.url}\nSnippet: ${r.snippet}\n`)
     .join('\n');
 
-  const prompt = `You are analyzing web search results to find professionals matching a user's query.
+  const prompt = structuredSearch 
+    ? buildStructuredPrompt(structuredSearch, searchResultsText)
+    : `You are analyzing web search results to find professionals matching a user's query.
 
 ORIGINAL QUERY: "${originalQuery}"
 

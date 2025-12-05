@@ -10,13 +10,58 @@ export interface PerplexitySearchApiResponse {
   results: SearchResult[];
 }
 
-export async function searchPerplexityApi(query: string): Promise<SearchResult[]> {
+export interface StructuredSearchData {
+  fullName: string;
+  location?: string;
+  role?: string;
+  company?: string;
+  otherContext?: string;
+  knownEmail?: string;
+}
+
+function buildOptimizedQuery(structuredSearch: StructuredSearchData): string {
+  const parts: string[] = [];
+  
+  parts.push(`"${structuredSearch.fullName}"`);
+  
+  if (structuredSearch.role) {
+    parts.push(structuredSearch.role);
+  }
+  
+  if (structuredSearch.company) {
+    parts.push(`"${structuredSearch.company}"`);
+  }
+  
+  if (structuredSearch.location) {
+    parts.push(structuredSearch.location);
+  }
+  
+  if (structuredSearch.otherContext) {
+    parts.push(structuredSearch.otherContext);
+  }
+  
+  parts.push('LinkedIn OR professional profile');
+  
+  return parts.join(' ');
+}
+
+export async function searchPerplexityApi(
+  query: string,
+  structuredSearch?: StructuredSearchData
+): Promise<SearchResult[]> {
   const apiKey = process.env.PERPLEXITY_API_KEY;
   if (!apiKey) {
     throw new Error('Perplexity API key is not configured');
   }
 
-  console.log(`[PerplexitySearchAPI] Searching for: "${query}"`);
+  const searchQuery = structuredSearch 
+    ? buildOptimizedQuery(structuredSearch)
+    : query;
+
+  console.log(`[PerplexitySearchAPI] Searching for: "${searchQuery}"`);
+  if (structuredSearch) {
+    console.log(`[PerplexitySearchAPI] Using structured search:`, structuredSearch);
+  }
 
   try {
     const response = await fetch('https://api.perplexity.ai/search', {
@@ -26,7 +71,7 @@ export async function searchPerplexityApi(query: string): Promise<SearchResult[]
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        query: query,
+        query: searchQuery,
         max_results: 10,
         max_tokens_per_page: 1024,
         search_recency_filter: 'year'

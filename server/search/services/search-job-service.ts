@@ -408,6 +408,9 @@ export class SearchJobService {
       }
       
       // Get the company
+      if (!contact.companyId) {
+        throw new Error(`Contact ${contactId} has no associated company`);
+      }
       const company = await storage.getCompany(contact.companyId, job.userId);
       if (!company) {
         throw new Error(`Company ${contact.companyId} not found`);

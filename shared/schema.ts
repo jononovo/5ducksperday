@@ -344,7 +344,7 @@ const userEmailPreferencesSchema = z.object({
 
 const searchJobSchema = z.object({
   query: z.string().min(1, "Search query is required"),
-  searchType: z.enum(['companies', 'contacts', 'emails', 'email-single', 'individual']).default('companies'),
+  searchType: z.enum(['companies', 'contacts', 'emails', 'email-single', 'individual', 'individual_search']).default('companies'),
   contactSearchConfig: z.record(z.any()).optional(),
   source: z.enum(['frontend', 'api', 'cron']).default('frontend'),
   metadata: z.record(z.any()).optional(),
