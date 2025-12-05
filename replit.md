@@ -96,6 +96,24 @@ The `lists` table has TWO different ID fields that can cause confusion:
 
 ## Recent Updates (December 2025)
 
+### Structured Individual Search - Modal-Based Input (December 5, 2025)
+Replaced free-form query parsing with structured input fields to eliminate parsing ambiguity:
+
+**New Approach: Structured Search Modal**
+- 6 explicit input fields: Full Name (required), Location, Role, Company, Other Context, Known Email
+- Modal opens automatically when "Find Individual (Search)" is selected
+- Eliminates ambiguity in distinguishing name vs. location vs. company
+- Perplexity query built from structured fields with proper quoting
+- Claude extraction uses explicit scoring: Last Name = 50pts (REQUIRED), First Name = 15pts, Company/Role/Location = 10-15pts each
+- Nickname handling: Mike=Michael, Bob=Robert, Will=William, etc.
+
+**Files**:
+- Modal: `client/src/components/individual-search-modal.tsx`
+- Integration: `client/src/components/prompt-editor.tsx` (handleSearchTypeChange, individualSearchMutation)
+- Backend: `server/search/individual/individual-search-api-service.ts`, `perplexity-search-api.ts`, `claude-extraction.ts`
+
+**Cost**: 180 credits per individual search
+
 ### Individual Search - Dual Approach A/B Testing (December 4, 2025)
 Two approaches now available for individual person search for comparison:
 
