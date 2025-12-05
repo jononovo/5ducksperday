@@ -19,6 +19,7 @@ import { SearchProgress } from "./search-progress";
 import { LandingPageTooltip } from "@/components/ui/landing-page-tooltip";
 import ContactSearchChips, { ContactSearchConfig } from "./contact-search-chips";
 import SearchTypeSelector, { SearchType } from "./search-type-selector";
+import IndividualSearchModal, { IndividualSearchFormData } from "./individual-search-modal";
 import {
   Tooltip,
   TooltipContent,
@@ -157,6 +158,18 @@ export default function PromptEditor({
     const saved = localStorage.getItem('searchType');
     return (saved as SearchType) || 'contacts';
   });
+
+  // Individual search modal state
+  const [isIndividualSearchModalOpen, setIsIndividualSearchModalOpen] = useState(false);
+  const [isIndividualSearching, setIsIndividualSearching] = useState(false);
+
+  // Handle search type change - intercept individual_search to show modal
+  const handleSearchTypeChange = (type: SearchType) => {
+    if (type === 'individual_search') {
+      setIsIndividualSearchModalOpen(true);
+    }
+    setSearchType(type);
+  };
 
   // Set auth-based default and handle guest-to-registered upgrades
   useEffect(() => {
@@ -855,6 +868,170 @@ export default function PromptEditor({
     },
   });
 
+  // Individual search mutation for structured search
+  const individualSearchMutation = useMutation({
+    mutationFn: async (formData: IndividualSearchFormData) => {
+      console.log("Initiating structured individual search...");
+      
+      // Clean up existing sessions
+      await SearchSessionManager.cleanupActiveSessions();
+      
+      // Build a display query from the structured data for UI purposes
+      const displayQuery = [
+        formData.fullName,
+        formData.role,
+        formData.company ? `at ${formData.company}` : null,
+        formData.location ? `in ${formData.location}` : null,
+      ].filter(Boolean).join(' ');
+      
+      // Create a session
+      const sessionId = SearchSessionManager.createSession(displayQuery).id;
+      setCurrentSessionId(sessionId);
+      
+      // Send structured search request
+      const res = await apiRequest("POST", "/api/companies/quick-search", { 
+        query: displayQuery,
+        searchType: 'individual_search',
+        sessionId: sessionId,
+        structuredSearch: {
+          fullName: formData.fullName,
+          location: formData.location || undefined,
+          role: formData.role || undefined,
+          company: formData.company || undefined,
+          otherContext: formData.otherContext || undefined,
+          knownEmail: formData.knownEmail || undefined,
+        }
+      });
+      
+      return res.json();
+    },
+    onSuccess: (data) => {
+      console.log(`Individual search job created with ID: ${data.jobId}`);
+      setIsIndividualSearchModalOpen(false);
+      setInputHasChanged(false);
+      
+      // Update the textarea with the display query
+      if (currentSessionId) {
+        SearchSessionManager.updateSessionWithJob(currentSessionId, data.jobId);
+        setIsPolling(true);
+      }
+      
+      // Use same polling logic as quickSearchMutation
+      const pollJobStatus = async () => {
+        if (!isPollingRef.current) return;
+        
+        try {
+          const response = await apiRequest("GET", `/api/search-jobs/${data.jobId}`);
+          if (response.ok) {
+            const jobData = await response.json();
+            
+            if ((jobData.status === 'processing' || jobData.status === 'completed') && jobData.results) {
+              const companies = jobData.results?.companies || [];
+              const totalContacts = companies.reduce((sum: number, company: any) => 
+                sum + (company.contacts?.length || 0), 0);
+              
+              if (companies.length > 0) {
+                if (currentSessionId) {
+                  SearchSessionManager.updateWithFullResults(currentSessionId, companies);
+                  onSearchResults(value, companies);
+                }
+                console.log(`Individual search update: ${companies.length} companies, ${totalContacts} contacts`);
+              }
+            }
+            
+            if (jobData.status === 'completed') {
+              console.log(`Individual search job ${data.jobId} completed`);
+              isPollingRef.current = false;
+              setIsPolling(false);
+              setIsIndividualSearching(false);
+              
+              const companies = jobData.results?.companies || [];
+              const totalContacts = companies.reduce((sum: number, company: any) => 
+                sum + (company.contacts?.length || 0), 0);
+              
+              onComplete();
+              onSearchSuccess?.();
+              
+              queryClient.invalidateQueries({ queryKey: ['/api/credits'] });
+              
+              toast({
+                title: "Individual Search Complete",
+                description: `Found ${totalContacts} candidate(s)`,
+              });
+            } else if (jobData.status === 'failed') {
+              isPollingRef.current = false;
+              setIsPolling(false);
+              setIsIndividualSearching(false);
+              onComplete();
+              toast({
+                title: "Search Failed",
+                description: jobData.error || "Individual search failed",
+                variant: "destructive",
+              });
+            } else {
+              setTimeout(pollJobStatus, 500);
+            }
+          }
+        } catch (error) {
+          console.error("Individual search polling error:", error);
+          if (isPollingRef.current) {
+            setTimeout(pollJobStatus, 1000);
+          }
+        }
+      };
+      
+      isPollingRef.current = true;
+      pollJobStatus();
+      
+      setSearchProgress(prev => ({ ...prev, phase: "Searching for Individual", completed: 1 }));
+    },
+    onError: (error: Error) => {
+      setIsIndividualSearching(false);
+      if (error.message.includes("402:") || error.message.includes("insufficient credits")) {
+        toast({
+          title: "Account Blocked",
+          description: "Account blocked due to insufficient credits.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Individual Search Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
+      onComplete();
+    },
+  });
+
+  // Handle structured individual search from modal
+  const handleIndividualSearch = (formData: IndividualSearchFormData) => {
+    setIsIndividualSearching(true);
+    onAnalyze();
+    
+    // Update the textarea value for display
+    const displayQuery = [
+      formData.fullName,
+      formData.role,
+      formData.company ? `at ${formData.company}` : null,
+      formData.location ? `in ${formData.location}` : null,
+    ].filter(Boolean).join(' ');
+    onChange(displayQuery);
+    
+    setSearchProgress({ phase: "Starting Individual Search", completed: 0, total: 3 });
+    setSearchMetrics({
+      query: displayQuery,
+      totalCompanies: 0,
+      totalContacts: 0,
+      totalEmails: 0,
+      searchDuration: 0,
+      startTime: Date.now(),
+      companies: []
+    });
+    
+    individualSearchMutation.mutate(formData);
+  };
+
   const handleSearch = async () => {
     if (!value.trim()) {
       toast({
@@ -972,8 +1149,8 @@ export default function PromptEditor({
             <div className="pointer-events-auto flex items-center gap-2">
               <SearchTypeSelector
                 selectedType={searchType}
-                onTypeChange={setSearchType}
-                disabled={isAnalyzing || quickSearchMutation.isPending}
+                onTypeChange={handleSearchTypeChange}
+                disabled={isAnalyzing || quickSearchMutation.isPending || individualSearchMutation.isPending}
               />
               
               {/* Active role indicator button - always grayed out */}
@@ -1113,18 +1290,25 @@ export default function PromptEditor({
         )}
         
         {/* Progress Bar - moved below search input/button */}
-        {quickSearchMutation.isPending && (
+        {(quickSearchMutation.isPending || individualSearchMutation.isPending) && (
           <SearchProgress 
             phase={searchProgress.phase}
             completed={searchProgress.completed}
             total={searchProgress.total}
-            isVisible={quickSearchMutation.isPending}
+            isVisible={quickSearchMutation.isPending || individualSearchMutation.isPending}
           />
         )}
 
 
       </div>
 
+      {/* Individual Search Modal */}
+      <IndividualSearchModal
+        isOpen={isIndividualSearchModalOpen}
+        onClose={() => setIsIndividualSearchModalOpen(false)}
+        onSearch={handleIndividualSearch}
+        isSearching={isIndividualSearching}
+      />
     </div>
   );
 }
