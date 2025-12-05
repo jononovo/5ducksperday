@@ -43,6 +43,18 @@ export async function searchPerplexityApi(query: string): Promise<SearchResult[]
     
     console.log(`[PerplexitySearchAPI] Found ${data.results?.length || 0} results`);
     
+    // Log each result for debugging
+    if (data.results && data.results.length > 0) {
+      console.log(`[PerplexitySearchAPI] ========== RAW SEARCH RESULTS ==========`);
+      data.results.forEach((result, index) => {
+        console.log(`[PerplexitySearchAPI] [${index + 1}] Title: ${result.title}`);
+        console.log(`[PerplexitySearchAPI] [${index + 1}] URL: ${result.url}`);
+        console.log(`[PerplexitySearchAPI] [${index + 1}] Snippet: ${result.snippet?.substring(0, 200)}...`);
+        console.log(`[PerplexitySearchAPI] ---`);
+      });
+      console.log(`[PerplexitySearchAPI] ========================================`);
+    }
+    
     return data.results || [];
 
   } catch (error) {

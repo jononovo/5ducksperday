@@ -134,6 +134,20 @@ Return ONLY valid JSON in this exact format:
 
       console.log(`[ClaudeExtraction] Interpreted query:`, searchContext);
       console.log(`[ClaudeExtraction] Extracted ${candidates.length} candidates`);
+      
+      // Log each extracted candidate for debugging
+      if (candidates.length > 0) {
+        console.log(`[ClaudeExtraction] ========== EXTRACTED CANDIDATES ==========`);
+        candidates.forEach((c, i) => {
+          console.log(`[ClaudeExtraction] [${i + 1}] Name: ${c.name}`);
+          console.log(`[ClaudeExtraction] [${i + 1}] Company: ${c.currentCompany}`);
+          console.log(`[ClaudeExtraction] [${i + 1}] Role: ${c.currentRole}`);
+          console.log(`[ClaudeExtraction] [${i + 1}] Score: ${c.score}`);
+          console.log(`[ClaudeExtraction] [${i + 1}] Reasoning: ${c.reasoning}`);
+          console.log(`[ClaudeExtraction] ---`);
+        });
+        console.log(`[ClaudeExtraction] ==========================================`);
+      }
 
       return { searchContext, candidates };
 
