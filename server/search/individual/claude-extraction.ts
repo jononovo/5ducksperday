@@ -19,34 +19,50 @@ function buildStructuredPrompt(structuredSearch: StructuredSearchData, searchRes
   const lastName = nameParts[nameParts.length - 1];
   const firstName = nameParts[0];
   
-  return `You are analyzing web search results to find a specific professional.
+  // Build context description for scoring explanation
+  const contextParts: string[] = [];
+  if (structuredSearch.company) contextParts.push(`company "${structuredSearch.company}"`);
+  if (structuredSearch.role) contextParts.push(`role "${structuredSearch.role}"`);
+  if (structuredSearch.location) contextParts.push(`location "${structuredSearch.location}"`);
+  const contextDescription = contextParts.length > 0 ? contextParts.join(', ') : 'no specific context provided';
+  
+  return `You are analyzing web search results to find people matching a specific name.
 
-SEARCH TARGET (User-Provided Fields):
+SEARCH TARGET:
 - Full Name: "${structuredSearch.fullName}"
-  - First Name: "${firstName}"
-  - Last Name: "${lastName}" (MUST match exactly or be very close)
-${structuredSearch.company ? `- Company: "${structuredSearch.company}"` : '- Company: Not specified'}
-${structuredSearch.role ? `- Role/Title: "${structuredSearch.role}"` : '- Role/Title: Not specified'}
-${structuredSearch.location ? `- Location: "${structuredSearch.location}"` : '- Location: Not specified'}
-${structuredSearch.knownEmail ? `- Known Email: "${structuredSearch.knownEmail}" (use domain to verify company)` : ''}
+  - First Name: "${firstName}" (or nicknames like Mike=Michael, Bob=Robert, Will=William, etc.)
+  - Last Name: "${lastName}" (MUST match exactly)
+${structuredSearch.company ? `- Context Company: "${structuredSearch.company}"` : ''}
+${structuredSearch.role ? `- Context Role: "${structuredSearch.role}"` : ''}
+${structuredSearch.location ? `- Context Location: "${structuredSearch.location}"` : ''}
+${structuredSearch.knownEmail ? `- Known Email: "${structuredSearch.knownEmail}" (use domain to verify identity)` : ''}
 ${structuredSearch.otherContext ? `- Additional Context: "${structuredSearch.otherContext}"` : ''}
 
 SEARCH RESULTS:
 ${searchResultsText}
 
+YOUR TASK:
+Find ALL people with the name "${structuredSearch.fullName}" (or nickname variations) and rank them by how closely they match the provided context (${contextDescription}).
+
+IMPORTANT: Results can include:
+- The SAME person at different companies (current role + previous roles)
+- Different people who share the same name
+- The key is: ALL results must have the matching name, ranked by context relevance
+
 SCORING RULES (Total: 100 points):
-- LAST NAME EXACT MATCH: 50 points (REQUIRED - candidates without matching last name get 0)
-- First name match: 15 points (exact) or 8 points (nickname like Mike/Michael, Rob/Robert)
-- Company match: 15 points (if company was specified and matches)
-- Role match: 10 points (if role was specified and matches field)
-- Location match: 10 points (if location was specified and matches)
+- LAST NAME MATCH: 40 points (REQUIRED - skip anyone without matching last name "${lastName}")
+- First name match: 10 points (exact) or 5 points (nickname variation)
+- Company context match: 20 points (if "${structuredSearch.company || 'N/A'}" matches)
+- Role context match: 15 points (if "${structuredSearch.role || 'N/A'}" matches or is similar)
+- Location context match: 15 points (if "${structuredSearch.location || 'N/A'}" matches)
 
 CRITICAL RULES:
-1. LAST NAME MUST MATCH - Only include candidates whose last name matches "${lastName}" (case insensitive)
-2. Handle nickname variations: Mike=Michael, Bob=Robert, Will=William, etc.
-3. Return 3-5 DISTINCT candidates, ranked by score
-4. Use "Unknown" for missing company/role - NEVER leave blank
-5. Include reasoning that explains each score
+1. ALL candidates MUST have last name "${lastName}" (case insensitive) - this is non-negotiable
+2. Handle nickname variations: Mike=Michael, Bob=Robert, Will=William, Bill=William, Jim=James, etc.
+3. Return 3-5 results ranked by context relevance score (highest first)
+4. Same person at multiple companies = multiple results (e.g., current role + previous role)
+5. Use "Unknown" for missing company/role - NEVER leave blank
+6. Include reasoning explaining the context match score
 
 Return ONLY valid JSON:
 {
@@ -64,7 +80,7 @@ Return ONLY valid JSON:
       "companyWebsite": "https://...",
       "linkedinUrl": "https://linkedin.com/in/...",
       "score": 85,
-      "reasoning": "Last name Smith matches exactly (+50), first name John matches (+15), works at Acme Corp as specified (+15) = 80 pts"
+      "reasoning": "Last name Cook matches (+40), first name Tim matches (+10), works at Apple as specified (+20), role is CEO as specified (+15) = 85 pts"
     }
   ]
 }`;
@@ -94,7 +110,7 @@ export async function extractCandidatesWithClaude(
 
   const prompt = structuredSearch 
     ? buildStructuredPrompt(structuredSearch, searchResultsText)
-    : `You are analyzing web search results to find professionals matching a user's query.
+    : `You are analyzing web search results to find people matching a user's query.
 
 ORIGINAL QUERY: "${originalQuery}"
 
@@ -104,34 +120,36 @@ ${searchResultsText}
 TASK:
 1. First, interpret what the user is looking for from their query:
    - Person's name (required)
-   - Company they work at (if mentioned, look for "at [company]")
-   - Their role/title (if mentioned)
-   - Their location (if mentioned, look for "in [city]" or city names like NYC, London, etc.)
+   - Company context (if mentioned, look for "at [company]")
+   - Role context (if mentioned)
+   - Location context (if mentioned, look for "in [city]" or city names like NYC, London, etc.)
 
-2. Extract 3-5 DISTINCT candidates from the search results that match the query.
-   - Look for LinkedIn profiles, company pages, news articles mentioning real people
-   - Each candidate should be a DIFFERENT person (not the same person from different sources)
-   - If location was specified (e.g., "in NYC"), prioritize candidates in that location
+2. Find ALL people with the matching name and rank by closeness to the context.
+   - Results can be the SAME person at different companies (current + previous roles)
+   - Results can be different people who share the same name
+   - Rank by how well they match the provided context (company, role, location)
 
-3. Score each candidate (0-100) based on:
-   - Name match: Exact = 30 pts, Partial = 15 pts
-   - Company match: Exact = 25 pts, Related = 10 pts
-   - Role match: Same field = 20 pts
-   - Location match: Same city = 25 pts, Same region = 15 pts
+3. Score each result (0-100) based on context match:
+   - Name match: 40 pts (required - last name must match)
+   - First name: 10 pts (exact) or 5 pts (nickname like Mike=Michael)
+   - Company context match: 20 pts
+   - Role context match: 15 pts
+   - Location context match: 15 pts
 
 RULES:
-- Return AT LEAST 3 candidates when possible (up to 5)
+- ALL results must have the same name (last name must match exactly)
+- Return 3-5 results ranked by context relevance
+- Same person at multiple companies = multiple results
 - Use "Unknown" for missing company or role - NEVER leave blank
-- Only include candidates you found evidence of in the search results
-- If location is in the query, you MUST include it in interpretedLocation
+- Include reasoning explaining the context match
 
 Return ONLY valid JSON in this exact format:
 {
   "searchContext": {
     "interpretedName": "The person's name from query",
-    "interpretedCompany": "Company from query or null",
-    "interpretedRole": "Role from query or null",
-    "interpretedLocation": "Location from query or null"
+    "interpretedCompany": "Company context from query or null",
+    "interpretedRole": "Role context from query or null",
+    "interpretedLocation": "Location context from query or null"
   },
   "candidates": [
     {
@@ -141,7 +159,7 @@ Return ONLY valid JSON in this exact format:
       "companyWebsite": "https://...",
       "linkedinUrl": "https://linkedin.com/in/...",
       "score": 85,
-      "reasoning": "Brief explanation of why this matches"
+      "reasoning": "Last name matches (+40), first name matches (+10), company context matches (+20), role matches (+15) = 85 pts"
     }
   ]
 }`;
