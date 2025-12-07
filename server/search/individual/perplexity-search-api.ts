@@ -40,8 +40,6 @@ function buildOptimizedQuery(structuredSearch: StructuredSearchData): string {
     parts.push(structuredSearch.otherContext);
   }
   
-  parts.push('LinkedIn OR professional profile');
-  
   return parts.join(' ');
 }
 
@@ -73,8 +71,7 @@ export async function searchPerplexityApi(
       body: JSON.stringify({
         query: searchQuery,
         max_results: 10,
-        max_tokens_per_page: 1024,
-        search_recency_filter: 'year'
+        max_tokens_per_page: 1024
       })
     });
 
