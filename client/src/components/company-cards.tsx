@@ -26,7 +26,8 @@ import {
   ChevronRight,
   ScrollText,
   Layers,
-  Check
+  Check,
+  Linkedin
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -278,7 +279,21 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1">
-                        <div className="font-medium text-sm">{contact.name}</div>
+                        <div className="font-medium text-sm flex items-center gap-1.5">
+                          {contact.name}
+                          {contact.linkedinUrl && (
+                            <a
+                              href={contact.linkedinUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="text-muted-foreground hover:text-blue-600 transition-colors"
+                              data-testid={`linkedin-link-${contact.id}`}
+                            >
+                              <Linkedin className="h-3.5 w-3.5" />
+                            </a>
+                          )}
+                        </div>
                         <div className="text-xs text-muted-foreground mt-0.5">
                           {contact.role || "No role specified"}
                         </div>
