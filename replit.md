@@ -96,7 +96,7 @@ The `lists` table has TWO different ID fields that can cause confusion:
 
 ## Recent Updates (December 2025)
 
-### Structured Individual Search - Modal-Based Input (December 5, 2025)
+### Structured Individual Search - Modal-Based Input (December 7, 2025)
 Replaced free-form query parsing with structured input fields to eliminate parsing ambiguity:
 
 **New Approach: Structured Search Modal**
@@ -104,8 +104,19 @@ Replaced free-form query parsing with structured input fields to eliminate parsi
 - Modal opens automatically when "Find Individual (Search)" is selected
 - Eliminates ambiguity in distinguishing name vs. location vs. company
 - Perplexity query built from structured fields with proper quoting
-- Claude extraction uses explicit scoring: Last Name = 50pts (REQUIRED), First Name = 15pts, Company/Role/Location = 10-15pts each
-- Nickname handling: Mike=Michael, Bob=Robert, Will=William, etc.
+
+**Scoring Model (Updated December 7):**
+- **Last Name = HARD FILTER** (must match exactly, candidates without matching last name are excluded)
+- **First Name = HARD FILTER + SCORED**
+  - Exact match: 85 points
+  - Nickname match (Mike=Michael, Bob=Robert, Tim=Timothy, etc.): 75 points
+- **Context bonuses (15 pts total):**
+  - Company match: +5 pts
+  - Role match: +5 pts
+  - Other context (location): +5 pts
+- **Maximum score: 100 points**
+
+All results have the same name, ranked by context relevance. Same person at different companies = multiple results.
 
 **Files**:
 - Modal: `client/src/components/individual-search-modal.tsx`

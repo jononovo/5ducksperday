@@ -19,50 +19,42 @@ function buildStructuredPrompt(structuredSearch: StructuredSearchData, searchRes
   const lastName = nameParts[nameParts.length - 1];
   const firstName = nameParts[0];
   
-  // Build context description for scoring explanation
-  const contextParts: string[] = [];
-  if (structuredSearch.company) contextParts.push(`company "${structuredSearch.company}"`);
-  if (structuredSearch.role) contextParts.push(`role "${structuredSearch.role}"`);
-  if (structuredSearch.location) contextParts.push(`location "${structuredSearch.location}"`);
-  const contextDescription = contextParts.length > 0 ? contextParts.join(', ') : 'no specific context provided';
-  
-  return `You are analyzing web search results to find people matching a specific name.
+  return `You are analyzing web search results to find people with a specific name.
 
 SEARCH TARGET:
 - Full Name: "${structuredSearch.fullName}"
-  - First Name: "${firstName}" (or nicknames like Mike=Michael, Bob=Robert, Will=William, etc.)
-  - Last Name: "${lastName}" (MUST match exactly)
+  - First Name: "${firstName}"
+  - Last Name: "${lastName}"
 ${structuredSearch.company ? `- Context Company: "${structuredSearch.company}"` : ''}
 ${structuredSearch.role ? `- Context Role: "${structuredSearch.role}"` : ''}
 ${structuredSearch.location ? `- Context Location: "${structuredSearch.location}"` : ''}
-${structuredSearch.knownEmail ? `- Known Email: "${structuredSearch.knownEmail}" (use domain to verify identity)` : ''}
+${structuredSearch.knownEmail ? `- Known Email: "${structuredSearch.knownEmail}"` : ''}
 ${structuredSearch.otherContext ? `- Additional Context: "${structuredSearch.otherContext}"` : ''}
 
 SEARCH RESULTS:
 ${searchResultsText}
 
-YOUR TASK:
-Find ALL people with the name "${structuredSearch.fullName}" (or nickname variations) and rank them by how closely they match the provided context (${contextDescription}).
+MANDATORY NAME FILTERS (candidates without BOTH are EXCLUDED - never show them):
+1. Last name MUST be "${lastName}" exactly (case insensitive) - NO EXCEPTIONS
+2. First name MUST be "${firstName}" OR a recognized nickname variation
 
-IMPORTANT: Results can include:
-- The SAME person at different companies (current role + previous roles)
-- Different people who share the same name
-- The key is: ALL results must have the matching name, ranked by context relevance
+Recognized nicknames: Mike=Michael, Bob=Robert, Rob=Robert, Will=William, Bill=William, Jim=James, Jimmy=James, Tim=Timothy, Tom=Thomas, Dick=Richard, Rick=Richard, Tony=Anthony, Joe=Joseph, Dan=Daniel, Dave=David, Steve=Steven, Chris=Christopher, Matt=Matthew, Nick=Nicholas, Sam=Samuel, Ben=Benjamin, Alex=Alexander, Andy=Andrew, Ed=Edward, Ted=Edward, Jack=John, etc.
 
-SCORING RULES (Total: 100 points):
-- LAST NAME MATCH: 40 points (REQUIRED - skip anyone without matching last name "${lastName}")
-- First name match: 10 points (exact) or 5 points (nickname variation)
-- Company context match: 20 points (if "${structuredSearch.company || 'N/A'}" matches)
-- Role context match: 15 points (if "${structuredSearch.role || 'N/A'}" matches or is similar)
-- Location context match: 15 points (if "${structuredSearch.location || 'N/A'}" matches)
+SCORING (only for candidates that pass BOTH name filters):
+- First name EXACT match ("${firstName}" = "${firstName}"): 85 points
+- First name NICKNAME match (e.g., Mike matching Michael): 75 points
+- Company context match: +5 points (if matches "${structuredSearch.company || 'N/A'}")
+- Role context match: +5 points (if matches "${structuredSearch.role || 'N/A'}")
+- Other context match: +5 points (location, industry, or other context matches)
+
+Maximum score: 100 points (85 + 5 + 5 + 5)
 
 CRITICAL RULES:
-1. ALL candidates MUST have last name "${lastName}" (case insensitive) - this is non-negotiable
-2. Handle nickname variations: Mike=Michael, Bob=Robert, Will=William, Bill=William, Jim=James, etc.
-3. Return 3-5 results ranked by context relevance score (highest first)
-4. Same person at multiple companies = multiple results (e.g., current role + previous role)
+1. NEVER include anyone with a different last name than "${lastName}" - EXCLUDE them completely
+2. NEVER include anyone with a different first name (unless it's a recognized nickname of "${firstName}")
+3. Return 3-5 results ranked by score (highest first)
+4. Same person at multiple companies = multiple results (current role + previous roles)
 5. Use "Unknown" for missing company/role - NEVER leave blank
-6. Include reasoning explaining the context match score
 
 Return ONLY valid JSON:
 {
@@ -79,8 +71,8 @@ Return ONLY valid JSON:
       "currentRole": "Job Title",
       "companyWebsite": "https://...",
       "linkedinUrl": "https://linkedin.com/in/...",
-      "score": 85,
-      "reasoning": "Last name Cook matches (+40), first name Tim matches (+10), works at Apple as specified (+20), role is CEO as specified (+15) = 85 pts"
+      "score": 100,
+      "reasoning": "First name 'Tim' matches exactly (+85), company Apple matches (+5), role CEO matches (+5), location California matches (+5) = 100 pts"
     }
   ]
 }`;
@@ -119,29 +111,34 @@ ${searchResultsText}
 
 TASK:
 1. First, interpret what the user is looking for from their query:
-   - Person's name (required)
+   - Person's name (first name + last name required)
    - Company context (if mentioned, look for "at [company]")
    - Role context (if mentioned)
    - Location context (if mentioned, look for "in [city]" or city names like NYC, London, etc.)
 
-2. Find ALL people with the matching name and rank by closeness to the context.
-   - Results can be the SAME person at different companies (current + previous roles)
-   - Results can be different people who share the same name
-   - Rank by how well they match the provided context (company, role, location)
+2. Find people with the EXACT same name (first AND last name must match).
 
-3. Score each result (0-100) based on context match:
-   - Name match: 40 pts (required - last name must match)
-   - First name: 10 pts (exact) or 5 pts (nickname like Mike=Michael)
-   - Company context match: 20 pts
-   - Role context match: 15 pts
-   - Location context match: 15 pts
+MANDATORY NAME FILTERS (candidates without BOTH are EXCLUDED - never show them):
+1. Last name MUST match exactly (case insensitive) - NO EXCEPTIONS
+2. First name MUST match exactly OR be a recognized nickname variation
+
+Recognized nicknames: Mike=Michael, Bob=Robert, Rob=Robert, Will=William, Bill=William, Jim=James, Jimmy=James, Tim=Timothy, Tom=Thomas, Dick=Richard, Rick=Richard, Tony=Anthony, Joe=Joseph, Dan=Daniel, Dave=David, Steve=Steven, Chris=Christopher, Matt=Matthew, Nick=Nicholas, Sam=Samuel, Ben=Benjamin, Alex=Alexander, Andy=Andrew, Ed=Edward, Ted=Edward, Jack=John, etc.
+
+SCORING (only for candidates that pass BOTH name filters):
+- First name EXACT match: 85 points
+- First name NICKNAME match: 75 points
+- Company context match: +5 points
+- Role context match: +5 points
+- Other context match: +5 points (location, industry, etc.)
+
+Maximum score: 100 points (85 + 5 + 5 + 5)
 
 RULES:
-- ALL results must have the same name (last name must match exactly)
-- Return 3-5 results ranked by context relevance
+- NEVER include anyone with a different last name - EXCLUDE them completely
+- NEVER include anyone with a different first name (unless recognized nickname)
+- Return 3-5 results ranked by score (highest first)
 - Same person at multiple companies = multiple results
 - Use "Unknown" for missing company or role - NEVER leave blank
-- Include reasoning explaining the context match
 
 Return ONLY valid JSON in this exact format:
 {
@@ -158,8 +155,8 @@ Return ONLY valid JSON in this exact format:
       "currentRole": "Job Title",
       "companyWebsite": "https://...",
       "linkedinUrl": "https://linkedin.com/in/...",
-      "score": 85,
-      "reasoning": "Last name matches (+40), first name matches (+10), company context matches (+20), role matches (+15) = 85 pts"
+      "score": 100,
+      "reasoning": "First name 'Tim' matches exactly (+85), company matches (+5), role matches (+5), location matches (+5) = 100 pts"
     }
   ]
 }`;
