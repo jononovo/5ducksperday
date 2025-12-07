@@ -165,6 +165,7 @@ Return ONLY valid JSON in this exact format:
     const response = await anthropic.messages.create({
       model: DEFAULT_MODEL,
       max_tokens: 2000,
+      temperature: 0.1,
       messages: [
         {
           role: 'user',
