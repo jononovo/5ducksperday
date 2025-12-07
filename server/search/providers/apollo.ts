@@ -152,6 +152,11 @@ export async function apolloSearch(req: Request, res: Response) {
         updateData.role = searchResult.contact.role;
       }
       
+      // Only update linkedinUrl if it exists
+      if (searchResult.contact.linkedinUrl) {
+        updateData.linkedinUrl = searchResult.contact.linkedinUrl;
+      }
+      
       // Only update email if one was found
       if (searchResult.contact.email) {
         const { mergeEmailData } = await import('../../lib/email-utils');

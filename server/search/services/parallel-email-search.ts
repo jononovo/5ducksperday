@@ -54,6 +54,7 @@ async function tryApollo(contact: any, company: any, userId: number): Promise<Em
       await storage.updateContact(contact.id, { 
         email: result.contact.email,
         role: result.contact.role || contact.role,
+        linkedinUrl: result.contact.linkedinUrl || contact.linkedinUrl,
         completedSearches: [...(contact.completedSearches || []), 'apollo_search'],
         lastValidated: new Date()
       });
@@ -94,6 +95,7 @@ async function tryPerplexity(contact: any, company: any, userId: number): Promis
       // Save to database immediately
       await storage.updateContact(contact.id, { 
         email: details.email,
+        linkedinUrl: details.linkedinUrl || contact.linkedinUrl,
         completedSearches: [...(contact.completedSearches || []), 'contact_enrichment'],
         lastValidated: new Date()
       });
