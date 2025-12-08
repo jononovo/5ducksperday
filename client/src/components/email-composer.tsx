@@ -881,7 +881,7 @@ export function EmailComposer({
 
   const getRecipientDisplayText = () => {
     if (!campaignRecipients) {
-      return currentQuery ? currentQuery : "Select recipients";
+      return "Select recipients";
     }
     
     if (campaignRecipients.type === 'current') {
@@ -1061,7 +1061,7 @@ export function EmailComposer({
             onClick={() => setRecipientModalOpen(true)}
             className="mobile-input mobile-input-text-fix pl-10 pr-3 py-2 border-0 rounded-none md:border md:rounded-t-md cursor-pointer transition-colors hover:bg-muted/50 flex items-center justify-between"
           >
-            {(campaignRecipients || currentQuery) ? (
+            {campaignRecipients ? (
               <span className="group inline-flex items-center px-2.5 py-1 rounded bg-muted/50 hover:bg-primary/10 text-muted-foreground hover:text-primary text-sm font-normal truncate max-w-full transition-colors relative">
                 <span className="truncate">{getRecipientDisplayText()}</span>
                 <button
