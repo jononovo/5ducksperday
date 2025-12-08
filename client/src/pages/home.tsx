@@ -2167,7 +2167,7 @@ export default function Home() {
                     }}
                     hasSearchResults={currentResults ? currentResults.length > 0 : false}
                     onSessionIdChange={setCurrentSessionId}
-                    hideRoleButtons={!!(currentResults && currentResults.length > 0 && !inputHasChanged)}
+                    hideRoleButtons={!!(searchSectionCollapsed && currentResults && currentResults.length > 0 && !inputHasChanged)}
                     onSearchMetricsUpdate={(metrics, showSummary) => {
                       setMainSearchMetrics(metrics);
                       setMainSummaryVisible(showSummary);
