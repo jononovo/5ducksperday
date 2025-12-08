@@ -1091,17 +1091,17 @@ export function EmailComposer({
       originalEmailContent={getCurrentOriginalContent()}
       onSubjectChange={(value) => {
         setCurrentSubject(value);
-        // Only update original when user is actually editing the raw template
-        // This preserves merge fields when displaying preview mode
-        if (isMergeViewMode) {
+        // In compose mode, always sync both values for normal editing
+        // In campaign mode, only update original when in merge view mode (editing raw template)
+        if (drawerMode === 'compose' || isMergeViewMode) {
           setCurrentOriginalSubject(value);
         }
       }}
       onContentChange={(value) => {
         setCurrentContent(value);
-        // Only update original when user is actually editing the raw template
-        // This preserves merge fields when displaying preview mode
-        if (isMergeViewMode) {
+        // In compose mode, always sync both values for normal editing
+        // In campaign mode, only update original when in merge view mode (editing raw template)
+        if (drawerMode === 'compose' || isMergeViewMode) {
           setCurrentOriginalContent(value);
         }
       }}
