@@ -42,6 +42,9 @@ export class CreditService {
       // Get transaction history
       const transactions = await storage.getUserCreditHistory(userId);
       
+      // Get subscription data for Stripe customer ID and plan info
+      const subscriptionData = await storage.getUserSubscription(userId);
+      
       // Convert to UserCredits format
       const userCredits: UserCredits = {
         currentBalance: creditData.balance,
@@ -59,9 +62,13 @@ export class CreditService {
         monthlyAllowance: MONTHLY_CREDIT_ALLOWANCE,
         createdAt: Date.now(),
         updatedAt: Date.now(),
-        // Preserve subscription and easter egg data
-        subscriptionStatus: undefined,
-        currentPlan: undefined,
+        // Include subscription data from subscriptions table
+        stripeCustomerId: subscriptionData?.stripeCustomerId,
+        stripeSubscriptionId: subscriptionData?.stripeSubscriptionId,
+        subscriptionStatus: subscriptionData?.status as UserCredits['subscriptionStatus'],
+        currentPlan: subscriptionData?.planType as UserCredits['currentPlan'],
+        subscriptionStartDate: subscriptionData?.currentPeriodStart?.getTime(),
+        subscriptionEndDate: subscriptionData?.currentPeriodEnd?.getTime(),
         easterEggs: [],
         badges: []
       };
@@ -104,18 +111,18 @@ export class CreditService {
     if (isNewMonth) {
       // Get subscription status from PostgreSQL
       const subscription = await storage.getUserSubscription(userId);
-      const isSubscribed = subscription?.status === 'active' && subscription?.planId;
+      const isSubscribed = subscription?.status === 'active' && subscription?.planType;
       
-      const creditAmount = isSubscribed && subscription.planId
-        ? STRIPE_CONFIG.PLAN_CREDIT_ALLOWANCES[subscription.planId as keyof typeof STRIPE_CONFIG.PLAN_CREDIT_ALLOWANCES] || MONTHLY_CREDIT_ALLOWANCE
+      const creditAmount = isSubscribed && subscription.planType
+        ? STRIPE_CONFIG.PLAN_CREDIT_ALLOWANCES[subscription.planType as keyof typeof STRIPE_CONFIG.PLAN_CREDIT_ALLOWANCES] || MONTHLY_CREDIT_ALLOWANCE
         : MONTHLY_CREDIT_ALLOWANCE;
 
       const getPlanDescription = () => {
-        if (!isSubscribed || !subscription?.planId) return 'free tier';
-        switch (subscription.planId) {
+        if (!isSubscribed || !subscription?.planType) return 'free tier';
+        switch (subscription.planType) {
           case 'ugly-duckling': return 'The Duckling subscription (2,000 base + 3,000 bonus)';
           case 'duckin-awesome': return 'Mama Duck subscription (5,000 base + 10,000 bonus)';
-          default: return `${subscription.planId} subscription`;
+          default: return `${subscription.planType} subscription`;
         }
       };
       const planDescription = getPlanDescription();
@@ -393,5 +400,72 @@ export class CreditService {
    */
   static async getUserSubscription(userId: number): Promise<any> {
     return await storage.getUserSubscription(userId);
+  }
+
+  /**
+   * Update Stripe customer ID for a user
+   * Used when creating a new Stripe customer during checkout
+   */
+  static async updateStripeCustomerId(userId: number, stripeCustomerId: string): Promise<void> {
+    await storage.updateUserSubscription(userId, {
+      stripeCustomerId
+    });
+    
+    console.log(`[CreditService] Updated Stripe customer ID for user ${userId}: ${stripeCustomerId}`);
+  }
+
+  /**
+   * Update subscription details from Stripe webhook
+   * Accepts object format expected by Stripe routes
+   */
+  static async updateSubscription(userId: number, data: {
+    stripeSubscriptionId?: string;
+    subscriptionStatus?: 'active' | 'canceled' | 'past_due' | 'incomplete' | 'trialing';
+    currentPlan?: string;
+    subscriptionStartDate?: number;
+    subscriptionEndDate?: number;
+  }): Promise<void> {
+    const updateData: any = {};
+    
+    if (data.stripeSubscriptionId) {
+      updateData.stripeSubscriptionId = data.stripeSubscriptionId;
+    }
+    if (data.subscriptionStatus) {
+      updateData.status = data.subscriptionStatus;
+    }
+    if (data.currentPlan !== undefined) {
+      updateData.planType = data.currentPlan;
+    }
+    if (data.subscriptionStartDate) {
+      updateData.currentPeriodStart = new Date(data.subscriptionStartDate);
+    }
+    if (data.subscriptionEndDate) {
+      updateData.currentPeriodEnd = new Date(data.subscriptionEndDate);
+    }
+    
+    await storage.updateUserSubscription(userId, updateData);
+    
+    console.log(`[CreditService] Updated subscription for user ${userId}:`, data);
+  }
+
+  /**
+   * Award subscription credits when subscription becomes active
+   */
+  static async awardSubscriptionCredits(userId: number, planId: 'ugly-duckling' | 'duckin-awesome'): Promise<void> {
+    const creditAmount = STRIPE_CONFIG.PLAN_CREDIT_ALLOWANCES[planId] || 0;
+    
+    if (creditAmount > 0) {
+      const planName = planId === 'ugly-duckling' 
+        ? 'The Duckling' 
+        : planId === 'duckin-awesome' 
+          ? 'Mama Duck' 
+          : planId;
+      
+      const description = `Subscription activated - ${planName} plan (+${creditAmount} credits)`;
+      
+      await storage.updateUserCredits(userId, creditAmount, 'bonus', description);
+      
+      console.log(`[CreditService] Awarded ${creditAmount} subscription credits to user ${userId} for ${planName} plan`);
+    }
   }
 }
