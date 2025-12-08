@@ -21,6 +21,7 @@ interface EmailSearchResult {
   email: string | null;
   source: string;
   confidence: number;
+  linkedinUrl?: string | null;
 }
 
 /**
@@ -36,7 +37,7 @@ async function tryApollo(contact: any, company: any, userId: number): Promise<Em
   // Skip if already has email
   if (contact.email && contact.email.includes('@')) {
     console.log(`[Apollo] Contact ${contact.name} already has email: ${contact.email}`);
-    return { contactId: contact.id, email: contact.email, source: 'existing', confidence: 100 };
+    return { contactId: contact.id, email: contact.email, source: 'existing', confidence: 100, linkedinUrl: contact.linkedinUrl };
   }
 
   try {
@@ -54,6 +55,7 @@ async function tryApollo(contact: any, company: any, userId: number): Promise<Em
       await storage.updateContact(contact.id, { 
         email: result.contact.email,
         role: result.contact.role || contact.role,
+        linkedinUrl: result.contact.linkedinUrl || contact.linkedinUrl,
         completedSearches: [...(contact.completedSearches || []), 'apollo_search'],
         lastValidated: new Date()
       });
@@ -63,7 +65,8 @@ async function tryApollo(contact: any, company: any, userId: number): Promise<Em
         contactId: contact.id,
         email: result.contact.email,
         source: 'apollo',
-        confidence: result.metadata?.confidence || 85
+        confidence: result.metadata?.confidence || 85,
+        linkedinUrl: result.contact.linkedinUrl || contact.linkedinUrl
       };
     }
     
@@ -82,7 +85,7 @@ async function tryPerplexity(contact: any, company: any, userId: number): Promis
   // Skip if already has email
   if (contact.email && contact.email.includes('@')) {
     console.log(`[Perplexity] Contact ${contact.name} already has email: ${contact.email}`);
-    return { contactId: contact.id, email: contact.email, source: 'existing', confidence: 100 };
+    return { contactId: contact.id, email: contact.email, source: 'existing', confidence: 100, linkedinUrl: contact.linkedinUrl };
   }
 
   try {
@@ -94,6 +97,7 @@ async function tryPerplexity(contact: any, company: any, userId: number): Promis
       // Save to database immediately
       await storage.updateContact(contact.id, { 
         email: details.email,
+        linkedinUrl: details.linkedinUrl || contact.linkedinUrl,
         completedSearches: [...(contact.completedSearches || []), 'contact_enrichment'],
         lastValidated: new Date()
       });
@@ -103,7 +107,8 @@ async function tryPerplexity(contact: any, company: any, userId: number): Promis
         contactId: contact.id,
         email: details.email,
         source: 'perplexity',
-        confidence: 75
+        confidence: 75,
+        linkedinUrl: details.linkedinUrl || contact.linkedinUrl
       };
     }
     
@@ -128,7 +133,7 @@ async function tryHunter(contact: any, company: any, userId: number): Promise<Em
   // Skip if already has email
   if (contact.email && contact.email.includes('@')) {
     console.log(`[Hunter] Contact ${contact.name} already has email: ${contact.email}`);
-    return { contactId: contact.id, email: contact.email, source: 'existing', confidence: 100 };
+    return { contactId: contact.id, email: contact.email, source: 'existing', confidence: 100, linkedinUrl: contact.linkedinUrl };
   }
 
   try {
@@ -150,7 +155,8 @@ async function tryHunter(contact: any, company: any, userId: number): Promise<Em
         contactId: contact.id,
         email: result.contact.email,
         source: 'hunter',
-        confidence: result.metadata?.confidence || 70
+        confidence: result.metadata?.confidence || 70,
+        linkedinUrl: contact.linkedinUrl
       };
     }
     

@@ -847,12 +847,15 @@ export class SearchJobService {
         // Track sources for emails found
         const companySources = { Perplexity: 0, Apollo: 0, Hunter: 0 };
         
-        // Update contact objects in place with found emails and track sources
+        // Update contact objects in place with found emails/linkedinUrls and track sources
         for (const result of results) {
           if (result.email && result.source !== 'existing') {
             const contact = companyContacts.find(c => c.id === result.contactId);
             if (contact) {
               contact.email = result.email;
+              if (result.linkedinUrl) {
+                contact.linkedinUrl = result.linkedinUrl;
+              }
             }
             
             // Track source (capitalize first letter for frontend display)
