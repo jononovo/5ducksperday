@@ -98,7 +98,7 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch, onNewSea
             </Link>
           </div>
           
-          {/* Contacts Link */}
+          {/* Contact Lists Link */}
           <div className="px-3 pb-2">
             <Link href="/contacts">
               <button
@@ -106,7 +106,7 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch, onNewSea
                 className="w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg hover:shadow-md hover:bg-gray-100 hover:-translate-y-0.5 transition-all duration-200 group"
               >
                 <Users className="h-5 w-5 text-gray-500 group-hover:text-blue-600" />
-                <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">Contacts</span>
+                <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">Contact Lists</span>
               </button>
             </Link>
           </div>
