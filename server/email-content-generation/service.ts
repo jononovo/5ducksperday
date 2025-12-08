@@ -11,7 +11,7 @@ import { getOfferConfig } from "./offer-configs";
  */
 
 export async function generateEmailContent(request: EmailGenerationRequest): Promise<EmailGenerationResponse> {
-  const { emailPrompt, contact, company, userId, tone = 'default', offerStrategy = 'none', generateTemplate = false, senderProfile, productContext } = request;
+  const { emailPrompt, contact, company, userId, tone = 'default', offerStrategy = 'none', generateTemplate = false, senderProfile, productContext, targetAudienceQuery } = request;
 
   // Use sender profile if provided, otherwise fall back to resolving from userId
   let senderInfo = senderProfile;
@@ -63,7 +63,8 @@ ${toneConfig.additionalInstructions}`;
         userPrompt: emailPrompt, 
         productContext,
         senderProfile: senderInfo,
-        generateTemplate 
+        generateTemplate,
+        targetAudienceQuery
       })
     }
   ];
@@ -75,7 +76,7 @@ ${toneConfig.additionalInstructions}`;
 }
 
 function buildEmailPrompt(context: EmailGenerationContext): string {
-  const { contact, company, userPrompt, productContext, senderProfile, generateTemplate = false } = context;
+  const { contact, company, userPrompt, productContext, senderProfile, generateTemplate = false, targetAudienceQuery } = context;
   
   if (generateTemplate) {
     // Template generation for campaigns - use actual sender data, merge fields only for recipients
@@ -121,6 +122,7 @@ Optional recipient merge fields:
 TEMPLATE CONTEXT:
 Industry/Company Type: ${company.description || 'B2B companies'}
 ${contact && contact.role ? `Target Role: ${contact.role} (use {{contact_role}} in template)` : 'Various decision makers'}
+${targetAudienceQuery ? `Target Audience: ${targetAudienceQuery}` : ''}
 
 FORMAT REQUIREMENTS (MUST FOLLOW EXACTLY):
 1. Start with "Subject: " followed by an engaging subject line using recipient merge fields
@@ -174,6 +176,7 @@ TARGET COMPANY: ${company.name}
 ${company.description ? `About: ${company.description}` : ''}
 
 ${contact ? `TARGET CONTACT: ${contact.name}${contact.role ? ` (${contact.role})` : ''}` : 'No specific target contact selected'}
+${targetAudienceQuery ? `TARGET AUDIENCE: ${targetAudienceQuery}` : ''}
 
 Structure your email with:
 1. An engaging greeting following the greeting style instructions
