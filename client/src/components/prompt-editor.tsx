@@ -27,6 +27,13 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
+export interface SearchProgressState {
+  phase: string;
+  completed: number;
+  total: number;
+  isVisible: boolean;
+}
+
 interface PromptEditorProps {
   onAnalyze: () => void;
   onComplete: () => void;
@@ -44,6 +51,7 @@ interface PromptEditorProps {
   hideRoleButtons?: boolean; // Flag to hide role selection buttons when search is inactive
   onSearchMetricsUpdate?: (metrics: any, showSummary: boolean) => void; // Callback to update search metrics in parent
   onOpenSearchDrawer?: () => void; // Callback to open the search management drawer
+  onProgressUpdate?: (progress: SearchProgressState) => void; // Callback to report progress changes to parent
 }
 
 export default function PromptEditor({ 
@@ -62,7 +70,8 @@ export default function PromptEditor({
   onSessionIdChange,
   hideRoleButtons = false,
   onSearchMetricsUpdate,
-  onOpenSearchDrawer
+  onOpenSearchDrawer,
+  onProgressUpdate
 }: PromptEditorProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -1005,6 +1014,19 @@ export default function PromptEditor({
       onComplete();
     },
   });
+  
+  // Report progress changes to parent for rendering outside collapsible section
+  useEffect(() => {
+    if (onProgressUpdate) {
+      const isVisible = quickSearchMutation.isPending || isPolling || individualSearchMutation.isPending;
+      onProgressUpdate({
+        phase: searchProgress.phase,
+        completed: searchProgress.completed,
+        total: searchProgress.total,
+        isVisible
+      });
+    }
+  }, [searchProgress.phase, searchProgress.completed, searchProgress.total, quickSearchMutation.isPending, isPolling, individualSearchMutation.isPending, onProgressUpdate]);
 
   // Handle structured individual search from modal
   const handleIndividualSearch = (formData: IndividualSearchFormData) => {
