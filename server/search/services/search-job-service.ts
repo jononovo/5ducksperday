@@ -8,7 +8,7 @@ import type { ContactSearchConfig } from "../types";
 export interface CreateJobParams {
   userId: number;
   query: string;
-  searchType: 'companies' | 'contacts' | 'emails' | 'contact-only' | 'email-single' | 'individual' | 'individual_search';
+  searchType: 'companies' | 'contacts' | 'emails' | 'contact-only' | 'email-single' | 'individual_search';
   contactSearchConfig?: ContactSearchConfig;
   source: 'frontend' | 'api' | 'cron';
   metadata?: Record<string, any>;
@@ -114,15 +114,9 @@ export class SearchJobService {
         return;
       }
       
-      // Handle individual person search (inverted flow: person first, then company)
-      if (job.searchType === 'individual') {
-        const { IndividualSearchService } = await import('../individual');
-        await IndividualSearchService.executeIndividualJob(job, jobId);
-        return;
-      }
-      
-      // Handle individual search via Search API + Claude (alternative approach)
-      if (job.searchType === 'individual_search') {
+      // Handle individual search via Search API + Claude
+      // Note: 'individual' is legacy type - treat same as 'individual_search'
+      if (job.searchType === 'individual_search' || job.searchType === 'individual') {
         const { IndividualSearchApiService } = await import('../individual');
         await IndividualSearchApiService.executeIndividualSearchJob(job, jobId);
         return;

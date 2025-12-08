@@ -1092,7 +1092,7 @@ export default function PromptEditor({
     });
     
     console.log("Analyzing search query...");
-    console.log(`Preparing to search for ${searchType === 'companies' ? 'companies only' : searchType === 'contacts' ? 'companies and contacts' : searchType === 'individual' ? 'specific individual' : 'companies, contacts, and emails'}...`);
+    console.log(`Preparing to search for ${searchType === 'companies' ? 'companies only' : searchType === 'contacts' ? 'companies and contacts' : searchType === 'individual_search' ? 'specific individual' : 'companies, contacts, and emails'}...`);
     onAnalyze();
     
     // Choose search strategy based on selected search type

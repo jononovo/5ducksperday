@@ -1,29 +1,10 @@
-import type { CandidateResult } from './types';
-import { searchAndExtractCandidates } from './perplexity-search';
-
 /**
- * Simplified individual search - takes raw query, returns candidates.
- * All parsing and extraction is handled by the AI.
+ * Individual Search Email Enrichment
+ * 
+ * This module provides email enrichment for individual search results.
+ * The actual candidate discovery is handled by IndividualSearchApiService
+ * using Perplexity Search API + Claude extraction.
  */
-export async function discoverCandidates(
-  rawQuery: string
-): Promise<{
-  candidates: CandidateResult[];
-  searchContext: {
-    interpretedName: string;
-    interpretedCompany?: string;
-    interpretedRole?: string;
-    interpretedLocation?: string;
-  };
-}> {
-  console.log(`[IndividualSearch] Starting search for: "${rawQuery}"`);
-  
-  const result = await searchAndExtractCandidates(rawQuery);
-  
-  console.log(`[IndividualSearch] Found ${result.candidates.length} candidates`);
-  
-  return result;
-}
 
 export async function enrichIndividualWithEmail(
   contactId: number,

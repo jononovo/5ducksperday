@@ -101,7 +101,7 @@ Replaced free-form query parsing with structured input fields to eliminate parsi
 
 **New Approach: Structured Search Modal**
 - 6 explicit input fields: Full Name (required), Location, Role, Company, Other Context, Known Email
-- Modal opens automatically when "Find Individual (Search)" is selected
+- Modal opens automatically when "Find Individual" is selected
 - Eliminates ambiguity in distinguishing name vs. location vs. company
 - Perplexity query built from structured fields with proper quoting
 
@@ -125,30 +125,24 @@ All results have the same name, ranked by context relevance. Same person at diff
 
 **Cost**: 180 credits per individual search
 
-### Individual Search - Dual Approach A/B Testing (December 4, 2025)
-Two approaches now available for individual person search for comparison:
+### Individual Search - Consolidated to Search API + Claude (December 8, 2025)
+Removed the Sonar approach in favor of the more accurate Search API + Claude implementation:
 
-**Option 1: Find Individual (Sonar)** - Original approach
-- Single Perplexity Sonar API call interprets query AND extracts candidates
-- AI-driven search+extraction combined in one call
-- Flow: Query → Perplexity Sonar (LLM+Search) → Create Records → Apollo Enrichment
-- Pros: Simpler, single API call
-- Cons: Sometimes returns fewer candidates (1-2 vs 3-5)
-
-**Option 2: Find Individual (Search)** - Alternative approach using Perplexity + Claude
-- Perplexity Search API returns raw web results (up to 20)
-- Claude extracts and scores 3-5 candidates from results
-- Flow: Query → Perplexity Search API → Claude Extraction → Create Records → Apollo Enrichment
-- Pros: More control over extraction, better candidate count (3-5), reliable JSON parsing
-- Cons: Two API calls, slightly higher latency
+**Find Individual** - Two-step approach using Perplexity + Claude
+- Perplexity Search API returns raw web results (up to 10)
+- Claude extracts and scores 3-5 candidates from results with temperature=0.1 for factual extraction
+- Flow: Structured Modal → Perplexity Search API → Claude Extraction → Create Records → Apollo Enrichment
+- Benefits: More control over extraction, better candidate count (3-5), reliable JSON parsing, reduced hallucinations
 
 **Files**:
-- Sonar: `server/search/individual/perplexity-search.ts`, `individual-search-service.ts`
-- Search API: `server/search/individual/perplexity-search-api.ts`, `claude-extraction.ts`, `individual-search-api-service.ts`
+- `server/search/individual/perplexity-search-api.ts` - Perplexity Search API calls
+- `server/search/individual/claude-extraction.ts` - Claude candidate extraction with scoring
+- `server/search/individual/individual-search-api-service.ts` - Search orchestrator
+- `server/search/individual/individual-search.ts` - Email enrichment helper
 
-**Cost**: 180 credits per individual search (both approaches)
+**Cost**: 180 credits per individual search
 
-**Tests**: "Tim Cook CEO Apple" → 4 candidates found with emails
+**Removed**: Sonar approach files (`perplexity-search.ts`, `individual-search-service.ts`) - consolidated into single implementation
 
 ## Recent Updates (November 2025)
 

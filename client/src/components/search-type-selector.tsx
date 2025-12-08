@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-export type SearchType = "companies" | "contacts" | "emails" | "individual" | "individual_search";
+export type SearchType = "companies" | "contacts" | "emails" | "individual_search";
 
 export interface SearchTypeConfig {
   type: SearchType;
@@ -49,14 +49,8 @@ const searchTypeConfigs: SearchTypeConfig[] = [
     estimatedTime: "22 seconds"
   },
   {
-    type: "individual",
-    label: "Find Individual (Sonar)",
-    icons: [<UserSearch key="individual" className="h-3 w-3 md:h-[14px] md:w-[14px] lg:h-[18px] lg:w-[18px]" />],
-    estimatedTime: "15 seconds"
-  },
-  {
     type: "individual_search",
-    label: "Find Individual (Search)",
+    label: "Find Individual",
     icons: [<UserSearch key="individual-search" className="h-3 w-3 md:h-[14px] md:w-[14px] lg:h-[18px] lg:w-[18px]" />],
     estimatedTime: "18 seconds"
   }
