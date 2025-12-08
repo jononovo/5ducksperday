@@ -370,11 +370,23 @@ export class EmailQueueProcessor {
           }
         }
 
+        // Look up contact for recipient context (role/title)
+        let recipientContext = undefined;
+        if (recipient.contactId) {
+          const contact = await storage.getContact(recipient.contactId, campaign.userId);
+          if (contact?.role) {
+            recipientContext = {
+              role: contact.role
+            };
+          }
+        }
+
         const generated = await generateEmailContent({
           prompt: campaign.prompt,
           mergeFields,
           campaignName: campaign.name,
-          senderProfile: senderProfileContext
+          senderProfile: senderProfileContext,
+          recipientContext: recipientContext
         });
 
         emailContent = generated.body;

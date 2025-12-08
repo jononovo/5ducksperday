@@ -7,11 +7,16 @@ export interface SenderProfileContext {
   email?: string;
 }
 
+export interface RecipientContext {
+  role?: string;
+}
+
 export interface EmailGenerationParams {
   prompt: string;
   mergeFields: Record<string, string>;
   campaignName: string;
   senderProfile?: SenderProfileContext;
+  recipientContext?: RecipientContext;
 }
 
 export interface GeneratedEmail {
@@ -23,7 +28,7 @@ export interface GeneratedEmail {
  * Generate email content using AI based on prompt and merge fields
  */
 export async function generateEmailContent(params: EmailGenerationParams): Promise<GeneratedEmail> {
-  const { prompt, mergeFields, campaignName, senderProfile } = params;
+  const { prompt, mergeFields, campaignName, senderProfile, recipientContext } = params;
 
   // Replace merge fields in the prompt
   let processedPrompt = prompt;
@@ -65,6 +70,7 @@ Instructions: ${processedPrompt}
 === TO (Recipient - the person receiving this email) ===
 First Name: ${mergeFields.first_name || 'there'}
 Last Name: ${mergeFields.last_name || ''}
+Role/Title: ${recipientContext?.role || 'Not specified'}
 Company: ${mergeFields.contact_company_name || 'your company'}
 Email: ${mergeFields.contact_email}
 
