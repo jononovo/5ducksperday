@@ -279,27 +279,29 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1">
-                        <div className="font-medium text-sm flex items-center gap-1.5">
+                        <div className="font-medium text-sm">
                           {contact.name}
-                          {contact.linkedinUrl && (
-                            <a
-                              href={contact.linkedinUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={(e) => e.stopPropagation()}
-                              className="text-muted-foreground hover:text-blue-600 transition-colors"
-                              data-testid={`linkedin-link-${contact.id}`}
-                            >
-                              <SiLinkedin className="h-3 w-3" />
-                            </a>
-                          )}
                         </div>
                         <div className="text-xs text-muted-foreground mt-0.5">
                           {contact.role || "No role specified"}
                         </div>
-                        <div className="text-xs mt-1">
+                        <div className="text-xs mt-1 flex items-center gap-1.5">
                           {contact.email ? (
-                            <span className="text-gray-600">{contact.email}</span>
+                            <>
+                              <span className="text-gray-600">{contact.email}</span>
+                              {contact.linkedinUrl && (
+                                <a
+                                  href={contact.linkedinUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="text-gray-400 hover:text-blue-500 transition-colors"
+                                  data-testid={`linkedin-link-${contact.id}`}
+                                >
+                                  <SiLinkedin className="h-3 w-3" />
+                                </a>
+                              )}
+                            </>
                           ) : (
                             handleComprehensiveEmailSearch && (
                               <ComprehensiveSearchButton
