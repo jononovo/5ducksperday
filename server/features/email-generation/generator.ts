@@ -51,21 +51,22 @@ Return the response in JSON format with the following structure:
 
   // Build sender context if available
   const senderContext = senderProfile 
-    ? `\nFrom Sender (who is writing this email):
-- Name: ${senderProfile.displayName || 'Not specified'}
-- Company: ${senderProfile.companyName || 'Not specified'}
-- Title: ${senderProfile.title || 'Not specified'}`
+    ? `
+=== FROM (Sender - the person writing this email) ===
+Name: ${senderProfile.displayName || 'Not specified'}
+Company: ${senderProfile.companyName || 'Not specified'}
+Title: ${senderProfile.title || 'Not specified'}`
     : '';
 
   const userMessage = `Campaign: ${campaignName}
 ${senderContext}
 Instructions: ${processedPrompt}
 
-To Recipient (who is receiving this email):
-- First Name: ${mergeFields.first_name || 'there'}
-- Last Name: ${mergeFields.last_name || ''}
-- Company: ${mergeFields.contact_company_name || 'your company'}
-- Email: ${mergeFields.contact_email}
+=== TO (Recipient - the person receiving this email) ===
+First Name: ${mergeFields.first_name || 'there'}
+Last Name: ${mergeFields.last_name || ''}
+Company: ${mergeFields.contact_company_name || 'your company'}
+Email: ${mergeFields.contact_email}
 
 Generate a personalized email following the instructions above. Make it engaging and relevant to the recipient.`;
 
