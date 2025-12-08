@@ -32,7 +32,7 @@ interface RecipientSelectionModalProps {
 
 export type RecipientSelection = 
   | { type: 'current'; listId: number; query: string }
-  | { type: 'multiple'; searchListIds: number[] }
+  | { type: 'multiple'; searchListIds: number[]; targetAudienceQuery?: string }
   | { type: 'existing'; contactListId: number; contactListName: string };
 
 export function RecipientSelectionModal({
@@ -72,7 +72,13 @@ export function RecipientSelectionModal({
     if (selectionType === 'current' && currentListId && currentQuery) {
       onSelect({ type: 'current', listId: currentListId, query: currentQuery });
     } else if (selectionType === 'multiple' && selectedSearchLists.size > 0) {
-      onSelect({ type: 'multiple', searchListIds: Array.from(selectedSearchLists) });
+      const selectedIds = Array.from(selectedSearchLists);
+      const firstList = searchLists.find(l => l.listId === selectedIds[0]);
+      onSelect({ 
+        type: 'multiple', 
+        searchListIds: selectedIds,
+        targetAudienceQuery: firstList?.prompt
+      });
     } else if (selectionType === 'existing' && selectedContactList) {
       const selected = contactLists.find(cl => cl.id.toString() === selectedContactList);
       if (selected) {
