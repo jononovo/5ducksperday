@@ -370,14 +370,28 @@ export class EmailQueueProcessor {
           }
         }
 
-        // Look up contact for recipient context (role/title)
+        // Look up contact for recipient context (role/title and company description)
         let recipientContext = undefined;
         if (recipient.contactId) {
           const contact = await storage.getContact(recipient.contactId, campaign.userId);
-          if (contact?.role) {
-            recipientContext = {
-              role: contact.role
-            };
+          if (contact) {
+            let companyDescription = undefined;
+            
+            // Look up company for description if contact has companyId
+            if (contact.companyId) {
+              const company = await storage.getCompany(contact.companyId, campaign.userId);
+              if (company?.description) {
+                companyDescription = company.description;
+              }
+            }
+            
+            // Only create context if we have role or company description
+            if (contact.role || companyDescription) {
+              recipientContext = {
+                role: contact.role || undefined,
+                companyDescription: companyDescription
+              };
+            }
           }
         }
 

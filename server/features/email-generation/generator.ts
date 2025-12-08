@@ -9,6 +9,7 @@ export interface SenderProfileContext {
 
 export interface RecipientContext {
   role?: string;
+  companyDescription?: string;
 }
 
 export interface EmailGenerationParams {
@@ -72,6 +73,7 @@ First Name: ${mergeFields.first_name || 'there'}
 Last Name: ${mergeFields.last_name || ''}
 Role/Title: ${recipientContext?.role || 'Not specified'}
 Company: ${mergeFields.contact_company_name || 'your company'}
+Company Description: ${recipientContext?.companyDescription || 'Not specified'}
 Email: ${mergeFields.contact_email}
 
 Generate a personalized email following the instructions above. Make it engaging and relevant to the recipient.`;
