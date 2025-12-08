@@ -78,7 +78,6 @@ import { filterTopProspects, ContactWithCompanyInfo } from "@/lib/results-analys
 import { Checkbox } from "@/components/ui/checkbox";
 import { ContactActionColumn } from "@/components/contact-action-column";
 import { SearchSessionManager } from "@/lib/search-session-manager";
-import { SavedSearchesDrawer } from "@/components/saved-searches-drawer";
 import { useComprehensiveEmailSearch } from "@/hooks/use-comprehensive-email-search";
 import { useSearchState, type SavedSearchState, type CompanyWithContacts } from "@/features/search-state";
 import { useEmailSearchOrchestration } from "@/features/email-search-orchestration";
@@ -128,7 +127,6 @@ export default function Home() {
   // Tour modal has been removed
   const [pendingHunterIds, setPendingHunterIds] = useState<Set<number>>(new Set());
   const [pendingApolloIds, setPendingApolloIds] = useState<Set<number>>(new Set());
-  const [savedSearchesDrawerOpen, setSavedSearchesDrawerOpen] = useState(false);
   
   // Email drawer state management
   const emailDrawer = useEmailDrawer({
@@ -544,12 +542,8 @@ export default function Home() {
     };
   }, []); // Remove dependencies to prevent re-running
 
-  // Listen for drawer events from global navigation
+  // Listen for search events from global navigation (drawer is now managed by layout.tsx)
   useEffect(() => {
-    const handleOpenDrawer = () => {
-      setSavedSearchesDrawerOpen(true);
-    };
-    
     const handleLoadSearchEvent = (event: CustomEvent) => {
       handleLoadSavedSearch(event.detail);
     };
@@ -558,12 +552,10 @@ export default function Home() {
       handleNewSearch();
     };
 
-    window.addEventListener('openSavedSearchesDrawer', handleOpenDrawer);
     window.addEventListener('loadSavedSearch', handleLoadSearchEvent as EventListener);
     window.addEventListener('startNewSearch', handleNewSearchEvent);
     
     return () => {
-      window.removeEventListener('openSavedSearchesDrawer', handleOpenDrawer);
       window.removeEventListener('loadSavedSearch', handleLoadSearchEvent as EventListener);
       window.removeEventListener('startNewSearch', handleNewSearchEvent);
     };
@@ -1315,7 +1307,6 @@ export default function Home() {
       setCurrentResults(companiesWithContacts);
       setCurrentListId(list.listId);
       setIsSaved(true);
-      setSavedSearchesDrawerOpen(false);
       
       console.log('Saved search loaded successfully:', {
         query: list.prompt,
@@ -1363,9 +1354,6 @@ export default function Home() {
     
     // Clear localStorage saved state
     localStorage.removeItem('searchState');
-    
-    // Close the drawer
-    setSavedSearchesDrawerOpen(false);
   };
 
   //New function added here
@@ -2373,13 +2361,6 @@ export default function Home() {
             {/* API Templates Button moved to settings drawer */}
           </div>
 
-          {/* Fixed position saved searches drawer */}
-          <SavedSearchesDrawer 
-            open={savedSearchesDrawerOpen}
-            onOpenChange={setSavedSearchesDrawerOpen}
-            onLoadSearch={handleLoadSavedSearch}
-            onNewSearch={handleNewSearch}
-          />
         </div>
       </div>
       
