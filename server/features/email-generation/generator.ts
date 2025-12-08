@@ -42,7 +42,6 @@ Key requirements:
 - Personalize using the provided information
 - Do NOT include placeholder text like [Your Name] or [Company Name] at the end
 - The email should be ready to send as-is
-- Sign off using the sender's name if provided
 
 Return the response in JSON format with the following structure:
 {
@@ -68,7 +67,7 @@ Recipient Information:
 - Company: ${mergeFields.contact_company_name || 'your company'}
 - Email: ${mergeFields.contact_email}
 
-Generate a personalized email following the instructions above. Make it engaging and relevant to the recipient.${senderProfile?.displayName ? ` Sign off as ${senderProfile.displayName}.` : ''}`;
+Generate a personalized email following the instructions above. Make it engaging and relevant to the recipient.`;
 
   try {
     const openaiClient = getOpenAIClient();
