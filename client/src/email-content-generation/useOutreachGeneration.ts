@@ -148,11 +148,19 @@ export const useEmailGeneration = (props: UseEmailGenerationProps) => {
       companyName: selectedCompany?.name
     });
     
-    // Only validate that we have a prompt
-    if (!emailPrompt || emailPrompt.trim() === '') {
+    // Validate that we have either a prompt OR product context
+    const hasPrompt = emailPrompt && emailPrompt.trim() !== '';
+    const hasProductContext = productContext && (
+      productContext.productService ||
+      productContext.customerFeedback ||
+      productContext.website ||
+      productContext.reportSalesContextGuidance
+    );
+    
+    if (!hasPrompt && !hasProductContext) {
       toast({
         title: "No Prompt Provided",
-        description: "Please enter an email creation prompt",
+        description: "Please enter an email creation prompt or select a product",
         variant: "destructive",
       });
       return;
