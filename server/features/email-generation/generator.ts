@@ -1,9 +1,17 @@
 import { getOpenAIClient } from "../../ai-services";
 
+export interface SenderProfileContext {
+  displayName?: string;
+  companyName?: string;
+  title?: string;
+  email?: string;
+}
+
 export interface EmailGenerationParams {
   prompt: string;
   mergeFields: Record<string, string>;
   campaignName: string;
+  senderProfile?: SenderProfileContext;
 }
 
 export interface GeneratedEmail {
@@ -15,7 +23,7 @@ export interface GeneratedEmail {
  * Generate email content using AI based on prompt and merge fields
  */
 export async function generateEmailContent(params: EmailGenerationParams): Promise<GeneratedEmail> {
-  const { prompt, mergeFields, campaignName } = params;
+  const { prompt, mergeFields, campaignName, senderProfile } = params;
 
   // Replace merge fields in the prompt
   let processedPrompt = prompt;
@@ -34,6 +42,7 @@ Key requirements:
 - Personalize using the provided information
 - Do NOT include placeholder text like [Your Name] or [Company Name] at the end
 - The email should be ready to send as-is
+- Sign off using the sender's name if provided
 
 Return the response in JSON format with the following structure:
 {
@@ -41,8 +50,16 @@ Return the response in JSON format with the following structure:
   "body": "The complete email body in HTML format"
 }`;
 
-  const userMessage = `Campaign: ${campaignName}
+  // Build sender context if available
+  const senderContext = senderProfile 
+    ? `\nSender (who is writing this email):
+- Name: ${senderProfile.displayName || 'Not specified'}
+- Company: ${senderProfile.companyName || 'Not specified'}
+- Title: ${senderProfile.title || 'Not specified'}`
+    : '';
 
+  const userMessage = `Campaign: ${campaignName}
+${senderContext}
 Instructions: ${processedPrompt}
 
 Recipient Information:
@@ -51,7 +68,7 @@ Recipient Information:
 - Company: ${mergeFields.contact_company_name || 'your company'}
 - Email: ${mergeFields.contact_email}
 
-Generate a personalized email following the instructions above. Make it engaging and relevant to the recipient.`;
+Generate a personalized email following the instructions above. Make it engaging and relevant to the recipient.${senderProfile?.displayName ? ` Sign off as ${senderProfile.displayName}.` : ''}`;
 
   try {
     const openaiClient = getOpenAIClient();

@@ -356,10 +356,25 @@ export class EmailQueueProcessor {
           contact_email: recipient.recipientEmail
         };
 
+        // Look up sender profile for AI context
+        let senderProfileContext = undefined;
+        if (campaign.senderProfileId) {
+          const senderProfile = await storage.getSenderProfile(campaign.senderProfileId, campaign.userId);
+          if (senderProfile) {
+            senderProfileContext = {
+              displayName: senderProfile.displayName || undefined,
+              companyName: senderProfile.companyName || undefined,
+              title: senderProfile.title || undefined,
+              email: senderProfile.email || undefined
+            };
+          }
+        }
+
         const generated = await generateEmailContent({
           prompt: campaign.prompt,
           mergeFields,
-          campaignName: campaign.name
+          campaignName: campaign.name,
+          senderProfile: senderProfileContext
         });
 
         emailContent = generated.body;
