@@ -1313,16 +1313,7 @@ export default function PromptEditor({
           </div>
         )}
         
-        {/* Progress Bar - moved below search input/button */}
-        {(quickSearchMutation.isPending || isPolling || individualSearchMutation.isPending) && (
-          <SearchProgress 
-            phase={searchProgress.phase}
-            completed={searchProgress.completed}
-            total={searchProgress.total}
-            isVisible={quickSearchMutation.isPending || isPolling || individualSearchMutation.isPending}
-          />
-        )}
-
+        {/* Progress Bar is now rendered in Home.tsx via onProgressUpdate callback */}
 
       </div>
 
