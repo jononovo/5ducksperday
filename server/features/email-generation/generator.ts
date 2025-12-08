@@ -51,7 +51,7 @@ Return the response in JSON format with the following structure:
 
   // Build sender context if available
   const senderContext = senderProfile 
-    ? `\nSender (who is writing this email):
+    ? `\nFrom Sender (who is writing this email):
 - Name: ${senderProfile.displayName || 'Not specified'}
 - Company: ${senderProfile.companyName || 'Not specified'}
 - Title: ${senderProfile.title || 'Not specified'}`
@@ -61,7 +61,7 @@ Return the response in JSON format with the following structure:
 ${senderContext}
 Instructions: ${processedPrompt}
 
-Recipient Information:
+To Recipient (who is receiving this email):
 - First Name: ${mergeFields.first_name || 'there'}
 - Last Name: ${mergeFields.last_name || ''}
 - Company: ${mergeFields.contact_company_name || 'your company'}
