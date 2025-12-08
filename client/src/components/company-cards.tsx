@@ -26,9 +26,9 @@ import {
   ChevronRight,
   ScrollText,
   Layers,
-  Check,
-  Linkedin
+  Check
 } from "lucide-react";
+import { SiLinkedin } from "react-icons/si";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Tooltip,
@@ -290,7 +290,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
                               className="text-muted-foreground hover:text-blue-600 transition-colors"
                               data-testid={`linkedin-link-${contact.id}`}
                             >
-                              <Linkedin className="h-3.5 w-3.5" />
+                              <SiLinkedin className="h-3 w-3" />
                             </a>
                           )}
                         </div>
