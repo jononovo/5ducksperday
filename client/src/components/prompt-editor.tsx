@@ -775,6 +775,7 @@ export default function PromptEditor({
       
       // Start polling immediately
       isPollingRef.current = true;
+      setIsPolling(true);
       pollJobStatus();
       
       // Show initial progress
@@ -981,6 +982,7 @@ export default function PromptEditor({
       };
       
       isPollingRef.current = true;
+      setIsPolling(true);
       pollJobStatus();
       
       setSearchProgress(prev => ({ ...prev, phase: "Searching for Individual", completed: 1 }));
@@ -1290,12 +1292,12 @@ export default function PromptEditor({
         )}
         
         {/* Progress Bar - moved below search input/button */}
-        {(quickSearchMutation.isPending || individualSearchMutation.isPending) && (
+        {(quickSearchMutation.isPending || isPolling || individualSearchMutation.isPending) && (
           <SearchProgress 
             phase={searchProgress.phase}
             completed={searchProgress.completed}
             total={searchProgress.total}
-            isVisible={quickSearchMutation.isPending || individualSearchMutation.isPending}
+            isVisible={quickSearchMutation.isPending || isPolling || individualSearchMutation.isPending}
           />
         )}
 
