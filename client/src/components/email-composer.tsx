@@ -429,6 +429,18 @@ export function EmailComposer({
     reportSalesContextGuidance: selectedProductData.reportSalesContextGuidance || undefined
   } : undefined;
 
+  // Build sender profile payload for email generation
+  const senderProfilePayload = senderProfile ? {
+    displayName: senderProfile.displayName || '',
+    email: senderProfile.email || '',
+    firstName: senderProfile.firstName || undefined,
+    lastName: senderProfile.lastName || undefined,
+    title: senderProfile.title || undefined,
+    companyPosition: senderProfile.companyPosition || undefined,
+    companyName: senderProfile.companyName || undefined,
+    companyWebsite: senderProfile.companyWebsite || undefined
+  } : undefined;
+
   // Email generation hook
   const { generateEmail: performGeneration, isGenerating } = useEmailGeneration({
     selectedContact,
@@ -442,6 +454,7 @@ export function EmailComposer({
     generateTemplate: drawerMode === 'campaign' && generationMode === 'merge_field', // Only generate template in campaign mode with merge_field
     mergeFieldContext, // Pass context for dynamic prompt building
     productContext, // Pass rich product context for AI
+    senderProfile: senderProfilePayload, // Pass sender identity for personalization
     setEmailSubject: setCurrentSubject,
     setOriginalEmailSubject: setCurrentOriginalSubject,
     setToEmail,
