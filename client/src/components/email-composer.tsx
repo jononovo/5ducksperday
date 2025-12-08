@@ -441,6 +441,12 @@ export function EmailComposer({
     companyWebsite: senderProfile.companyWebsite || undefined
   } : undefined;
 
+  // Extract target audience query from campaign recipients for AI context
+  const targetAudienceQuery = 
+    campaignRecipients?.type === 'current' ? campaignRecipients.query :
+    campaignRecipients?.type === 'multiple' ? campaignRecipients.targetAudienceQuery :
+    undefined;
+
   // Email generation hook
   const { generateEmail: performGeneration, isGenerating } = useEmailGeneration({
     selectedContact,
@@ -455,6 +461,7 @@ export function EmailComposer({
     mergeFieldContext, // Pass context for dynamic prompt building
     productContext, // Pass rich product context for AI
     senderProfile: senderProfilePayload, // Pass sender identity for personalization
+    targetAudienceQuery, // Pass target audience context for AI
     setEmailSubject: setCurrentSubject,
     setOriginalEmailSubject: setCurrentOriginalSubject,
     setToEmail,

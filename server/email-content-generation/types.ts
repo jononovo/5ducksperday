@@ -29,6 +29,7 @@ export interface EmailGenerationRequest {
     companyName?: string;
     companyWebsite?: string;
   };
+  targetAudienceQuery?: string; // Search query describing target audience for AI context
 }
 
 export interface EmailGenerationResponse {
@@ -52,4 +53,5 @@ export interface EmailGenerationContext {
     companyWebsite?: string;
   };
   generateTemplate?: boolean;
+  targetAudienceQuery?: string; // Search query describing target audience for AI context
 }

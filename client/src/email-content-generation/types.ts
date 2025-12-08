@@ -29,6 +29,7 @@ export interface EmailGenerationPayload {
   generateTemplate?: boolean; // Flag to generate template with merge fields
   productContext?: ProductContext; // Rich product context for AI
   senderProfile?: SenderProfilePayload; // Sender identity for email personalization
+  targetAudienceQuery?: string; // Search query describing target audience for AI context
 }
 
 export interface EmailGenerationResponse {
