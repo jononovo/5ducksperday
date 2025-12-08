@@ -31,6 +31,7 @@ interface UseEmailGenerationProps {
   mergeFieldContext?: MergeFieldContext; // For building dynamic prompts
   productContext?: ProductContext; // Product data to send to AI
   senderProfile?: SenderProfilePayload; // Sender identity for email personalization
+  targetAudienceQuery?: string; // Search query describing target audience for AI context
   
   // State setters
   setEmailSubject: (subject: string) => void;
@@ -56,6 +57,7 @@ export const useEmailGeneration = (props: UseEmailGenerationProps) => {
     mergeFieldContext,
     productContext,
     senderProfile,
+    targetAudienceQuery,
     setEmailSubject,
     setOriginalEmailSubject,
     setToEmail,
@@ -82,7 +84,8 @@ export const useEmailGeneration = (props: UseEmailGenerationProps) => {
         emailSubject,
         generateTemplate,
         productContext,
-        senderProfile
+        senderProfile,
+        targetAudienceQuery
       };
       return generateEmailApi(payload);
     },
