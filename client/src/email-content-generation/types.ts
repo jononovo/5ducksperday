@@ -7,6 +7,17 @@ export interface ProductContext {
   reportSalesContextGuidance?: string;
 }
 
+export interface SenderProfilePayload {
+  displayName: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  title?: string;
+  companyPosition?: string;
+  companyName?: string;
+  companyWebsite?: string;
+}
+
 export interface EmailGenerationPayload {
   emailPrompt: string;
   contact: Contact | null;
@@ -17,6 +28,7 @@ export interface EmailGenerationPayload {
   offerStrategy?: string;
   generateTemplate?: boolean; // Flag to generate template with merge fields
   productContext?: ProductContext; // Rich product context for AI
+  senderProfile?: SenderProfilePayload; // Sender identity for email personalization
 }
 
 export interface EmailGenerationResponse {
