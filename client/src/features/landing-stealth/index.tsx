@@ -25,6 +25,7 @@ export default function LandingStealth() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentTestimonialIndex, setCurrentTestimonialIndex] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
+  const [isQuestHovered, setIsQuestHovered] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -248,9 +249,24 @@ export default function LandingStealth() {
               <TooltipProvider delayDuration={500}>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="flex items-center gap-2 cursor-pointer">
+                    <span 
+                      className="flex items-center gap-2 cursor-pointer"
+                      onMouseEnter={() => setIsQuestHovered(true)}
+                      onMouseLeave={() => setIsQuestHovered(false)}
+                    >
                       <Map className="w-5 h-5" />
-                      Quest 1: Find your target customers
+                      <span>Quest 1:</span>
+                      <motion.span
+                        initial={{ opacity: 0, x: -12 }}
+                        animate={{ 
+                          opacity: isQuestHovered ? 1 : 0, 
+                          x: isQuestHovered ? 0 : -12 
+                        }}
+                        transition={{ duration: 0.25, ease: "easeOut" }}
+                        className="text-muted-foreground/70"
+                      >
+                        Find your target customers
+                      </motion.span>
                     </span>
                   </TooltipTrigger>
                   <TooltipContent side="top" className="max-w-xs bg-gray-900 text-white border-gray-700">
