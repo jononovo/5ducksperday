@@ -11,6 +11,9 @@ import { TableSkeleton } from "@/components/ui/table-skeleton";
 const CompanyCards = lazy(() => import("@/components/company-cards"));
 const PromptEditor = lazy(() => import("@/components/prompt-editor"));
 
+// Import type for search progress state
+import type { SearchProgressState } from "@/components/prompt-editor";
+
 // Import components with named exports directly for now
 import { EmailSearchSummary } from "@/components/email-search-summary";
 import { ContactDiscoveryReport } from "@/components/contact-discovery-report";
@@ -139,6 +142,14 @@ export default function Home() {
   const searchManagementDrawer = useSearchManagementDrawer();
   
   const [searchSectionCollapsed, setSearchSectionCollapsed] = useState(false);
+  
+  // Search progress state (lifted from PromptEditor for rendering outside collapsible section)
+  const [promptEditorProgress, setPromptEditorProgress] = useState<SearchProgressState>({
+    phase: "",
+    completed: 0,
+    total: 5,
+    isVisible: false
+  });
   
   // Onboarding state
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -2081,6 +2092,18 @@ export default function Home() {
           <div className="grid grid-cols-12 gap-3 md:gap-6">
             {/* Main Content Area - full width */}
             <div className="col-span-12 space-y-2 md:space-y-4 mt-[-10px]">
+          {/* Search Progress Bar - Rendered outside collapsible section so it stays visible */}
+          {promptEditorProgress.isVisible && (
+            <div className="px-3 md:px-6">
+              <SearchProgress 
+                phase={promptEditorProgress.phase}
+                completed={promptEditorProgress.completed}
+                total={promptEditorProgress.total}
+                isVisible={promptEditorProgress.isVisible}
+              />
+            </div>
+          )}
+          
           {/* Search Section - Collapsible with Focus State */}
           <div className="relative transition-all duration-300 ease-in-out">
             {/* Collapsed Header - Only visible when collapsed */}
@@ -2184,6 +2207,7 @@ export default function Home() {
                       }
                     }}
                     onOpenSearchDrawer={() => searchManagementDrawer.openDrawer()}
+                    onProgressUpdate={setPromptEditorProgress}
                   />
                 </Suspense>
                 

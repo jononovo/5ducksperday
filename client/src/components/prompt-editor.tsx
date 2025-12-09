@@ -15,7 +15,6 @@ import { SearchSessionManager } from "@/lib/search-session-manager";
 import { useAuth } from "@/hooks/use-auth";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
 import { useNotifications } from "@/features/user-account-settings";
-import { SearchProgress } from "./search-progress";
 import { LandingPageTooltip } from "@/components/ui/landing-page-tooltip";
 import ContactSearchChips, { ContactSearchConfig } from "./contact-search-chips";
 import SearchTypeSelector, { SearchType } from "./search-type-selector";
@@ -26,6 +25,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+
+export interface SearchProgressState {
+  phase: string;
+  completed: number;
+  total: number;
+  isVisible: boolean;
+}
 
 interface PromptEditorProps {
   onAnalyze: () => void;
@@ -44,6 +50,7 @@ interface PromptEditorProps {
   hideRoleButtons?: boolean; // Flag to hide role selection buttons when search is inactive
   onSearchMetricsUpdate?: (metrics: any, showSummary: boolean) => void; // Callback to update search metrics in parent
   onOpenSearchDrawer?: () => void; // Callback to open the search management drawer
+  onProgressUpdate?: (progress: SearchProgressState) => void; // Callback to report progress changes to parent
 }
 
 export default function PromptEditor({ 
@@ -62,7 +69,8 @@ export default function PromptEditor({
   onSessionIdChange,
   hideRoleButtons = false,
   onSearchMetricsUpdate,
-  onOpenSearchDrawer
+  onOpenSearchDrawer,
+  onProgressUpdate
 }: PromptEditorProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -775,6 +783,7 @@ export default function PromptEditor({
       
       // Start polling immediately
       isPollingRef.current = true;
+      setIsPolling(true);
       pollJobStatus();
       
       // Show initial progress
@@ -981,6 +990,7 @@ export default function PromptEditor({
       };
       
       isPollingRef.current = true;
+      setIsPolling(true);
       pollJobStatus();
       
       setSearchProgress(prev => ({ ...prev, phase: "Searching for Individual", completed: 1 }));
@@ -1003,6 +1013,19 @@ export default function PromptEditor({
       onComplete();
     },
   });
+  
+  // Report progress changes to parent for rendering outside collapsible section
+  useEffect(() => {
+    if (onProgressUpdate) {
+      const isVisible = quickSearchMutation.isPending || isPolling || individualSearchMutation.isPending;
+      onProgressUpdate({
+        phase: searchProgress.phase,
+        completed: searchProgress.completed,
+        total: searchProgress.total,
+        isVisible
+      });
+    }
+  }, [searchProgress.phase, searchProgress.completed, searchProgress.total, quickSearchMutation.isPending, isPolling, individualSearchMutation.isPending, onProgressUpdate]);
 
   // Handle structured individual search from modal
   const handleIndividualSearch = (formData: IndividualSearchFormData) => {
@@ -1289,16 +1312,7 @@ export default function PromptEditor({
           </div>
         )}
         
-        {/* Progress Bar - moved below search input/button */}
-        {(quickSearchMutation.isPending || individualSearchMutation.isPending) && (
-          <SearchProgress 
-            phase={searchProgress.phase}
-            completed={searchProgress.completed}
-            total={searchProgress.total}
-            isVisible={quickSearchMutation.isPending || individualSearchMutation.isPending}
-          />
-        )}
-
+        {/* Progress Bar is now rendered in Home.tsx via onProgressUpdate callback */}
 
       </div>
 
