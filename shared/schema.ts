@@ -106,6 +106,10 @@ export const searchLists = pgTable("search_lists", {
   prompt: text("prompt").notNull(),
   resultCount: integer("result_count").notNull(),
   customSearchTargets: jsonb("custom_search_targets").default('[]'),
+  totalContacts: integer("total_contacts"),
+  totalEmails: integer("total_emails"),
+  searchDurationSeconds: integer("search_duration_seconds"),
+  sourceBreakdown: jsonb("source_breakdown").$type<{ Perplexity: number; Apollo: number; Hunter: number }>(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow()
 }, (table) => [
   index('idx_search_lists_user_id').on(table.userId),
@@ -266,7 +270,15 @@ const searchListSchema = z.object({
   listId: z.number().min(1001),
   prompt: z.string().min(1, "Search prompt is required"),
   resultCount: z.number().min(0),
-  customSearchTargets: z.array(z.string()).nullable()
+  customSearchTargets: z.array(z.string()).nullable(),
+  totalContacts: z.number().nullable().optional(),
+  totalEmails: z.number().nullable().optional(),
+  searchDurationSeconds: z.number().nullable().optional(),
+  sourceBreakdown: z.object({
+    Perplexity: z.number(),
+    Apollo: z.number(),
+    Hunter: z.number()
+  }).nullable().optional()
 });
 
 const companySchema = z.object({
