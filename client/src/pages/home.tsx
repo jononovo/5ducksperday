@@ -2232,12 +2232,26 @@ export default function Home() {
                       });
                       setMainSummaryVisible(showSummary);
                       
+                      // Transform companies to reportCompanies format for persistence
+                      const reportCompanies = metrics.companies?.map((company: any) => ({
+                        id: company.id,
+                        name: company.name,
+                        contacts: company.contacts?.map((contact: any) => ({
+                          id: contact.id,
+                          name: contact.name,
+                          role: contact.role,
+                          email: contact.email,
+                          probability: contact.probability
+                        }))
+                      })) ?? null;
+                      
                       // Prepare metrics for persistence
                       const metricsToSave = {
                         totalContacts: metrics.totalContacts ?? null,
                         totalEmails: metrics.totalEmails ?? null,
-                        searchDurationSeconds: metrics.duration ? Math.round(metrics.duration / 1000) : null,
-                        sourceBreakdown: metrics.sourceBreakdown ?? null
+                        searchDurationSeconds: metrics.searchDuration ?? null,
+                        sourceBreakdown: metrics.sourceBreakdown ?? null,
+                        reportCompanies
                       };
                       
                       // Persist metrics to database if we have a saved list

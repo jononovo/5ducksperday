@@ -285,6 +285,7 @@ export class SearchListsService {
       totalEmails?: number | null;
       searchDurationSeconds?: number | null;
       sourceBreakdown?: { Perplexity: number; Apollo: number; Hunter: number } | null;
+      reportCompanies?: Array<{ id: number; name: string; contacts?: Array<{ id: number; name?: string; role?: string; email?: string; probability?: number }> }> | null;
     },
     userId: number
   ): Promise<SearchListResponse | null> {
@@ -301,7 +302,8 @@ export class SearchListsService {
       totalContacts: metrics.totalContacts ?? undefined,
       totalEmails: metrics.totalEmails ?? undefined,
       searchDurationSeconds: metrics.searchDurationSeconds ?? undefined,
-      sourceBreakdown: metrics.sourceBreakdown ?? undefined
+      sourceBreakdown: metrics.sourceBreakdown ?? undefined,
+      reportCompanies: metrics.reportCompanies ?? undefined
     }, userId);
     
     if (!updated) {

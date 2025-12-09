@@ -109,7 +109,7 @@ export function registerSearchListsRoutes(app: Application, requireAuth: any) {
     try {
       const userId = getUserId(req);
       const listId = parseInt(req.params.listId);
-      const { totalContacts, totalEmails, searchDurationSeconds, sourceBreakdown } = req.body;
+      const { totalContacts, totalEmails, searchDurationSeconds, sourceBreakdown, reportCompanies } = req.body;
       
       console.log(`PATCH /api/lists/${listId}/metrics called by user ${userId}`);
       
@@ -121,7 +121,8 @@ export function registerSearchListsRoutes(app: Application, requireAuth: any) {
         totalContacts,
         totalEmails,
         searchDurationSeconds,
-        sourceBreakdown
+        sourceBreakdown,
+        reportCompanies
       }, userId);
       
       if (!updated) {
