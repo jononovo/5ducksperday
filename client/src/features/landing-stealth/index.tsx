@@ -254,7 +254,7 @@ export default function LandingStealth() {
                     </span>
                   </TooltipTrigger>
                   <TooltipContent side="top" className="max-w-xs bg-gray-900 text-white border-gray-700">
-                    <p>Don't worry "Fluffy" 🐥 has automated AI search for this. - She's incredible!</p>
+                    <p>Don't worry "Fluffy" 🐥 has automated AI search for this - She's incredible!</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
