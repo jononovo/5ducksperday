@@ -3,16 +3,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { SearchProgress } from "@/components/search-progress";
+import { SearchProgressIndicator, type SearchProgressState } from "@/features/search-progress";
 import { LandingPageTooltip } from "@/components/ui/landing-page-tooltip";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
 
 // Lazy load heavy components
 const CompanyCards = lazy(() => import("@/components/company-cards"));
 const PromptEditor = lazy(() => import("@/components/prompt-editor"));
-
-// Import type for search progress state
-import type { SearchProgressState } from "@/components/prompt-editor";
 
 // Import components with named exports directly for now
 import { EmailSearchSummary } from "@/components/email-search-summary";
@@ -2095,7 +2092,7 @@ export default function Home() {
           {/* Search Progress Bar - Rendered outside collapsible section so it stays visible */}
           {promptEditorProgress.isVisible && (
             <div className="px-3 md:px-6">
-              <SearchProgress 
+              <SearchProgressIndicator 
                 phase={promptEditorProgress.phase}
                 completed={promptEditorProgress.completed}
                 total={promptEditorProgress.total}
@@ -2319,7 +2316,7 @@ export default function Home() {
               {/* Email Search Progress - with reduced padding */}
               {emailOrchestration.isSearching && (
                 <div className="px-0 md:px-4 pt-0 pb-3">
-                  <SearchProgress 
+                  <SearchProgressIndicator 
                     phase={emailOrchestration.searchProgress.phase}
                     completed={emailOrchestration.searchProgress.completed}
                     total={emailOrchestration.searchProgress.total}

@@ -25,13 +25,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-
-export interface SearchProgressState {
-  phase: string;
-  completed: number;
-  total: number;
-  isVisible: boolean;
-}
+import type { SearchProgressState } from "@/features/search-progress";
 
 interface PromptEditorProps {
   onAnalyze: () => void;
