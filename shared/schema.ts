@@ -110,6 +110,7 @@ export const searchLists = pgTable("search_lists", {
   totalEmails: integer("total_emails"),
   searchDurationSeconds: integer("search_duration_seconds"),
   sourceBreakdown: jsonb("source_breakdown").$type<{ Perplexity: number; Apollo: number; Hunter: number }>(),
+  reportCompanies: jsonb("report_companies").$type<Array<{ id: number; name: string; contacts?: Array<{ id: number; name?: string; role?: string; email?: string; probability?: number }> }>>(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow()
 }, (table) => [
   index('idx_search_lists_user_id').on(table.userId),
