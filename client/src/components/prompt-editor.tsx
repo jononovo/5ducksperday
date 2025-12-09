@@ -781,82 +781,10 @@ export default function PromptEditor({
         }
       };
       
-      // Start polling immediately
+      // Start polling immediately - backend will drive progress updates
       isPollingRef.current = true;
       setIsPolling(true);
       pollJobStatus();
-      
-      // Show initial progress
-      setSearchProgress(prev => ({ ...prev, phase: "Starting Search", completed: 1 }));
-      
-      // Update progress indicators based on search type
-      setTimeout(() => {
-        setSearchProgress(prev => ({ ...prev, phase: "Finding Companies", completed: 2 }));
-      }, 1000);
-      
-      // Show search phase notifications conditionally based on configuration
-      if (searchType === 'contacts' || searchType === 'emails') {
-        const showPhaseNotifications = () => {
-          // 3s: Leadership (only if enabled)
-          if (contactSearchConfig?.enableCoreLeadership) {
-            setTimeout(() => {
-              toast({
-                title: "Leadership Search",
-                description: "Searching for C-level executives and founders...",
-              });
-              setSearchProgress(prev => ({ ...prev, phase: "Contact Discovery", completed: 3 }));
-            }, 3000);
-          }
-          
-          // 5s: Department heads (only if enabled)  
-          if (contactSearchConfig?.enableDepartmentHeads) {
-            setTimeout(() => {
-              toast({
-                title: "Department Search",
-                description: "Identifying department leaders and key managers...",
-              });
-            }, 5000);
-          }
-          
-          // 7s: Middle management (only if enabled)
-          if (contactSearchConfig?.enableMiddleManagement) {
-            setTimeout(() => {
-              toast({
-                title: "Senior Staff Search",
-                description: "Finding senior staff and decision makers...",
-              });
-            }, 7000);
-          }
-          
-          // 9s: First custom search (only if enabled)
-          if (contactSearchConfig?.enableCustomSearch && contactSearchConfig?.customSearchTarget) {
-            setTimeout(() => {
-              toast({
-                title: "Custom Search",
-                description: `Searching for ${contactSearchConfig.customSearchTarget} specialists...`,
-              });
-            }, 9000);
-          }
-          
-          // 11s: Second custom search (only if enabled)
-          if (contactSearchConfig?.enableCustomSearch2 && contactSearchConfig?.customSearchTarget2) {
-            setTimeout(() => {
-              toast({
-                title: "Custom Search",
-                description: `Searching for ${contactSearchConfig.customSearchTarget2} specialists...`,
-              });
-            }, 11000);
-          }
-        };
-        
-        // Execute the conditional notification system
-        showPhaseNotifications();
-        
-        // Update progress to scoring contacts phase
-        setTimeout(() => {
-          setSearchProgress(prev => ({ ...prev, phase: "Scoring Contacts", completed: 4 }));
-        }, 15000);
-      }
     },
     onError: (error: Error) => {
       // Check if it's a credit blocking error (402 status)
@@ -989,11 +917,10 @@ export default function PromptEditor({
         }
       };
       
+      // Start polling immediately - backend will drive progress updates
       isPollingRef.current = true;
       setIsPolling(true);
       pollJobStatus();
-      
-      setSearchProgress(prev => ({ ...prev, phase: "Searching for Individual", completed: 1 }));
     },
     onError: (error: Error) => {
       setIsIndividualSearching(false);
@@ -1041,7 +968,7 @@ export default function PromptEditor({
     ].filter(Boolean).join(' ');
     onChange(displayQuery);
     
-    setSearchProgress({ phase: "Starting Individual Search", completed: 0, total: 3 });
+    setSearchProgress({ phase: "Starting search", completed: 0, total: 5 });
     setSearchMetrics({
       query: displayQuery,
       totalCompanies: 0,
@@ -1100,8 +1027,8 @@ export default function PromptEditor({
     
     // Don't reset inputHasChanged here - wait until search completes
     
-    // Reset and initialize progress
-    setSearchProgress({ phase: "Starting-up Search Requests", completed: 0, total: 5 });
+    // Reset progress - backend will drive updates via polling
+    setSearchProgress({ phase: "Starting search", completed: 0, total: 5 });
     
     // Initialize search metrics
     setSearchMetrics({
