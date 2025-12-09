@@ -238,9 +238,14 @@ export default function LandingStealth() {
               </AnimatePresence>
             </div>
 
-            <p className="text-xl text-muted-foreground leading-relaxed max-w-md font-medium relative z-20">
+            <motion.p 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.8 }}
+              className="text-xl text-muted-foreground leading-relaxed max-w-md font-medium relative z-20 mt-4"
+            >
               Start with finding customers & emailing them.
-            </p>
+            </motion.p>
           </div>
 
           {currentIndex !== 5 && (
