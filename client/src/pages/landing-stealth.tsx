@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,11 @@ export default function LandingStealth() {
   const [isHoveringDuck, setIsHoveringDuck] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentTestimonialIndex, setCurrentTestimonialIndex] = useState(0);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const content = [
     { 
@@ -233,90 +239,115 @@ export default function LandingStealth() {
             </p>
           </div>
 
-          <motion.div 
-            layout
-            className={`flex flex-col gap-4 w-full transition-all duration-700 ${
-              currentIndex === 5 
-                ? "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 max-w-md scale-110 shadow-2xl" 
-                : "relative max-w-md mt-4"
-            }`}
-          >
-            <div className="flex flex-col sm:flex-row gap-4 w-full">
-              <div className="relative flex-1 group/input">
+          {currentIndex !== 5 && (
+            <div className="flex flex-col gap-4 w-full max-w-md mt-4">
+              <div className="flex flex-col sm:flex-row gap-4 w-full">
+                <div className="relative flex-1 group/input">
+                  <Input 
+                    type="text" 
+                    placeholder="ENTER_SECRET_CODE" 
+                    className="h-16 bg-black/40 backdrop-blur-md border-none text-xl md:text-2xl px-8 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-white/40 font-code tracking-widest uppercase text-white w-full relative z-10 transition-all duration-500 text-center"
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                    data-testid="input-secret-code"
+                  />
+
+                  <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
+                  <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
+                  <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
+                  <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
+                </div>
+                
                 <AnimatePresence>
-                  {currentIndex === 5 && (
+                  {code.length >= 6 && (
+                    <motion.div
+                      initial={{ width: 0, opacity: 0, scale: 0.8 }}
+                      animate={{ width: "auto", opacity: 1, scale: 1 }}
+                      exit={{ width: 0, opacity: 0, scale: 0.8 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                    >
+                      <Button 
+                        size="lg" 
+                        className="h-16 px-10 text-xl font-bold rounded-none bg-primary text-primary-foreground hover:bg-blue-400 hover:scale-105 active:scale-95 transition-all shadow-[0_0_30px_-5px_rgba(56,189,248,0.6)] font-code tracking-wider whitespace-nowrap"
+                        onClick={handleQuack}
+                        data-testid="button-quack"
+                      >
+                        [ QUACK! ]
+                      </Button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+          )}
+
+          {isMounted && currentIndex === 5 && createPortal(
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+                transition={{ duration: 0.5 }}
+              />
+              <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 max-w-md w-full scale-110 shadow-2xl flex flex-col gap-4 px-4">
+                <div className="flex flex-col sm:flex-row gap-4 w-full">
+                  <div className="relative flex-1 group/input">
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
                       className="absolute inset-0 bg-blue-500/20 blur-xl rounded-lg z-0"
                     />
-                  )}
-                </AnimatePresence>
-                
-                <Input 
-                  type="text" 
-                  placeholder="ENTER_SECRET_CODE" 
-                  className={`h-16 bg-black/40 backdrop-blur-md border-none text-xl md:text-2xl px-8 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-white/40 font-code tracking-widest uppercase text-white w-full relative z-10 transition-all duration-500 text-center ${currentIndex === 5 ? "bg-blue-950/30 shadow-[0_0_30px_rgba(59,130,246,0.3)]" : ""}`}
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                  data-testid="input-secret-code"
-                />
+                    
+                    <Input 
+                      type="text" 
+                      placeholder="ENTER_SECRET_CODE" 
+                      className="h-16 bg-blue-950/30 backdrop-blur-md border-none text-xl md:text-2xl px-8 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-white/40 font-code tracking-widest uppercase text-white w-full relative z-10 transition-all duration-500 text-center shadow-[0_0_30px_rgba(59,130,246,0.3)]"
+                      value={code}
+                      onChange={(e) => setCode(e.target.value)}
+                      data-testid="input-secret-code-floating"
+                    />
 
-                <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
-                <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
-                <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
-                <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
-              </div>
-              
-              <AnimatePresence>
-                {code.length >= 6 && (
-                  <motion.div
-                    initial={{ width: 0, opacity: 0, scale: 0.8 }}
-                    animate={{ width: "auto", opacity: 1, scale: 1 }}
-                    exit={{ width: 0, opacity: 0, scale: 0.8 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                  >
-                    <Button 
-                      size="lg" 
-                      className="h-16 px-10 text-xl font-bold rounded-none bg-primary text-primary-foreground hover:bg-blue-400 hover:scale-105 active:scale-95 transition-all shadow-[0_0_30px_-5px_rgba(56,189,248,0.6)] font-code tracking-wider whitespace-nowrap"
-                      onClick={handleQuack}
-                      data-testid="button-quack"
-                    >
-                      [ QUACK! ]
-                    </Button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+                    <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
+                    <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
+                    <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
+                    <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
+                  </div>
+                  
+                  <AnimatePresence>
+                    {code.length >= 6 && (
+                      <motion.div
+                        initial={{ width: 0, opacity: 0, scale: 0.8 }}
+                        animate={{ width: "auto", opacity: 1, scale: 1 }}
+                        exit={{ width: 0, opacity: 0, scale: 0.8 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                      >
+                        <Button 
+                          size="lg" 
+                          className="h-16 px-10 text-xl font-bold rounded-none bg-primary text-primary-foreground hover:bg-blue-400 hover:scale-105 active:scale-95 transition-all shadow-[0_0_30px_-5px_rgba(56,189,248,0.6)] font-code tracking-wider whitespace-nowrap"
+                          onClick={handleQuack}
+                          data-testid="button-quack-floating"
+                        >
+                          [ QUACK! ]
+                        </Button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
 
-            <AnimatePresence>
-              {currentIndex === 5 && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
                   className="w-full text-center mt-24"
                 >
                   <Button variant="link" className="text-white/60 hover:text-white transition-colors font-code uppercase tracking-widest text-sm no-underline hover:no-underline cursor-pointer" data-testid="link-apply-code">
                     Apply for a code <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-
-            <AnimatePresence>
-              {currentIndex === 5 && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
-                  transition={{ duration: 0.5 }}
-                />
-              )}
-            </AnimatePresence>
+              </div>
+            </>,
+            document.body
+          )}
             
             <div className="flex items-center gap-6">
              <div className="flex items-center gap-4 text-sm text-muted-foreground/80 p-3 rounded-2xl bg-white/5 border border-white/5 w-fit backdrop-blur-md hover:bg-white/10 transition-colors cursor-default">
