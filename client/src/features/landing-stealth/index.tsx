@@ -1,65 +1,33 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import duckImage from "@/assets/images/3d_cute_duckling_mascot_edited.png";
-import bgImage from "@/assets/ad_images/abstract_3d_sales_background_with_envelopes_and_charts.png";
 
-// Generated Assets
-import salesImage from "@/assets/ad_images/sales_meeting_v9_transparent.png";
-import dealFlowImage from "@/assets/ad_images/deal_flow_v6_transparent.png";
-import leadsImage from "@/assets/ad_images/email-notification-no-bg-crop.png";
-import outreachImage from "@/assets/ad_images/outreach_campaign_v9_transparent.png";
-import greetingImage from "@/assets/ad_images/duckling_greeting.png";
+import duckImage from "./assets/3d_cute_duckling_mascot_edited.png";
+import bgImage from "./assets/abstract_3d_sales_background_with_envelopes_and_charts.png";
+import salesImage from "./assets/sales_meeting_v9_transparent.png";
+import dealFlowImage from "./assets/deal_flow_v6_transparent.png";
+import leadsImage from "./assets/email-notification-no-bg-crop.png";
+import outreachImage from "./assets/outreach_campaign_v9_transparent.png";
+import danImage from "./assets/professional_headshot_of_dan_hartmann.png";
+import sarahImage from "./assets/professional_headshot_of_sarah_chen.png";
+import mikeImage from "./assets/professional_headshot_of_mike_ross.png";
+import alexImage from "./assets/natural_outdoor_portrait_of_older_alex_rivera_with_beard.png";
 
-// Testimonial Assets
-import danImage from "@/assets/ad_images/professional_headshot_of_dan_hartmann.png";
-import sarahImage from "@/assets/ad_images/professional_headshot_of_sarah_chen.png";
-import mikeImage from "@/assets/ad_images/professional_headshot_of_mike_ross.png";
-import alexImage from "@/assets/ad_images/natural_outdoor_portrait_of_older_alex_rivera_with_beard.png";
-
-// Floating geometric shapes component
-const FloatingShapes = () => {
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-      {[...Array(5)].map((_, i) => (
-        <motion.div
-          key={i}
-          initial={{ 
-            opacity: 0, 
-            x: Math.random() * window.innerWidth, 
-            y: Math.random() * window.innerHeight 
-          }}
-          animate={{ 
-            opacity: [0.1, 0.3, 0.1], 
-            y: [0, -50, 0],
-            rotate: [0, 180, 360],
-          }}
-          transition={{ 
-            duration: 10 + Math.random() * 10, 
-            repeat: Infinity, 
-            ease: "linear",
-            delay: Math.random() * 5 
-          }}
-          className="absolute w-24 h-24 border-2 border-primary/10 rounded-2xl backdrop-blur-sm"
-          style={{
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-          }}
-        />
-      ))}
-    </div>
-  );
-};
-
-export default function Landing() {
+export default function LandingStealth() {
   const [code, setCode] = useState("");
   const { toast } = useToast();
   const [isHoveringDuck, setIsHoveringDuck] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentTestimonialIndex, setCurrentTestimonialIndex] = useState(0);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const content = [
     { 
@@ -142,7 +110,7 @@ export default function Landing() {
 
     const testimonialInterval = setInterval(() => {
       setCurrentTestimonialIndex((prev) => (prev + 1) % testimonials.length);
-    }, 5000); // Rotate testimonials every 5s
+    }, 5000);
 
     return () => {
       clearTimeout(timeout);
@@ -169,9 +137,7 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen w-full bg-background overflow-x-hidden relative flex flex-col">
-      {/* Hero Section */}
       <div className="relative z-10 min-h-[90vh] flex flex-col justify-center">
-        {/* Logo - Top Left */}
         <div className="absolute top-6 left-6 md:top-10 md:left-10 z-30">
             <div className="font-bold flex items-center text-3xl">
               <div className="flex items-end ml-3">
@@ -181,21 +147,18 @@ export default function Landing() {
             </div>
         </div>
 
-        {/* Stealth Mode Indicator */}
         <div className="absolute top-10 left-0 right-0 flex justify-center z-20">
              <span className="px-4 py-1.5 rounded-full bg-white/5 text-white/20 text-xs font-bold uppercase tracking-widest border border-white/5 backdrop-blur-md">
                Stealth Mode
              </span>
         </div>
 
-        {/* Login Link - Top Right */}
         <div className="absolute top-4 right-6 md:top-6 md:right-10 z-30">
-          <a href="/login" className="text-sm text-white/10 hover:text-white/30 transition-colors font-bold uppercase tracking-widest">
+          <a href="/auth" className="text-sm text-white/10 hover:text-white/30 transition-colors font-bold uppercase tracking-widest" data-testid="link-login">
             Login
           </a>
         </div>
 
-        {/* Dynamic Background for Hero only */}
         <div className="absolute inset-0 z-0">
           <img 
             src={bgImage} 
@@ -208,7 +171,6 @@ export default function Landing() {
 
         <div className="container mx-auto px-6 relative z-10 grid lg:grid-cols-2 gap-12 items-center py-20">
         
-        {/* Left Content */}
         <motion.div 
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
@@ -250,7 +212,6 @@ export default function Landing() {
               </span>
             </h1>
 
-            {/* Floating Visual Context - Linked to word */}
             <div className="absolute -top-12 -right-4 md:-right-24 lg:-right-32 w-48 h-32 md:w-64 md:h-40 pointer-events-none z-10 hidden sm:block">
               <AnimatePresence mode="wait">
                  {currentIndex === 0 && (
@@ -277,94 +238,117 @@ export default function Landing() {
             </p>
           </div>
 
-          <motion.div 
-            layout
-            className={`flex flex-col gap-4 w-full transition-all duration-700 ${
-              currentIndex === 5 
-                ? "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 max-w-md scale-110 shadow-2xl" 
-                : "relative max-w-md mt-4"
-            }`}
-          >
-            <div className="flex flex-col sm:flex-row gap-4 w-full">
-              <div className="relative flex-1 group/input">
-                {/* Glow effect for the final cycle */}
+          {currentIndex !== 5 && (
+            <div className="flex flex-col gap-4 w-full max-w-md mt-4">
+              <div className="flex flex-col sm:flex-row gap-4 w-full">
+                <div className="relative flex-1 group/input">
+                  <Input 
+                    type="text" 
+                    placeholder="ENTER_SECRET_CODE" 
+                    className="h-16 bg-black/40 backdrop-blur-md border-none text-xl md:text-2xl px-8 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-white/40 font-code tracking-widest uppercase text-white w-full relative z-10 transition-all duration-500 text-center"
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                    data-testid="input-secret-code"
+                  />
+
+                  <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
+                  <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
+                  <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
+                  <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
+                </div>
+                
                 <AnimatePresence>
-                  {currentIndex === 5 && (
+                  {code.length >= 6 && (
+                    <motion.div
+                      initial={{ width: 0, opacity: 0, scale: 0.8 }}
+                      animate={{ width: "auto", opacity: 1, scale: 1 }}
+                      exit={{ width: 0, opacity: 0, scale: 0.8 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                    >
+                      <Button 
+                        size="lg" 
+                        className="h-16 px-10 text-xl font-bold rounded-none bg-primary text-primary-foreground hover:bg-blue-400 hover:scale-105 active:scale-95 transition-all shadow-[0_0_30px_-5px_rgba(56,189,248,0.6)] font-code tracking-wider whitespace-nowrap"
+                        onClick={handleQuack}
+                        data-testid="button-quack"
+                      >
+                        [ QUACK! ]
+                      </Button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+          )}
+
+          {isMounted && currentIndex === 5 && createPortal(
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+                transition={{ duration: 0.5 }}
+              />
+              <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 max-w-md w-full scale-110 shadow-2xl flex flex-col gap-4 px-4">
+                <div className="flex flex-col sm:flex-row gap-4 w-full">
+                  <div className="relative flex-1 group/input">
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
                       className="absolute inset-0 bg-blue-500/20 blur-xl rounded-lg z-0"
                     />
-                  )}
-                </AnimatePresence>
-                
-                <Input 
-                  type="text" 
-                  placeholder="ENTER_SECRET_CODE" 
-                  className={`h-16 bg-black/40 backdrop-blur-md border-none text-xl md:text-2xl px-8 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-white/40 font-code tracking-widest uppercase text-white w-full relative z-10 transition-all duration-500 text-center ${currentIndex === 5 ? "bg-blue-950/30 shadow-[0_0_30px_rgba(59,130,246,0.3)]" : ""}`}
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                />
+                    
+                    <Input 
+                      type="text" 
+                      placeholder="ENTER_SECRET_CODE" 
+                      className="h-16 bg-blue-950/30 backdrop-blur-md border-none text-xl md:text-2xl px-8 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-white/40 font-code tracking-widest uppercase text-white w-full relative z-10 transition-all duration-500 text-center shadow-[0_0_30px_rgba(59,130,246,0.3)]"
+                      value={code}
+                      onChange={(e) => setCode(e.target.value)}
+                      data-testid="input-secret-code-floating"
+                    />
 
-                {/* Corner Borders - Positioned on top */}
-                <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
-                <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
-                <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
-                <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
-              </div>
-              
-              <AnimatePresence>
-                {code.length >= 6 && (
-                  <motion.div
-                    initial={{ width: 0, opacity: 0, scale: 0.8 }}
-                    animate={{ width: "auto", opacity: 1, scale: 1 }}
-                    exit={{ width: 0, opacity: 0, scale: 0.8 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                  >
-                    <Button 
-                      size="lg" 
-                      className="h-16 px-10 text-xl font-bold rounded-none bg-primary text-primary-foreground hover:bg-blue-400 hover:scale-105 active:scale-95 transition-all shadow-[0_0_30px_-5px_rgba(56,189,248,0.6)] font-code tracking-wider whitespace-nowrap"
-                      onClick={handleQuack}
-                    >
-                      [ QUACK! ]
-                    </Button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+                    <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
+                    <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
+                    <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
+                    <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
+                  </div>
+                  
+                  <AnimatePresence>
+                    {code.length >= 6 && (
+                      <motion.div
+                        initial={{ width: 0, opacity: 0, scale: 0.8 }}
+                        animate={{ width: "auto", opacity: 1, scale: 1 }}
+                        exit={{ width: 0, opacity: 0, scale: 0.8 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                      >
+                        <Button 
+                          size="lg" 
+                          className="h-16 px-10 text-xl font-bold rounded-none bg-primary text-primary-foreground hover:bg-blue-400 hover:scale-105 active:scale-95 transition-all shadow-[0_0_30px_-5px_rgba(56,189,248,0.6)] font-code tracking-wider whitespace-nowrap"
+                          onClick={handleQuack}
+                          data-testid="button-quack-floating"
+                        >
+                          [ QUACK! ]
+                        </Button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
 
-            {/* Apply link - only visible when centered */}
-            <AnimatePresence>
-              {currentIndex === 5 && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
                   className="w-full text-center mt-24"
                 >
-                  <Button variant="link" className="text-white/60 hover:text-white transition-colors font-code uppercase tracking-widest text-sm no-underline hover:no-underline cursor-pointer">
+                  <Button variant="link" className="text-white/60 hover:text-white transition-colors font-code uppercase tracking-widest text-sm no-underline hover:no-underline cursor-pointer" data-testid="link-apply-code">
                     Apply for a code <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-
-            <AnimatePresence>
-              {currentIndex === 5 && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
-                  transition={{ duration: 0.5 }}
-                />
-              )}
-            </AnimatePresence>
+              </div>
+            </>,
+            document.body
+          )}
             
             <div className="flex items-center gap-6">
-             {/* Social Proof / Stats */}
              <div className="flex items-center gap-4 text-sm text-muted-foreground/80 p-3 rounded-2xl bg-white/5 border border-white/5 w-fit backdrop-blur-md hover:bg-white/10 transition-colors cursor-default">
               <div className="flex -space-x-3">
                 {[danImage, sarahImage, mikeImage].map((img, i) => (
@@ -376,38 +360,37 @@ export default function Landing() {
               <p className="font-heading"><span className="text-white font-bold">1,248</span> Players Waiting</p>
             </div>
 
-            <Button variant="link" className="text-muted-foreground hover:text-primary transition-colors font-heading cursor-pointer">
+            <Button variant="link" className="text-muted-foreground hover:text-primary transition-colors font-heading cursor-pointer" data-testid="link-apply">
               Apply for a code <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
         </motion.div>
 
-        {/* Right Content - The Duck */}
         <div className="relative flex items-center justify-center w-full h-[500px]">
-           {/* Large Image Container that replaces Duck */}
            <AnimatePresence mode="wait">
              {currentIndex !== 0 && currentIndex !== 5 && (
-               <motion.div
-                 key="visual-context-right"
-                 layoutId="visual-context"
-                 initial={{ opacity: 0, scale: 0.8 }}
-                 animate={{ opacity: 1, scale: 1, rotate: content[currentIndex].rotation || 0 }}
-                 exit={{ opacity: 0, scale: 0.8 }}
-                 transition={{ duration: 0.6, ease: "circOut" }}
-                 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] md:w-full max-w-lg aspect-video z-10"
-               >
-                  {/* Glow Effect - Matching the one from the left side but larger */}
-                  <div className="absolute inset-0 bg-gradient-to-tr from-primary/30 to-cyan-400/30 rounded-2xl blur-2xl transform scale-105 opacity-60" />
+               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] max-w-md aspect-video z-10">
+                 <motion.div
+                   key="visual-context-right"
+                   layoutId="visual-context"
+                   initial={{ opacity: 0, scale: 0.8 }}
+                   animate={{ opacity: 1, scale: 1, rotate: content[currentIndex].rotation || 0 }}
+                   exit={{ opacity: 0, scale: 0.8 }}
+                   transition={{ duration: 0.6, ease: "circOut" }}
+                   className="w-full h-full"
+                 >
+                    <div className="absolute inset-0 bg-gradient-to-tr from-primary/30 to-cyan-400/30 rounded-2xl blur-2xl transform scale-105 opacity-60" />
 
-                  <div className="relative w-full h-full rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-black/50 backdrop-blur-sm group">
-                    <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-cyan-400/10 opacity-50" />
-                    <img 
-                      src={content[currentIndex].image} 
-                      alt={content[currentIndex].label}
-                      className="w-full h-full object-cover opacity-90 transition-transform duration-700 group-hover:scale-105"
-                    />
-                  </div>
-               </motion.div>
+                    <div className="relative w-full h-full rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-black/50 backdrop-blur-sm group">
+                      <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-cyan-400/10 opacity-50" />
+                      <img 
+                        src={content[currentIndex].image} 
+                        alt={content[currentIndex].label}
+                        className="w-full h-full object-cover opacity-90 transition-transform duration-700 group-hover:scale-105"
+                      />
+                    </div>
+                 </motion.div>
+               </div>
              )}
            </AnimatePresence>
 
@@ -425,7 +408,6 @@ export default function Landing() {
           onMouseEnter={() => setIsHoveringDuck(true)}
           onMouseLeave={() => setIsHoveringDuck(false)}
         >
-           {/* Interactive Glow behind duck */}
            <motion.div 
              animate={{ 
                scale: isHoveringDuck ? 1.2 : 1,
@@ -449,11 +431,9 @@ export default function Landing() {
             style={{ filter: "drop-shadow(0 30px 60px rgba(0,0,0,0.6))" }}
            />
            
-           {/* Floating "Power Ups" / Stats Overlays - Only visible when big */}
            <AnimatePresence>
              {currentIndex === 0 && (
                <>
-                 {/* Stat 1: Email Sent */}
                  <motion.div 
                    initial={{ opacity: 0, x: 20 }}
                    animate={{ opacity: 1, x: 0, y: [0, -10, 0] }}
@@ -470,7 +450,6 @@ export default function Landing() {
                    </div>
                  </motion.div>
       
-                 {/* Stat 2: New Prospect */}
                  <motion.div 
                    initial={{ opacity: 0, x: -20 }}
                    animate={{ opacity: 1, x: 0, y: [0, 15, 0] }}
@@ -487,7 +466,6 @@ export default function Landing() {
                    </div>
                  </motion.div>
       
-                 {/* Stat 3: Streak */}
                  <motion.div 
                    initial={{ opacity: 0, scale: 0.8 }}
                    animate={{ opacity: 1, scale: 1, y: [0, -8, 0] }}
@@ -510,12 +488,9 @@ export default function Landing() {
 
       </div>
 
-      {/* Testimonial Section */}
       <div className="relative z-20 bg-[#0A0A10] border-t border-white/10 py-24">
-        {/* Subtle pattern for texture */}
         <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(#1e293b 1px, transparent 1px)", backgroundSize: "30px 30px" }} />
         
-        {/* Ambient Glow behind testimonials */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] max-w-5xl -z-0 pointer-events-none">
            <motion.div 
              animate={{ 
@@ -529,7 +504,6 @@ export default function Landing() {
 
         <div className="container mx-auto px-6 relative z-10">
           <div className="max-w-4xl mx-auto">
-            {/* Card removed, just content floating */}
             <div className="relative">
               
               <div className="min-h-[250px] flex flex-col justify-center items-center relative z-10">
@@ -544,12 +518,10 @@ export default function Landing() {
                   >
                     <div className="flex flex-col md:flex-row items-end justify-center md:pl-20">
                       
-                      {/* Quote */}
                       <h3 className="relative z-20 text-4xl md:text-6xl font-serif italic leading-[1.1] text-white max-w-2xl text-left drop-shadow-2xl -mb-8 md:-mb-0 md:-mr-24 pointer-events-none">
                         &ldquo;{testimonials[currentTestimonialIndex].quote}&rdquo;
                       </h3>
 
-                      {/* Author Info - Right and offset */}
                       <div className="relative z-10 flex items-center gap-5 bg-[#151520] border border-white/10 p-6 pr-10 rounded-2xl shadow-2xl md:-translate-y-8 shrink-0 mt-8 md:mt-0">
                          <div className="w-20 h-20 rounded-xl overflow-hidden border border-white/20 shadow-lg shrink-0">
                            <img 
@@ -569,7 +541,6 @@ export default function Landing() {
                 </AnimatePresence>
               </div>
               
-              {/* Navigation Dots */}
               <div className="flex justify-center gap-2 mt-24 md:mt-20">
                 {testimonials.map((_, idx) => (
                   <button
@@ -580,6 +551,7 @@ export default function Landing() {
                         ? "bg-gray-600 w-8" 
                         : "bg-white/10 hover:bg-white/20 w-4"
                     }`}
+                    data-testid={`button-testimonial-${idx}`}
                   />
                 ))}
               </div>
