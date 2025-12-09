@@ -246,7 +246,7 @@ export default function LandingStealth() {
               transition={{ duration: 0.5, delay: 1.4 }}
               className="text-xl text-muted-foreground leading-relaxed max-w-md font-medium relative z-20 pt-8"
             >
-              <TooltipProvider delayDuration={500}>
+              <TooltipProvider delayDuration={1000}>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <span 
