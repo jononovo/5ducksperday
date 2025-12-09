@@ -84,6 +84,12 @@ export default {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },
+      fontFamily: {
+        sans: ["Outfit", "sans-serif"],
+        heading: ["Outfit", "sans-serif"],
+        serif: ["DM Serif Display", "serif"],
+        code: ["Courier New", "monospace"],
+      },
     },
   },
   plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],

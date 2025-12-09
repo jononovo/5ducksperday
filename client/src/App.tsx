@@ -19,6 +19,7 @@ import { useAnalytics } from "@/hooks/use-analytics";
 // Static pages
 import Landing from "@/pages/landing";
 import Landing2 from "@/pages/landing2";
+import LandingStealth from "@/pages/landing-stealth";
 import Planning from "@/pages/planning";
 import Auth from "@/pages/auth";
 
@@ -71,6 +72,9 @@ function Router() {
         
         {/* Landing2 Page Clone */}
         <Route path="/landing2" component={Landing2} />
+        
+        {/* Stealth Mode Landing Page */}
+        <Route path="/landing-stealth" component={LandingStealth} />
         
         {/* Strategic Planning Page (no nav) */}
         <Route path="/planning" component={Planning} />
