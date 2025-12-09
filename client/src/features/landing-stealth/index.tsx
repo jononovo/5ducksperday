@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Gem } from "lucide-react";
+import { ArrowRight, Map } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 
@@ -249,7 +249,7 @@ export default function LandingStealth() {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <span className="flex items-center gap-2 cursor-pointer">
-                      <Gem className="w-5 h-5" />
+                      <Map className="w-5 h-5" />
                       Quest 1: Find your target customers
                     </span>
                   </TooltipTrigger>
