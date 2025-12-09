@@ -3,7 +3,8 @@ import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Target } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 
 import duckImage from "./assets/3d_cute_duckling_mascot_edited.png";
@@ -238,14 +239,26 @@ export default function LandingStealth() {
               </AnimatePresence>
             </div>
 
-            <motion.p 
+            <motion.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 1.4 }}
               className="text-xl text-muted-foreground leading-relaxed max-w-md font-medium relative z-20 pt-8"
             >
-              Start with finding customers & emailing them.
-            </motion.p>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="flex items-center gap-2 cursor-help">
+                      <Target className="w-5 h-5" />
+                      Quest 1: Find your target customers
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-xs">
+                    <p>Don't worry "Fluffy" 🐥 has automated AI search for this. - She's incredible!</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </motion.div>
           </div>
 
           {currentIndex !== 5 && (
