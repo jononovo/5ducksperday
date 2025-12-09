@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>5Ducks - Sell for 5 minutes every day</title>
+  
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Easy Selling for Small Businesses - Sell for 5 minutes every day.">
+  <meta property="og:title" content="5Ducks - Sell for 5 minutes every day">
+  <meta property="og:description" content="Easy Selling for Small Businesses - Sell for 5 minutes every day.">
+  <meta property="og:type" content="website">
+  
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "5Ducks",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Web",
+    "offers": {
+      "@type": "Offer",
+      "price": "18.95",
+      "priceCurrency": "USD"
+    },
+    "description": "Easy Selling for Small Businesses - Sell for 5 minutes every day.",
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.8",
+      "reviewCount": "57"
+    }
+  }
+  </script>
+  
+  <!-- Compiled Tailwind CSS for production -->
+  <link rel="stylesheet" href="/static/css/landing.css">
+  
+  <style>
+    /* CSS Resets to match shadcn/ui components */
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+    
+    input, button {
+      font-family: inherit;
+      font-size: 100%;
+      font-weight: inherit;
+      color: inherit;
+      margin: 0;
+      padding: 0;
+      line-height: inherit;
+    }
+    
+    button {
+      text-transform: none;
+      background-color: transparent;
+      background-image: none;
+      border: 0;
+    }
+    
+    input {
+      border: 0;
+      background: transparent;
+    }
+    
+    /* Custom input styling to match shadcn Input component */
+    #search-input {
+      font-feature-settings: normal;
+      font-variation-settings: normal;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      background-color: transparent;
+      border: 1px solid transparent;
+      height: 3.5rem;
+      display: flex;
+      align-items: center;
+    }
+    
+    #search-input::placeholder {
+      color: rgb(107 114 128);
+    }
+    
+    #search-input:focus {
+      outline: 2px solid transparent;
+      outline-offset: 2px;
+    }
+    
+    /* Button styling to match shadcn Button component */
+    #search-btn {
+      border-radius: 9999px;
+      font-weight: normal;
+      height: 2.75rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    
+    /* Focus visible styles */
+    #search-input:focus-visible {
+      outline: 1px solid rgb(59 130 246);
+      outline-offset: 1px;
+    }
+    
+    #search-btn:focus-visible {
+      outline: 2px solid rgb(59 130 246);
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-950 dark:to-blue-950">
+  <!-- Header -->
+  <header class="container mx-auto py-4 px-4">
+    <div class="flex justify-between items-center">
+      <div class="font-bold flex items-center text-3xl">
+        <span class="text-gray-500 dark:text-gray-400">5</span>
+        <span class="text-gray-700 dark:text-gray-300">Ducks</span>
+        <div class="flex items-end ml-3">
+          <span class="text-3xl">🐥</span>
+          <span class="text-2xl md:inline hidden">🥚🥚🥚🥚</span>
+        </div>
+      </div>
+      
+      <div class="flex-1 flex justify-center">
+        <nav class="hidden md:block">
+          <ul class="flex space-x-8">
+            <li>
+              <a href="/app" data-nav-item="search" class="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors border-b border-transparent hover:border-slate-400 dark:hover:border-slate-600 py-1">
+                Search
+              </a>
+            </li>
+            <li>
+              <a href="/pricing" data-nav-item="pricing" class="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors border-b border-transparent hover:border-slate-400 dark:hover:border-slate-600 py-1">
+                Pricing
+              </a>
+            </li>
+            <li>
+              <a href="/contact" data-nav-item="contact" class="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors border-b border-transparent hover:border-slate-400 dark:hover:border-slate-600 py-1">
+                Contact
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+      
+      <div class="flex items-center space-x-3">
+        <a href="/outreach" class="px-4 py-2 rounded-md text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+          Login
+        </a>
+        <div class="md:hidden relative">
+          <button id="mobile-menu-btn" class="p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+          </button>
+          <div id="mobile-menu" class="hidden absolute right-0 top-12 w-32 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md shadow-lg z-50">
+            <a href="/app" data-nav-item="search" class="block px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+              Search
+            </a>
+            <a href="/pricing" data-nav-item="pricing" class="block px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+              Pricing
+            </a>
+            <a href="/contact" data-nav-item="contact" class="block px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+              Contact
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Hero Section -->
+  <main class="flex-1">
+    <section class="py-16 md:py-24 px-4">
+      <div class="container mx-auto max-w-4xl text-center">
+        <div class="mb-4 inline-flex items-center px-4 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z"/>
+          </svg>
+          <span class="text-sm font-medium">AI-Powered B2B Sales</span>
+        </div>
+        
+        <h1 class="text-4xl md:text-6xl font-extrabold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 leading-tight">
+          Sell for 5 minutes every day.
+        </h1>
+        
+        <p class="text-xl md:text-2xl text-slate-600 dark:text-slate-400 mb-16 max-w-2xl mx-auto font-light">
+          <span>Start by finding companies, contacts & their emails<br />with a prompt 🎯</span>
+        </p>
+
+        <!-- Search Input Section -->
+        <div class="max-w-2xl mx-auto mb-12">
+          <!-- Search Input -->
+          <div class="relative mb-10">
+            <div class="absolute -inset-1 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 rounded-full opacity-70 blur"></div>
+            <div class="relative bg-white dark:bg-slate-900 rounded-full">
+            <input
+              type="text"
+              placeholder="Extreme adventure companies in Maine"
+              id="search-input"
+              class="w-full pl-12 pr-36 py-7 text-lg rounded-full border-transparent shadow-lg focus-visible:ring-2 focus-visible:ring-blue-500 focus:outline-none box-border"
+            />
+            <svg class="absolute left-5 top-1/2 transform -translate-y-1/2 text-blue-500 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>
+            </svg>
+            <button
+              id="search-btn"
+              class="absolute right-2 top-1/2 transform -translate-y-1/2 rounded-full px-5 py-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white cursor-pointer inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-colors"
+            >
+              <span class="mr-2">Quack</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7-7 7 7-7 7"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Suggestion Text -->
+        <div class="text-center mt-4 mb-2">
+          <p class="text-sm text-gray-500 dark:text-gray-400">Or select one of the suggestions below:</p>
+        </div>
+
+        <!-- Example Search Prompts -->
+        <div class="flex flex-wrap justify-center gap-2 mb-16">
+          <button class="example-prompt text-sm bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all px-3 py-2 rounded-md cursor-pointer" data-prompt="Recently exited startups in Miami">
+            Recently exited startups in Miami
+          </button>
+          <button class="example-prompt text-sm bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all px-3 py-2 rounded-md cursor-pointer" data-prompt="Real-estate lawyers in Salt Lake City">
+            Real-estate lawyers in Salt Lake City
+          </button>
+          <button class="example-prompt text-sm bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all px-3 py-2 rounded-md cursor-pointer" data-prompt="Stationary suppliers in Scranton">
+            Stationary suppliers in Scranton
+          </button>
+          <button class="example-prompt text-sm bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all px-3 py-2 rounded-md cursor-pointer" data-prompt="Health-tech SaaS in Brooklyn">
+            Health-tech SaaS in Brooklyn
+          </button>
+        </div>
+        
+        <div class="flex flex-nowrap justify-center space-x-2 md:space-x-8 my-10">
+          <div class="text-center p-3 md:p-4">
+            <div class="text-3xl md:text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2 md:whitespace-nowrap">~68 Mins</div>
+            <div class="text-sm text-slate-500 dark:text-slate-400">Saved per Day</div>
+          </div>
+          <div class="text-center p-3 md:p-4">
+            <div class="text-3xl md:text-4xl font-bold text-purple-600 dark:text-purple-400 mb-2 md:whitespace-nowrap">225 Targets </div>
+            <div class="text-sm text-slate-500 dark:text-slate-400">Sweet-talked to per Month</div>
+          </div>
+          <div class="text-center p-3 md:p-4">
+            <div class="text-3xl md:text-4xl font-bold text-pink-600 dark:text-pink-400 mb-2 md:whitespace-nowrap">Avg $70k</div>
+            <div class="text-sm text-slate-500 dark:text-slate-400">New Revenue Pipeline*</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Video Section -->
+    <section class="py-20 px-4 bg-white dark:bg-slate-900">
+      <div class="container mx-auto max-w-5xl">
+        <h2 class="text-3xl font-bold mb-8 text-center">See How It Works</h2>
+        
+        <div class="mx-auto w-[90%] max-w-4xl">
+          <!--ARCADE EMBED START--><div style="position: relative; padding-bottom: calc(64.94082840236686% + 41px); height: 0; width: 100%;"><iframe src="https://demo.arcade.software/QDUC0AQgqPkmYEwJPGTd?embed&embed_mobile=tab&embed_desktop=inline&show_copy_link=true" title="Official 250708 v1 5Ducks" frameborder="0" loading="lazy" webkitallowfullscreen mozallowfullscreen allowfullscreen allow="clipboard-write" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; color-scheme: light;" ></iframe></div><!--ARCADE EMBED END-->
+        </div>
+      </div>
+    </section>
+    
+    <!-- Content Section -->
+    <section class="py-16 px-4 bg-blue-50 dark:bg-blue-950/30">
+      <div class="container mx-auto max-w-6xl">
+        
+        <!-- My Story Section -->
+        <div class="mt-12 max-w-3xl mx-auto bg-white dark:bg-slate-800 rounded-xl p-8 shadow-lg">
+          <h3 class="text-3xl font-bold mb-6 text-center">My Story</h3>
+          <div class="prose dark:prose-invert max-w-none text-slate-700 dark:text-slate-300">
+            <p>I do 10 push-ups before every shower and I realized that if I do 20, I will very soon stop doing them. But I will explain that later.</p>
+            
+            <p class="mt-4">In February, after spending an embarrassingly long amount of time creating a SaaS product with a couple of developers.
+            It was finally time to start selling. But being easily distracted, I instead figured that I should create a tool that will make selling easier for me. (Of course!!! That's not procrastination. That's efficiency.)</p>
+            
+            <p class="mt-4">I then got distracted in workflows to optimize the sales and lead generation. However, finally coming back to this, I decided to launch it because, who the hell wants to open their inbox (with all those clickbait newsletters and juicy news updates) and THEN start sending sales emails?!?
+            That's like asking an alcoholic to work at a bar. It's so distracting.</p>
+            
+            <p class="mt-4">The other thing I realized is that all the other lead generation services that popped-up when I was searching, were for people with big budgets and usually needed someone to set it up for them.</p>
+            
+            <p class="mt-4">I wanted something for the small guy that he could get running in less than 60 seconds. And that could be addictive and fun.</p>
+            
+            <p class="mt-4">Now back to those pushups. Well, I realized that the harder the task is, the more likely that I will abandon it, and not make it habit.
+            And I figured, if I can make the selling process much, much easier, but then put a limit so that people will not feel guilty leaving after five minutes, that they might enjoy it more AND may make a habit out of it.</p>
+
+            <p class="mt-4">Umm,... yeah. <br />
+            Thanks for listening and enjoy. <br />
+            - <strong>Jon</strong>
+            </p>
+          </div>
+          
+          <div class="text-center mt-8">
+            <button class="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full px-8 py-3 cursor-pointer" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })">
+              <span class="mr-2">Start a new habit today</span>
+              <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 18 6-6-6-6"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        
+        <!-- What We Do Section -->
+        <div class="mt-20 max-w-3xl mx-auto bg-white dark:bg-slate-800 rounded-xl p-8 shadow-lg">
+          <h3 class="text-2xl font-semibold mb-6 text-center">What We Do</h3>
+          <div class="prose dark:prose-invert max-w-none text-slate-700 dark:text-slate-300">
+            <ol class="list-decimal pl-6 space-y-4">
+              <li><strong>New companies & contacts</strong> surfaced in seconds (Not dozens of filters and millions of contacts to choose from.)</li>
+              <li>Find the <strong>best email addresses</strong>. How? We pull from the top 3 global databases PLUS our real-time proprietary AI deep online search.</li>
+              <li><strong>Auto-suggest a message PER person</strong> in your style, all you do is edit and/or click "Send".</li>
+              <li><strong>Track positive responses</strong> without distracting you from new outreach everyday.</li>
+              <li>Analyze and match positive responses with the types of businesses & <strong>recommend new searches</strong>.</li>
+            </ol>
+          </div>
+        </div>
+        
+        <!-- Second Features Section -->
+        <section class="py-16 px-4 bg-blue-50 dark:bg-blue-950/30">
+          <div class="container mx-auto max-w-6xl">
+            <h2 class="text-3xl font-bold mb-12 text-center">No-distraction Selling for Busy <span class="text-gray-400">(or easily-distractable)</span> People</h2>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+              <div class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-md">
+                <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center mb-4">
+                  <svg class="text-blue-600 dark:text-blue-400 w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12,6 12,12 16,14"/>
+                  </svg>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">You're already wasting time</h3>
+                <p class="text-slate-600 dark:text-slate-400">You should be sending simple emails to amazing people about how you are solving their problem.</p>
+              </div>
+              
+              <div class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-md">
+                <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center mb-4">
+                  <svg class="text-purple-600 dark:text-purple-400 w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="m22 11 2 2v3h-3m-1 0h-2l-1-1v-1a3 3 0 0 1 3-3h1"/>
+                  </svg>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">Daily master-plan via email - No login necessary</h3>
+                <p class="text-slate-600 dark:text-slate-400">Get all the details per contact  - Click to open edit each email body or subject line and voila!</p>
+              </div>
+              
+              <div class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-md">
+                <div class="w-12 h-12 bg-pink-100 dark:bg-pink-900/50 rounded-lg flex items-center justify-center mb-4">
+                  <svg class="text-pink-600 dark:text-pink-400 w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                    <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+                  </svg>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">You'll be done in 5 Mins (or less)</h3>
+                <p class="text-slate-600 dark:text-slate-400">And you won't even be distracted by your inbox, because we don't include that here.</p>
+              </div>
+            </div>
+            
+            <div class="text-center mt-12">
+              <button class="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full px-8 py-3 cursor-pointer" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })">
+                <span class="mr-2">Try it for free (for 5 Minutes)</span>
+                <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 18 6-6-6-6"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </section>
+        
+        <!-- Why Sign-up Section -->
+        <div class="mt-20 max-w-3xl mx-auto bg-white dark:bg-slate-800 rounded-xl p-8 shadow-lg">
+          <h3 class="text-2xl font-semibold mb-6 text-center">Why Sign-up?</h3>
+          <div class="prose dark:prose-invert max-w-none text-slate-700 dark:text-slate-300">
+            <ol class="list-decimal pl-6 space-y-4">
+              <li>Because <strong>consistency beats motivation</strong> Every. Single. Time.</li>
+              <li>If you have not sold anything* in 90 days we will <strong>reimburse the full 3 months</strong> subscription (and will gently encourage you to find a better product to sell.)</li>
+              <li>We keep things SUPER SIMPLE and allow you to <strong>sell without analysis-paralysis</strong>, which triples your productivity.</li>
+            </ol>
+          </div>
+          
+          <div class="text-center mt-8">
+            <button class="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full px-8 py-3 cursor-pointer" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })">
+              <span class="mr-2">Give it a try</span>
+              <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 18 6-6-6-6"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-200 dark:border-slate-800 py-8 mt-auto">
+    <div class="container mx-auto px-4">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div>
+          <div class="font-bold flex items-center text-xl">
+            <span class="text-gray-500 dark:text-gray-400">5</span>
+            <span class="text-gray-700 dark:text-gray-300">Ducks</span>
+          </div>
+          <p class="text-sm text-slate-600 dark:text-slate-400 mt-4">
+            5Ducks makes it easy for founders to build a $70k pipeline in only five minutes per day.
+          </p>
+        </div>
+        
+        <div>
+          <h3 class="text-lg font-semibold mb-4">Product</h3>
+          <ul class="space-y-2 text-sm">
+            <li>
+              <a href="/pricing" class="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                Pricing
+              </a>
+            </li>
+            <li>
+              <a href="/contact#vibe-coding" target="_blank" rel="noopener noreferrer" class="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                Vibe-Coding
+              </a>
+            </li>
+            <li>
+              <a href="/blog" class="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                Blog
+              </a>
+            </li>
+          </ul>
+        </div>
+        
+        <div>
+          <h3 class="text-lg font-semibold mb-4">Company</h3>
+          <ul class="space-y-2 text-sm">
+            <li>
+              <a href="/contact" class="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                Contact
+              </a>
+            </li>
+            <li>
+              <a href="/contact" class="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                Support
+              </a>
+            </li>
+            <li>
+              <a href="/changelog" class="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                Changelog
+              </a>
+            </li>
+            <li>
+              <a href="/sitemap.xml" class="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                Sitemap
+              </a>
+            </li>
+          </ul>
+        </div>
+        
+        <div>
+          <h3 class="text-lg font-semibold mb-4">Legal</h3>
+          <ul class="space-y-2 text-sm">
+            <li>
+              <a href="/privacy.html" class="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                Privacy Policy
+              </a>
+            </li>
+            <li>
+              <a href="/blog/tos" class="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">
+                Terms of Service
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+        <div class="text-sm text-slate-600 dark:text-slate-400">
+          © 2025 5Ducks. All rights reserved.
+        </div>
+        <div class="flex items-center">
+          <span class="text-sm text-slate-600 dark:text-slate-400 italic">
+            Soli Deo Gloria
+          </span>
+        </div>
+        <div class="flex items-center space-x-4">
+          <a
+            href="https://www.linkedin.com/company/5ducks/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400"
+          >
+            LinkedIn
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  
+  <!-- Authentication Check -->
+  <script src="/static/js/auth-check.js"></script>
+  
+  <!-- Mobile Menu Functionality -->
+  <script src="/static/js/mobile-menu.js"></script>
+  
+  <!-- Active Menu State -->
+  <script src="/static/js/active-menu.js"></script>
+  
+  <!-- Landing Page Interactions -->
+  <script src="/static/js/landing.js"></script>
+  
+  <!-- Chat Overlay -->
+  <script src="/static/js/chat-overlay.js"></script>
+</body>
+</html>
