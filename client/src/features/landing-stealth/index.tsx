@@ -253,7 +253,7 @@ export default function LandingStealth() {
                       Quest 1: Find your target customers
                     </span>
                   </TooltipTrigger>
-                  <TooltipContent side="top" className="max-w-xs">
+                  <TooltipContent side="top" className="max-w-xs bg-gray-900 text-white border-gray-700">
                     <p>Don't worry "Fluffy" 🐥 has automated AI search for this. - She's incredible!</p>
                   </TooltipContent>
                 </Tooltip>
