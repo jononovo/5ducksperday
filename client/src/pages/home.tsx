@@ -11,10 +11,8 @@ import { TableSkeleton } from "@/components/ui/table-skeleton";
 const CompanyCards = lazy(() => import("@/components/company-cards"));
 const PromptEditor = lazy(() => import("@/components/prompt-editor"));
 
-// Import components with named exports directly for now
-import { EmailSearchSummary } from "@/components/email-search-summary";
-import { ContactDiscoveryReport } from "@/components/contact-discovery-report";
-import { MainSearchSummary } from "@/components/main-search-summary";
+// Import consolidated search report modal
+import { SearchReportModal } from "@/features/search-report";
 import { OnboardingFlowOrchestrator } from "@/components/onboarding/OnboardingFlowOrchestrator";
 import { EmailDrawer, useEmailDrawer } from "@/features/email-drawer";
 import { SearchManagementDrawer, useSearchManagementDrawer } from "@/features/search-management-drawer";
@@ -1614,8 +1612,7 @@ export default function Home() {
     return pendingApolloIds.has(contactId);
   };
   
-  // State for other UI components not handled by extracted hooks
-  const [contactReportVisible, setContactReportVisible] = useState(false);
+  // State for consolidated search report modal
   const [mainSummaryVisible, setMainSummaryVisible] = useState(false);
   const [mainSearchMetrics, setMainSearchMetrics] = useState({
     query: "",
@@ -1623,7 +1620,8 @@ export default function Home() {
     totalContacts: 0,
     totalEmails: 0,
     searchDuration: 0,
-    companies: [] as any[]
+    companies: [] as any[],
+    sourceBreakdown: undefined as { Perplexity: number; Apollo: number; Hunter: number } | undefined
   });
   
 
@@ -2058,16 +2056,19 @@ export default function Home() {
 
   return (
     <>
-      {/* Main Search Summary Modal - Rendered at root level to avoid overflow clipping */}
-      <MainSearchSummary
-        query={mainSearchMetrics.query}
-        totalCompanies={mainSearchMetrics.totalCompanies}
-        totalContacts={mainSearchMetrics.totalContacts}
-        totalEmails={mainSearchMetrics.totalEmails}
-        searchDuration={mainSearchMetrics.searchDuration}
+      {/* Consolidated Search Report Modal - Rendered at root level to avoid overflow clipping */}
+      <SearchReportModal
+        metrics={{
+          query: mainSearchMetrics.query,
+          totalCompanies: mainSearchMetrics.totalCompanies,
+          totalContacts: mainSearchMetrics.totalContacts,
+          totalEmails: mainSearchMetrics.totalEmails,
+          searchDuration: mainSearchMetrics.searchDuration,
+          companies: mainSearchMetrics.companies,
+          sourceBreakdown: mainSearchMetrics.sourceBreakdown
+        }}
         isVisible={mainSummaryVisible}
         onClose={() => setMainSummaryVisible(false)}
-        companies={mainSearchMetrics.companies}
       />
       
       <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden relative">
@@ -2189,19 +2190,11 @@ export default function Home() {
                     onSessionIdChange={setCurrentSessionId}
                     hideRoleButtons={!!(searchSectionCollapsed && currentResults && currentResults.length > 0 && !inputHasChanged)}
                     onSearchMetricsUpdate={(metrics, showSummary) => {
-                      setMainSearchMetrics(metrics);
+                      setMainSearchMetrics({
+                        ...metrics,
+                        sourceBreakdown: metrics.sourceBreakdown
+                      });
                       setMainSummaryVisible(showSummary);
-                      // Show contact report only when search completes and has actual contacts
-                      if (showSummary && metrics.totalCompanies > 0 && metrics.totalContacts > 0) {
-                        setContactReportVisible(true);
-                        // Show email summary if search type was 'emails' and emails were found
-                        if (metrics.searchType === 'emails' && metrics.totalEmails && metrics.totalEmails > 0) {
-                          emailOrchestration.updateEmailSearchMetrics(
-                            metrics.totalEmails,
-                            metrics.sourceBreakdown || { Perplexity: metrics.totalEmails, Apollo: 0, Hunter: 0 }
-                          );
-                        }
-                      }
                     }}
                     onOpenSearchDrawer={() => searchManagementDrawer.openDrawer()}
                     onProgressUpdate={setPromptEditorProgress}
@@ -2281,37 +2274,6 @@ export default function Home() {
           {/* Companies Analysis Section - Moved to top */}
           {currentResults && currentResults.length > 0 ? (
             <Card className={`w-full rounded-none md:rounded-lg border-0 transition-all duration-300 ${emailDrawer.isOpen ? 'shadow-none' : ''}`}>
-              
-              {/* Contact Discovery Report - with reduced padding */}
-              {contactReportVisible && (
-                <div className="px-0 md:px-4 pt-0 pb-2">
-                  <ContactDiscoveryReport 
-                    companiesWithContacts={currentResults?.filter(company => 
-                      company.contacts && company.contacts.length > 0).length || 0}
-                    totalCompanies={currentResults?.length || 0}
-                    totalContacts={currentResults?.reduce((sum, company) => 
-                      sum + (company.contacts?.length || 0), 0) || 0}
-                    onClose={() => setContactReportVisible(false)}
-                    isVisible={contactReportVisible}
-                  />
-                </div>
-              )}
-
-              {/* Email Search Summary - with reduced padding */}
-              {emailOrchestration.summaryVisible && (
-                <div className="px-0 md:px-4 pt-1 pb-0">
-                  <EmailSearchSummary 
-                    companiesWithEmails={currentResults?.filter(company => 
-                      emailOrchestration.getTopContacts(company, 3).some(contact => contact.email && contact.email.length > 5)).length || 0}
-                    totalCompanies={currentResults?.length || 0}
-                    totalEmailsFound={emailOrchestration.lastEmailSearchCount || currentResults?.reduce((total, company) => 
-                      total + (emailOrchestration.getTopContacts(company, 3).filter(contact => contact.email && contact.email.length > 5).length), 0) || 0}
-                    sourceBreakdown={emailOrchestration.lastSourceBreakdown || undefined}
-                    onClose={() => emailOrchestration.closeSummary()}
-                    isVisible={emailOrchestration.summaryVisible}
-                  />
-                </div>
-              )}
               
               {/* Email Search Progress - with reduced padding */}
               {emailOrchestration.isSearching && (
