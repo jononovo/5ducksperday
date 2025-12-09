@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Target } from "lucide-react";
+import { ArrowRight, Gem } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 
@@ -245,15 +245,15 @@ export default function LandingStealth() {
               transition={{ duration: 0.5, delay: 1.4 }}
               className="text-xl text-muted-foreground leading-relaxed max-w-md font-medium relative z-20 pt-8"
             >
-              <TooltipProvider>
+              <TooltipProvider delayDuration={500}>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="flex items-center gap-2 cursor-help">
-                      <Target className="w-5 h-5" />
+                    <span className="flex items-center gap-2 cursor-pointer">
+                      <Gem className="w-5 h-5" />
                       Quest 1: Find your target customers
                     </span>
                   </TooltipTrigger>
-                  <TooltipContent side="bottom" className="max-w-xs">
+                  <TooltipContent side="top" className="max-w-xs">
                     <p>Don't worry "Fluffy" 🐥 has automated AI search for this. - She's incredible!</p>
                   </TooltipContent>
                 </Tooltip>
