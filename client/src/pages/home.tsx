@@ -2315,6 +2315,7 @@ export default function Home() {
                           selectedContactIds={Array.from(selectedContacts)}
                         />
                       ) : undefined}
+                      onShowReport={() => setMainSummaryVisible(true)}
                   />
                   </Suspense>
                 </div>
