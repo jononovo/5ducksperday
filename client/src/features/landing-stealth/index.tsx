@@ -5,18 +5,17 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import duckImage from "@/assets/images/3d_cute_duckling_mascot_edited.png";
-import bgImage from "@/assets/ad_images/abstract_3d_sales_background_with_envelopes_and_charts.png";
 
-import salesImage from "@/assets/ad_images/sales_meeting_v9_transparent.png";
-import dealFlowImage from "@/assets/ad_images/deal_flow_v6_transparent.png";
-import leadsImage from "@/assets/ad_images/email-notification-no-bg-crop.png";
-import outreachImage from "@/assets/ad_images/outreach_campaign_v9_transparent.png";
-
-import danImage from "@/assets/ad_images/professional_headshot_of_dan_hartmann.png";
-import sarahImage from "@/assets/ad_images/professional_headshot_of_sarah_chen.png";
-import mikeImage from "@/assets/ad_images/professional_headshot_of_mike_ross.png";
-import alexImage from "@/assets/ad_images/natural_outdoor_portrait_of_older_alex_rivera_with_beard.png";
+import duckImage from "./assets/3d_cute_duckling_mascot_edited.png";
+import bgImage from "./assets/abstract_3d_sales_background_with_envelopes_and_charts.png";
+import salesImage from "./assets/sales_meeting_v9_transparent.png";
+import dealFlowImage from "./assets/deal_flow_v6_transparent.png";
+import leadsImage from "./assets/email-notification-no-bg-crop.png";
+import outreachImage from "./assets/outreach_campaign_v9_transparent.png";
+import danImage from "./assets/professional_headshot_of_dan_hartmann.png";
+import sarahImage from "./assets/professional_headshot_of_sarah_chen.png";
+import mikeImage from "./assets/professional_headshot_of_mike_ross.png";
+import alexImage from "./assets/natural_outdoor_portrait_of_older_alex_rivera_with_beard.png";
 
 export default function LandingStealth() {
   const [code, setCode] = useState("");

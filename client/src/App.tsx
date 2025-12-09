@@ -19,7 +19,7 @@ import { useAnalytics } from "@/hooks/use-analytics";
 // Static pages
 import Landing from "@/pages/landing";
 import Landing2 from "@/pages/landing2";
-import LandingStealth from "@/pages/landing-stealth";
+import LandingStealth from "@/features/landing-stealth";
 import Planning from "@/pages/planning";
 import Auth from "@/pages/auth";
 
