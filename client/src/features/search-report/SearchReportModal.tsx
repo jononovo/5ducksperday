@@ -67,8 +67,8 @@ export function SearchReportModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
-      <Card className="w-full max-w-md bg-white shadow-xl">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4" onClick={onClose}>
+      <Card className="w-full max-w-md bg-white shadow-xl" onClick={(e) => e.stopPropagation()}>
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg font-semibold text-gray-900">Search Summary</CardTitle>
