@@ -255,28 +255,35 @@ export default function LandingStealth() {
                       onMouseLeave={() => setIsQuestHovered(false)}
                       style={{ perspective: "600px" }}
                     >
-                      <Map className="w-5 h-5" />
+                      <motion.span
+                        animate={{ 
+                          scale: isQuestHovered ? 1.15 : 1,
+                          rotate: isQuestHovered ? 12 : 0
+                        }}
+                        transition={{ duration: 0.3, ease: "easeOut" }}
+                      >
+                        <Map className="w-5 h-5" />
+                      </motion.span>
                       <span>Quest 1:</span>
-                      <span className="inline-flex overflow-hidden" style={{ height: "1.4em" }}>
+                      <span className="inline-flex items-center overflow-hidden">
                         <motion.span
                           className="inline-flex text-muted-foreground/70"
                           initial="hidden"
                           animate={isQuestHovered ? "revealed" : "hidden"}
                           variants={{
-                            hidden: { transition: { staggerChildren: 0.02, staggerDirection: -1 } },
-                            revealed: { transition: { staggerChildren: 0.035, delayChildren: 0.05 } }
+                            hidden: { transition: { staggerChildren: 0.015, staggerDirection: -1 } },
+                            revealed: { transition: { staggerChildren: 0.025, delayChildren: 0.05 } }
                           }}
                         >
                           {"Find your target customers".split("").map((char, i) => (
                             <motion.span
                               key={i}
                               className="inline-block"
-                              style={{ transformOrigin: "0% 100%" }}
                               variants={{
-                                hidden: { y: "1em", rotateX: 70, opacity: 0 },
-                                revealed: { y: 0, rotateX: 0, opacity: 1 }
+                                hidden: { x: -8, opacity: 0, scale: 0.8 },
+                                revealed: { x: 0, opacity: 1, scale: 1 }
                               }}
-                              transition={{ duration: 0.2, ease: "easeOut" }}
+                              transition={{ duration: 0.15, ease: "easeOut" }}
                             >
                               {char === " " ? "\u00A0" : char}
                             </motion.span>
