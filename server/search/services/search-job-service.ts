@@ -581,7 +581,7 @@ export class SearchJobService {
         message: `Searching for emails for ${allContacts.length} contacts`
       });
       
-      const { sourceBreakdown, emailsFound } = await this.enrichContactsWithEmails(job, allContacts, validCompanies, 5);
+      const { sourceBreakdown, emailsFound } = await this.enrichContactsWithEmails(job, allContacts, validCompanies, 5, 3);
       
       // Phase 4: Deduct credits
       await this.updateJobProgress(job.id, {
@@ -806,7 +806,8 @@ export class SearchJobService {
     job: SearchJob, 
     contacts: any[], 
     companies: any[],
-    totalPhases: number
+    totalPhases: number,
+    currentPhase: number = 4
   ): Promise<{ sourceBreakdown: { Perplexity: number; Apollo: number; Hunter: number }; emailsFound: number }> {
     const { parallelTieredEmailSearch } = await import('./parallel-email-search');
     const { processBatch } = await import('../utils/batch-processor');
@@ -892,7 +893,7 @@ export class SearchJobService {
         // Update progress after each batch
         await this.updateJobProgress(job.id, {
           phase: 'Finding emails',
-          completed: 4,
+          completed: currentPhase,
           total: totalPhases,
           message: `Finding emails: ${companiesProcessed}/${totalCompanies} companies processed (${totalEmailsFound} emails found)`
         });

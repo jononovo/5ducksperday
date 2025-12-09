@@ -10,16 +10,17 @@ export function SearchProgressIndicator({
   if (!isVisible) return null;
   
   const percentComplete = total > 0 ? Math.round((completed / total) * 100) : 0;
+  const isInProgress = percentComplete < 100 && percentComplete > 0;
   
   return (
     <div className="mt-3 mb-1 w-full">
       <div className="flex justify-between items-center mb-1">
         <span className="text-xs font-medium">
-          {phase} (Step {completed} of {total})
+          {phase}
         </span>
         <span className="text-xs text-muted-foreground">{percentComplete}%</span>
       </div>
-      <Progress value={percentComplete} className="h-1.5" />
+      <Progress value={percentComplete} className="h-1.5" showShimmer={isInProgress} />
     </div>
   );
 }
