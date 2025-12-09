@@ -256,11 +256,11 @@ export default function LandingStealth() {
                       style={{ perspective: "600px" }}
                     >
                       <motion.span
-                        animate={{ 
-                          scale: isQuestHovered ? 1.15 : 1,
-                          rotate: isQuestHovered ? 12 : 0
-                        }}
-                        transition={{ duration: 0.3, ease: "easeOut" }}
+                        animate={isQuestHovered ? {
+                          scale: [1, 1.2, 1],
+                          rotate: [0, 15, 0]
+                        } : {}}
+                        transition={{ duration: 0.4, ease: "easeOut" }}
                       >
                         <Map className="w-5 h-5" />
                       </motion.span>
