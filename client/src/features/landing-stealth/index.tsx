@@ -178,9 +178,14 @@ export default function LandingStealth() {
           className="flex flex-col gap-8 max-w-xl"
         >
           <div className="space-y-4 relative pt-12 lg:pt-24">
-            <span className="block text-sm lg:text-base text-gray-400 font-medium tracking-widest uppercase mb-2 opacity-80 pl-1 font-mono">
+            <motion.span 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 0.8, y: 0 }}
+              transition={{ duration: 0.5, delay: 0 }}
+              className="block text-sm lg:text-base text-gray-400 font-medium tracking-widest uppercase mb-2 pl-1 font-mono"
+            >
               Founder-led
-            </span>
+            </motion.span>
             <h1 className="text-6xl lg:text-8xl font-bold leading-[0.9] tracking-normal text-gray-200 font-serif h-[1.8em] relative z-20">
               <span className="block mb-2">
                 <AnimatePresence mode="wait">
@@ -189,7 +194,7 @@ export default function LandingStealth() {
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: -20, opacity: 0 }}
-                    transition={{ duration: 0.5 }}
+                    transition={{ duration: 0.5, delay: 0.4 }}
                     className="inline-block"
                   >
                     {content[currentIndex].text}.
@@ -203,7 +208,7 @@ export default function LandingStealth() {
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: -20, opacity: 0 }}
-                    transition={{ duration: 0.5 }}
+                    transition={{ duration: 0.5, delay: 0.6 }}
                     className="inline-block"
                   >
                     {currentIndex >= 3 ? "Simplified." : "Gamified."}
