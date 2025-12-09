@@ -132,12 +132,12 @@ export function SearchReportModal({
             )}
             <div className="text-xs text-gray-600">
               <span className="font-medium">Contact Types:</span> C-level: {contactTypes.cLevel}, Management: {contactTypes.management}, Staff: {contactTypes.staff}
-              {sourceBreakdown && (
-                <span className="ml-2">
-                  [Email Sources: Perplexity: {sourceBreakdown.Perplexity || 0} Apollo: {sourceBreakdown.Apollo || 0} Hunter: {sourceBreakdown.Hunter || 0}]
-                </span>
-              )}
             </div>
+            {sourceBreakdown && (
+              <div className="text-xs text-gray-600">
+                <span className="font-medium">Email Sources:</span> Perplexity: {sourceBreakdown.Perplexity || 0} Apollo: {sourceBreakdown.Apollo || 0} Hunter: {sourceBreakdown.Hunter || 0}
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
