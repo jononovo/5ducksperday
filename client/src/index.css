@@ -246,6 +246,28 @@ input[type="checkbox"]:indeterminate::before {
     --font-heading: 'Outfit', sans-serif;
     --font-serif: 'DM Serif Display', serif;
     --font-code: 'Courier New', monospace;
+
+    /* Dark Theme Colors */
+    --background: 240 10% 4%;
+    --foreground: 0 0% 98%;
+
+    --primary: 217 100% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 4% 16%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 240 4% 16%;
+    --muted-foreground: 240 5% 65%;
+
+    --accent: 45 93% 47%;
+    --accent-foreground: 240 10% 4%;
+
+    --border: 240 4% 16%;
+    --input: 240 4% 16%;
+    --ring: 45 93% 47%;
+
+    --radius: 0.5rem;
   }
 
   * {
@@ -254,6 +276,10 @@ input[type="checkbox"]:indeterminate::before {
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
   }
 }
 
