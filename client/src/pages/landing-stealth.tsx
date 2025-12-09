@@ -367,29 +367,31 @@ export default function LandingStealth() {
           </div>
         </motion.div>
 
-        <div className="relative flex items-center justify-center w-full h-[500px] overflow-hidden">
+        <div className="relative flex items-center justify-center w-full h-[500px]">
            <AnimatePresence mode="wait">
              {currentIndex !== 0 && currentIndex !== 5 && (
-               <motion.div
-                 key="visual-context-right"
-                 layoutId="visual-context"
-                 initial={{ opacity: 0, scale: 0.8 }}
-                 animate={{ opacity: 1, scale: 1, rotate: content[currentIndex].rotation || 0 }}
-                 exit={{ opacity: 0, scale: 0.8 }}
-                 transition={{ duration: 0.6, ease: "circOut" }}
-                 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] max-w-md aspect-video z-10"
-               >
-                  <div className="absolute inset-0 bg-gradient-to-tr from-primary/30 to-cyan-400/30 rounded-2xl blur-2xl transform scale-105 opacity-60" />
+               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] max-w-md aspect-video z-10">
+                 <motion.div
+                   key="visual-context-right"
+                   layoutId="visual-context"
+                   initial={{ opacity: 0, scale: 0.8 }}
+                   animate={{ opacity: 1, scale: 1, rotate: content[currentIndex].rotation || 0 }}
+                   exit={{ opacity: 0, scale: 0.8 }}
+                   transition={{ duration: 0.6, ease: "circOut" }}
+                   className="w-full h-full"
+                 >
+                    <div className="absolute inset-0 bg-gradient-to-tr from-primary/30 to-cyan-400/30 rounded-2xl blur-2xl transform scale-105 opacity-60" />
 
-                  <div className="relative w-full h-full rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-black/50 backdrop-blur-sm group">
-                    <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-cyan-400/10 opacity-50" />
-                    <img 
-                      src={content[currentIndex].image} 
-                      alt={content[currentIndex].label}
-                      className="w-full h-full object-cover opacity-90 transition-transform duration-700 group-hover:scale-105"
-                    />
-                  </div>
-               </motion.div>
+                    <div className="relative w-full h-full rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-black/50 backdrop-blur-sm group">
+                      <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-cyan-400/10 opacity-50" />
+                      <img 
+                        src={content[currentIndex].image} 
+                        alt={content[currentIndex].label}
+                        className="w-full h-full object-cover opacity-90 transition-transform duration-700 group-hover:scale-105"
+                      />
+                    </div>
+                 </motion.div>
+               </div>
              )}
            </AnimatePresence>
 
