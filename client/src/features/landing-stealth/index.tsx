@@ -250,25 +250,37 @@ export default function LandingStealth() {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <span 
-                      className="flex items-center gap-2 cursor-pointer"
+                      className="inline-flex items-center gap-2 cursor-pointer"
                       onMouseEnter={() => setIsQuestHovered(true)}
                       onMouseLeave={() => setIsQuestHovered(false)}
-                      style={{ perspective: "500px" }}
+                      style={{ perspective: "600px" }}
                     >
                       <Map className="w-5 h-5" />
                       <span>Quest 1:</span>
-                      <span className="overflow-hidden">
+                      <span className="inline-flex overflow-hidden" style={{ height: "1.4em" }}>
                         <motion.span
-                          initial={{ scaleX: 0, rotateX: -45, opacity: 0 }}
-                          animate={{ 
-                            scaleX: isQuestHovered ? 1 : 0,
-                            rotateX: isQuestHovered ? 0 : -45,
-                            opacity: isQuestHovered ? 1 : 0
+                          className="inline-flex text-muted-foreground/70"
+                          initial="hidden"
+                          animate={isQuestHovered ? "revealed" : "hidden"}
+                          variants={{
+                            hidden: { transition: { staggerChildren: 0.02, staggerDirection: -1 } },
+                            revealed: { transition: { staggerChildren: 0.035, delayChildren: 0.05 } }
                           }}
-                          transition={{ duration: 0.2, ease: "easeOut" }}
-                          className="text-muted-foreground/70 inline-block origin-left"
                         >
-                          Find your target customers
+                          {"Find your target customers".split("").map((char, i) => (
+                            <motion.span
+                              key={i}
+                              className="inline-block"
+                              style={{ transformOrigin: "0% 100%" }}
+                              variants={{
+                                hidden: { y: "1em", rotateX: 70, opacity: 0 },
+                                revealed: { y: 0, rotateX: 0, opacity: 1 }
+                              }}
+                              transition={{ duration: 0.2, ease: "easeOut" }}
+                            >
+                              {char === " " ? "\u00A0" : char}
+                            </motion.span>
+                          ))}
                         </motion.span>
                       </span>
                     </span>
