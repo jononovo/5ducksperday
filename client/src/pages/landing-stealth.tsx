@@ -367,7 +367,7 @@ export default function LandingStealth() {
           </div>
         </motion.div>
 
-        <div className="relative flex items-center justify-center w-full h-[500px]">
+        <div className="relative flex items-center justify-center w-full h-[500px] overflow-hidden">
            <AnimatePresence mode="wait">
              {currentIndex !== 0 && currentIndex !== 5 && (
                <motion.div
@@ -377,7 +377,7 @@ export default function LandingStealth() {
                  animate={{ opacity: 1, scale: 1, rotate: content[currentIndex].rotation || 0 }}
                  exit={{ opacity: 0, scale: 0.8 }}
                  transition={{ duration: 0.6, ease: "circOut" }}
-                 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] md:w-full max-w-lg aspect-video z-10"
+                 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] max-w-md aspect-video z-10"
                >
                   <div className="absolute inset-0 bg-gradient-to-tr from-primary/30 to-cyan-400/30 rounded-2xl blur-2xl transform scale-105 opacity-60" />
 
