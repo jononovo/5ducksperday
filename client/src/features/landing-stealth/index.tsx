@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Map } from "lucide-react";
+import { ArrowRight, Map, X } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 
@@ -360,6 +360,16 @@ export default function LandingStealth() {
                 className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
                 transition={{ duration: 0.5 }}
               />
+              <motion.button
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                onClick={() => setCurrentIndex(0)}
+                className="fixed top-6 right-6 z-50 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors cursor-pointer"
+                data-testid="button-close-overlay"
+              >
+                <X className="w-6 h-6 text-white/70 hover:text-white" />
+              </motion.button>
               <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 max-w-md w-full scale-110 shadow-2xl flex flex-col gap-4 px-4">
                 <div className="flex flex-col sm:flex-row gap-4 w-full">
                   <div className="relative flex-1 group/input">
