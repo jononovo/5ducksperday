@@ -264,7 +264,16 @@ export default function LandingStealth() {
                       >
                         <Map className="w-5 h-5" />
                       </motion.span>
-                      <span>Quest 1:</span>
+                      <motion.span
+                        animate={{ 
+                          color: isQuestHovered ? "rgba(255,255,255,1)" : "rgba(255,255,255,0.7)",
+                          textShadow: isQuestHovered ? "0 0 8px rgba(255,255,255,0.3)" : "none"
+                        }}
+                        transition={{ duration: 0.2 }}
+                        className="cursor-pointer"
+                      >
+                        Quest 1:
+                      </motion.span>
                       <span className="inline-flex items-center overflow-hidden">
                         <motion.span
                           className="inline-flex text-muted-foreground/70"
