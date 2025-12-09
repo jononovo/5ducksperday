@@ -16,17 +16,20 @@ export function SearchReportModal({
     totalContacts,
     totalEmails,
     searchDuration,
-    companies,
+    companies = [],
     sourceBreakdown
   } = metrics;
 
-  const companiesWithContacts = companies.filter(
-    company => company.contacts && company.contacts.length > 0
-  ).length;
+  // Handle case where companies array is not available (loaded from saved search)
+  const hasCompaniesData = companies && companies.length > 0;
 
-  const companiesWithEmails = companies.filter(
-    company => company.contacts?.some(contact => contact.email && contact.email.length > 5)
-  ).length;
+  const companiesWithContacts = hasCompaniesData 
+    ? companies.filter(company => company.contacts && company.contacts.length > 0).length
+    : totalContacts > 0 ? totalCompanies : 0;
+
+  const companiesWithEmails = hasCompaniesData
+    ? companies.filter(company => company.contacts?.some(contact => contact.email && contact.email.length > 5)).length
+    : (totalEmails ?? 0) > 0 ? Math.min(totalCompanies, totalEmails ?? 0) : 0;
 
   const averageContactsPerCompany = totalCompanies > 0 
     ? (totalContacts / totalCompanies).toFixed(1) 
@@ -36,28 +39,34 @@ export function SearchReportModal({
     ? Math.round((companiesWithContacts / totalCompanies) * 100) 
     : 0;
 
-  const topCompany = companies.reduce((max, company) => {
-    const contactCount = company.contacts ? company.contacts.length : 0;
-    const maxContactCount = max.contacts ? max.contacts.length : 0;
-    return contactCount > maxContactCount ? company : max;
-  }, { name: "N/A", contacts: [] as any[] });
+  const topCompany = hasCompaniesData 
+    ? companies.reduce<{ name: string; contacts: any[] }>((max, company) => {
+        const contactCount = company.contacts ? company.contacts.length : 0;
+        const maxContactCount = max.contacts ? max.contacts.length : 0;
+        return contactCount > maxContactCount 
+          ? { name: company.name, contacts: company.contacts || [] }
+          : max;
+      }, { name: "N/A", contacts: [] })
+    : null;
 
-  const contactTypes = companies.reduce((acc, company) => {
-    if (!company.contacts) return acc;
-    
-    company.contacts.forEach((contact: any) => {
-      const role = contact.role?.toLowerCase() || "";
-      if (role.includes("ceo") || role.includes("cto") || role.includes("cfo") || role.includes("founder") || role.includes("president")) {
-        acc.cLevel++;
-      } else if (role.includes("manager") || role.includes("director") || role.includes("head") || role.includes("lead")) {
-        acc.management++;
-      } else {
-        acc.staff++;
-      }
-    });
-    
-    return acc;
-  }, { cLevel: 0, management: 0, staff: 0 });
+  const contactTypes = hasCompaniesData 
+    ? companies.reduce((acc, company) => {
+        if (!company.contacts) return acc;
+        
+        company.contacts.forEach((contact: any) => {
+          const role = contact.role?.toLowerCase() || "";
+          if (role.includes("ceo") || role.includes("cto") || role.includes("cfo") || role.includes("founder") || role.includes("president")) {
+            acc.cLevel++;
+          } else if (role.includes("manager") || role.includes("director") || role.includes("head") || role.includes("lead")) {
+            acc.management++;
+          } else {
+            acc.staff++;
+          }
+        });
+        
+        return acc;
+      }, { cLevel: 0, management: 0, staff: 0 })
+    : null;
 
   const formatDuration = (seconds: number) => {
     if (seconds < 60) return `${seconds}s`;
@@ -125,14 +134,16 @@ export function SearchReportModal({
             <div className="text-xs text-gray-600">
               <span className="font-medium">Avg Contacts/Company:</span> {averageContactsPerCompany}
             </div>
-            {topCompany.name !== "N/A" && (
+            {topCompany && topCompany.name !== "N/A" && (
               <div className="text-xs text-gray-600">
                 <span className="font-medium">Top Company:</span> {topCompany.name} ({topCompany.contacts?.length || 0} contacts)
               </div>
             )}
-            <div className="text-xs text-gray-600">
-              <span className="font-medium">Contact Types:</span> C-level: {contactTypes.cLevel}, Management: {contactTypes.management}, Staff: {contactTypes.staff}
-            </div>
+            {contactTypes && (
+              <div className="text-xs text-gray-600">
+                <span className="font-medium">Contact Types:</span> C-level: {contactTypes.cLevel}, Management: {contactTypes.management}, Staff: {contactTypes.staff}
+              </div>
+            )}
             {sourceBreakdown && (
               <div className="text-xs text-gray-600">
                 <span className="font-medium">Email Sources:</span> Perplexity: {sourceBreakdown.Perplexity || 0} Apollo: {sourceBreakdown.Apollo || 0} Hunter: {sourceBreakdown.Hunter || 0}
