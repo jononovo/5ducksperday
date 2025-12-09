@@ -241,8 +241,8 @@ export default function LandingStealth() {
             <motion.p 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.8 }}
-              className="text-xl text-muted-foreground leading-relaxed max-w-md font-medium relative z-20 mt-4"
+              transition={{ duration: 0.5, delay: 1.0 }}
+              className="text-xl text-muted-foreground leading-relaxed max-w-md font-medium relative z-20 pt-8"
             >
               Start with finding customers & emailing them.
             </motion.p>
