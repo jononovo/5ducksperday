@@ -322,6 +322,13 @@ export default function Home() {
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const listMutationInProgressRef = useRef(false);
   const listUpdateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // Ref to store pending metrics to persist after list creation
+  const pendingMetricsRef = useRef<{
+    totalContacts: number | null;
+    totalEmails: number | null;
+    searchDurationSeconds: number | null;
+    sourceBreakdown: SourceBreakdown | null;
+  } | null>(null);
 
 
 
@@ -677,6 +684,19 @@ export default function Home() {
         }
       );
       console.log('Persisted new listId to localStorage:', listId);
+      
+      // Persist any pending metrics that were collected before list creation
+      if (pendingMetricsRef.current && listId) {
+        const pendingMetrics = pendingMetricsRef.current;
+        apiRequest("PATCH", `/api/lists/${listId}/metrics`, pendingMetrics)
+          .then(() => {
+            console.log(`Persisted pending search metrics to newly created list ${listId}`);
+            pendingMetricsRef.current = null; // Clear pending metrics
+          })
+          .catch((error) => {
+            console.error('Failed to persist pending search metrics:', error);
+          });
+      }
       // No toast notification (silent auto-save)
     },
     onError: (error) => {
@@ -1328,6 +1348,22 @@ export default function Home() {
       
       const totalContacts = companiesWithContacts.reduce((sum, company) => 
         sum + (company.contacts?.length || 0), 0);
+      
+      // Load persisted search metrics if available
+      if (list.totalContacts !== null || list.totalEmails !== null || list.searchDurationSeconds !== null) {
+        setMainSearchMetrics({
+          totalContacts: list.totalContacts ?? 0,
+          totalEmails: list.totalEmails ?? 0,
+          duration: list.searchDurationSeconds ? list.searchDurationSeconds * 1000 : 0,
+          sourceBreakdown: list.sourceBreakdown ?? { Perplexity: 0, Apollo: 0, Hunter: 0 }
+        });
+        console.log('Loaded persisted search metrics:', {
+          totalContacts: list.totalContacts,
+          totalEmails: list.totalEmails,
+          searchDurationSeconds: list.searchDurationSeconds,
+          sourceBreakdown: list.sourceBreakdown
+        });
+      }
       
       toast({
         title: "Search Loaded",
@@ -2189,12 +2225,34 @@ export default function Home() {
                     hasSearchResults={currentResults ? currentResults.length > 0 : false}
                     onSessionIdChange={setCurrentSessionId}
                     hideRoleButtons={!!(searchSectionCollapsed && currentResults && currentResults.length > 0 && !inputHasChanged)}
-                    onSearchMetricsUpdate={(metrics, showSummary) => {
+                    onSearchMetricsUpdate={async (metrics, showSummary) => {
                       setMainSearchMetrics({
                         ...metrics,
                         sourceBreakdown: metrics.sourceBreakdown
                       });
                       setMainSummaryVisible(showSummary);
+                      
+                      // Prepare metrics for persistence
+                      const metricsToSave = {
+                        totalContacts: metrics.totalContacts ?? null,
+                        totalEmails: metrics.totalEmails ?? null,
+                        searchDurationSeconds: metrics.duration ? Math.round(metrics.duration / 1000) : null,
+                        sourceBreakdown: metrics.sourceBreakdown ?? null
+                      };
+                      
+                      // Persist metrics to database if we have a saved list
+                      if (currentListId && metrics) {
+                        try {
+                          await apiRequest("PATCH", `/api/lists/${currentListId}/metrics`, metricsToSave);
+                          console.log(`Persisted search metrics to list ${currentListId}`);
+                        } catch (error) {
+                          console.error('Failed to persist search metrics:', error);
+                        }
+                      } else if (metrics) {
+                        // Store metrics in ref to persist after list creation
+                        pendingMetricsRef.current = metricsToSave;
+                        console.log('Stored pending metrics for later persistence');
+                      }
                     }}
                     onOpenSearchDrawer={() => searchManagementDrawer.openDrawer()}
                     onProgressUpdate={setPromptEditorProgress}
