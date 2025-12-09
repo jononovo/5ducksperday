@@ -253,20 +253,24 @@ export default function LandingStealth() {
                       className="flex items-center gap-2 cursor-pointer"
                       onMouseEnter={() => setIsQuestHovered(true)}
                       onMouseLeave={() => setIsQuestHovered(false)}
+                      style={{ perspective: "500px" }}
                     >
                       <Map className="w-5 h-5" />
                       <span>Quest 1:</span>
-                      <motion.span
-                        initial={{ opacity: 0, x: -12 }}
-                        animate={{ 
-                          opacity: isQuestHovered ? 1 : 0, 
-                          x: isQuestHovered ? 0 : -12 
-                        }}
-                        transition={{ duration: 0.25, ease: "easeOut" }}
-                        className="text-muted-foreground/70"
-                      >
-                        Find your target customers
-                      </motion.span>
+                      <span className="overflow-hidden">
+                        <motion.span
+                          initial={{ scaleX: 0, rotateX: -45, opacity: 0 }}
+                          animate={{ 
+                            scaleX: isQuestHovered ? 1 : 0,
+                            rotateX: isQuestHovered ? 0 : -45,
+                            opacity: isQuestHovered ? 1 : 0
+                          }}
+                          transition={{ duration: 0.2, ease: "easeOut" }}
+                          className="text-muted-foreground/70 inline-block origin-left"
+                        >
+                          Find your target customers
+                        </motion.span>
+                      </span>
                     </span>
                   </TooltipTrigger>
                   <TooltipContent side="top" className="max-w-xs bg-gray-900 text-white border-gray-700">
