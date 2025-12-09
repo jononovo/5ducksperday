@@ -241,6 +241,13 @@ input[type="checkbox"]:indeterminate::before {
 }
 
 @layer base {
+  :root {
+    --font-sans: 'Outfit', sans-serif;
+    --font-heading: 'Outfit', sans-serif;
+    --font-serif: 'DM Serif Display', serif;
+    --font-code: 'Courier New', monospace;
+  }
+
   * {
     @apply border-border;
   }
