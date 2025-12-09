@@ -1,21 +1,5 @@
 import type { CompanyWithContacts } from "@/features/search-state";
-
-export interface SearchProgress {
-  phase: string;
-  completed: number;
-  total: number;
-}
-
-export interface ProgressPhase {
-  name: string;
-  duration: number;
-}
-
-export interface ProgressState {
-  currentPhase: number;
-  startTime: number;
-  backendCompleted: boolean;
-}
+import type { SearchProgressState } from "@/features/search-progress";
 
 export interface EmailSearchMetadata {
   emailsFound: number;
@@ -37,22 +21,16 @@ export interface EmailSearchJobResult {
 }
 
 export interface EmailSearchOrchestrationHook {
-  // State
   isSearching: boolean;
-  searchProgress: SearchProgress;
+  searchProgress: SearchProgressState;
   summaryVisible: boolean;
   lastEmailSearchCount: number;
   lastSourceBreakdown: any;
   
-  // Actions
   runEmailSearch: () => Promise<void>;
   updateEmailSearchMetrics: (emailsFound: number, sourceBreakdown?: Record<string, number>) => void;
   closeSummary: () => void;
   
-  // Progress management
-  startProgressTimer: () => void;
-  
-  // Helpers
   getCurrentCompaniesWithoutEmails: () => CompanyWithContacts[];
   getTopContacts: (company: any, count: number) => any[];
 }

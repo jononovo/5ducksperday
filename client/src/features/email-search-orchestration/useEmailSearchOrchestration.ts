@@ -4,10 +4,8 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { SearchSessionManager } from "@/lib/search-session-manager";
 import type { CompanyWithContacts } from "@/features/search-state";
+import type { SearchProgressState } from "@/features/search-progress";
 import type {
-  SearchProgress,
-  ProgressPhase,
-  ProgressState,
   EmailSearchMetadata,
   EmailSearchJobResult,
   EmailSearchOrchestrationHook
@@ -45,77 +43,17 @@ export function useEmailSearchOrchestration({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // State management
+  // State management - simplified to use backend progress only
   const [isSearching, setIsSearching] = useState(false);
-  const [searchProgress, setSearchProgress] = useState<SearchProgress>({
+  const [searchProgress, setSearchProgress] = useState<SearchProgressState>({
     phase: "",
     completed: 0,
-    total: 0
+    total: 0,
+    isVisible: false
   });
   const [summaryVisible, setSummaryVisible] = useState(false);
   const [lastEmailSearchCount, setLastEmailSearchCount] = useState(0);
   const [lastSourceBreakdown, setLastSourceBreakdown] = useState<any>(undefined);
-
-  // Progress configuration
-  const progressQueue: ProgressPhase[] = [
-    { name: "Starting Key Emails Search", duration: 1000 },
-    { name: "Processing Companies", duration: 2000 },
-    { name: "Searching for Emails", duration: 3000 },
-    { name: "Finalizing Results", duration: 1500 }
-  ];
-
-  const [progressState, setProgressState] = useState<ProgressState>({
-    currentPhase: 0,
-    startTime: 0,
-    backendCompleted: false
-  });
-
-  const progressTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Progress timer management
-  const startProgressTimer = useCallback(() => {
-    if (progressTimerRef.current) {
-      clearTimeout(progressTimerRef.current);
-    }
-
-    let currentPhase = 0;
-
-    const updateProgress = () => {
-      if (currentPhase < progressQueue.length) {
-        const currentPhaseData = progressQueue[currentPhase];
-
-        setSearchProgress({
-          phase: currentPhaseData.name,
-          completed: currentPhase + 1,
-          total: progressQueue.length
-        });
-
-        if (currentPhase < progressQueue.length - 1) {
-          progressTimerRef.current = setTimeout(() => {
-            currentPhase++;
-            updateProgress();
-          }, currentPhaseData.duration);
-        } else {
-          const finalPhaseTimeout = setTimeout(() => {
-            if (!progressState.backendCompleted) {
-              setProgressState(prev => ({ ...prev, backendCompleted: true }));
-            }
-          }, currentPhaseData.duration);
-
-          const checkBackendCompletion = () => {
-            if (progressState.backendCompleted) {
-              clearTimeout(finalPhaseTimeout);
-            } else {
-              setTimeout(checkBackendCompletion, 200);
-            }
-          };
-          checkBackendCompletion();
-        }
-      }
-    };
-
-    updateProgress();
-  }, [progressQueue, progressState.backendCompleted]);
 
   // Helper functions
   const getTopContacts = useCallback((company: any, count: number) => {
@@ -142,20 +80,13 @@ export function useEmailSearchOrchestration({
     isAutomatedSearchRef.current = true;
     setSummaryVisible(false);
 
-    // Initialize progress
-    setProgressState({
-      currentPhase: 0,
-      startTime: Date.now(),
-      backendCompleted: false
-    });
-
+    // Initialize progress - backend will drive updates
     setSearchProgress({
-      phase: progressQueue[0].name,
-      completed: 1,
-      total: progressQueue.length
+      phase: "Starting email search",
+      completed: 0,
+      total: 5,
+      isVisible: true
     });
-
-    startProgressTimer();
 
     try {
       // Refresh contact data from recent searches
@@ -199,7 +130,7 @@ export function useEmailSearchOrchestration({
 
       const { jobId } = await response.json();
 
-      // Poll job status
+      // Poll job status - backend drives progress updates
       let jobCompleted = false;
       let pollAttempts = 0;
       const maxPollAttempts = 60;
@@ -212,6 +143,16 @@ export function useEmailSearchOrchestration({
 
         const statusResponse = await apiRequest("GET", `/api/search-jobs/${jobId}`);
         const jobData = await statusResponse.json();
+
+        // Update progress from backend
+        if (jobData.progress) {
+          setSearchProgress({
+            phase: jobData.progress.phase || "Processing",
+            completed: jobData.progress.completed || 0,
+            total: jobData.progress.total || 5,
+            isVisible: true
+          });
+        }
 
         if (jobData.status === 'completed') {
           jobCompleted = true;
@@ -241,7 +182,6 @@ export function useEmailSearchOrchestration({
         SearchSessionManager.markEmailSearchCompleted(currentSessionId);
       }
 
-      setProgressState(prev => ({ ...prev, backendCompleted: true }));
       setLastEmailSearchCount(emailData.emailsFound || 0);
       setLastSourceBreakdown(emailData.sourceBreakdown || {});
 
@@ -345,11 +285,7 @@ export function useEmailSearchOrchestration({
       setIsSearching(false);
       isAutomatedSearchRef.current = false;
       setSummaryVisible(true);
-
-      if (progressTimerRef.current) {
-        clearTimeout(progressTimerRef.current);
-        progressTimerRef.current = null;
-      }
+      setSearchProgress(prev => ({ ...prev, isVisible: false }));
 
     } catch (error) {
       console.error("Backend email orchestration error:", error);
@@ -360,10 +296,7 @@ export function useEmailSearchOrchestration({
       });
       setIsSearching(false);
       isAutomatedSearchRef.current = false;
-
-      if (progressTimerRef.current) {
-        clearTimeout(progressTimerRef.current);
-      }
+      setSearchProgress(prev => ({ ...prev, isVisible: false }));
     }
   }, [
     currentResults,
@@ -378,19 +311,8 @@ export function useEmailSearchOrchestration({
     isAutomatedSearchRef,
     toast,
     queryClient,
-    progressQueue,
-    getTopContacts,
-    startProgressTimer
+    getTopContacts
   ]);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (progressTimerRef.current) {
-        clearTimeout(progressTimerRef.current);
-      }
-    };
-  }, []);
 
   // Methods to update state from external sources
   const updateEmailSearchMetrics = useCallback((emailsFound: number, sourceBreakdown?: Record<string, number>) => {
@@ -412,7 +334,6 @@ export function useEmailSearchOrchestration({
     lastEmailSearchCount,
     lastSourceBreakdown,
     runEmailSearch,
-    startProgressTimer,
     getCurrentCompaniesWithoutEmails,
     getTopContacts,
     updateEmailSearchMetrics,

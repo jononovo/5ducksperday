@@ -1,18 +1,12 @@
 import { Progress } from "@/components/ui/progress";
+import type { SearchProgressState } from "./types";
 
-interface SearchProgressProps {
-  phase: string; 
-  completed: number;
-  total: number;
-  isVisible: boolean;
-}
-
-export function SearchProgress({ 
+export function SearchProgressIndicator({ 
   phase, 
   completed, 
   total,
   isVisible
-}: SearchProgressProps) {
+}: SearchProgressState) {
   if (!isVisible) return null;
   
   const percentComplete = total > 0 ? Math.round((completed / total) * 100) : 0;
