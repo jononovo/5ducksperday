@@ -372,7 +372,7 @@ export default function LandingStealth() {
                 <X className="w-6 h-6 text-white/70 hover:text-white" />
               </motion.button>
               <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 max-w-md w-full scale-110 shadow-2xl flex flex-col gap-4 px-4">
-                <div className="flex flex-col sm:flex-row gap-4 w-full">
+                <div className="w-full">
                   <div className="relative flex-1 group/input">
                     <motion.div
                       initial={{ opacity: 0 }}
@@ -383,7 +383,7 @@ export default function LandingStealth() {
                     <Input 
                       type="text" 
                       placeholder="ENTER_SECRET_CODE" 
-                      className="h-16 bg-black border-none text-xl md:text-2xl px-8 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-white/40 font-code tracking-widest uppercase text-white w-full relative z-10 transition-all duration-500 text-center shadow-[0_0_30px_rgba(59,130,246,0.3)]"
+                      className="h-16 bg-black border-none text-xl md:text-2xl pl-8 pr-16 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-white/40 font-code tracking-widest uppercase text-white w-full relative z-10 transition-all duration-500 text-center shadow-[0_0_30px_rgba(59,130,246,0.3)]"
                       value={code}
                       onChange={(e) => setCode(e.target.value)}
                       autoFocus
@@ -394,27 +394,28 @@ export default function LandingStealth() {
                     <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
                     <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
                     <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
-                  </div>
-                  
-                  <AnimatePresence>
-                    {code.length >= 6 && (
-                      <motion.div
-                        initial={{ width: 0, opacity: 0, scale: 0.8 }}
-                        animate={{ width: "auto", opacity: 1, scale: 1 }}
-                        exit={{ width: 0, opacity: 0, scale: 0.8 }}
-                        transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                      >
-                        <Button 
-                          size="default" 
-                          className="h-12 px-6 text-sm font-bold rounded-none bg-gray-700 text-white hover:bg-gray-600 hover:scale-105 active:scale-95 transition-all font-code tracking-wider whitespace-nowrap"
-                          onClick={handleQuack}
-                          data-testid="button-quack-floating"
+                    
+                    <AnimatePresence>
+                      {code.length >= 6 && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.8 }}
+                          transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 z-20"
                         >
-                          <ArrowRight className="w-5 h-5" />
-                        </Button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                          <Button 
+                            size="icon" 
+                            className="h-10 w-10 rounded-none bg-gray-700 text-white hover:bg-gray-600 hover:scale-105 active:scale-95 transition-all"
+                            onClick={handleQuack}
+                            data-testid="button-quack-floating"
+                          >
+                            <ArrowRight className="w-5 h-5" />
+                          </Button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 </div>
 
                 <motion.div
