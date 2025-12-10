@@ -25,7 +25,7 @@ export function RegistrationModal() {
   
   // Use the auth hook
   const { user, signInWithGoogle, signInWithEmail, registerWithEmail } = useAuth();
-  const { closeModal, isOpenedFromProtectedRoute } = useRegistrationModal();
+  const { closeModal, isOpenedFromProtectedRoute, isOpenedFromLandingPage } = useRegistrationModal();
   const { toast } = useToast();
   
   // Check if we're in development mode
@@ -221,7 +221,8 @@ export function RegistrationModal() {
   };
 
   // Don't render the modal if user is already authenticated or in development mode
-  if (user || isDevelopment) {
+  // Exception: Allow modal to show when opened from landing page flow
+  if (user || (isDevelopment && !isOpenedFromLandingPage)) {
     return null;
   }
 
