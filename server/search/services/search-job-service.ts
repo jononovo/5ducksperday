@@ -129,15 +129,11 @@ export class SearchJobService {
       const hasJoke = joke !== null;
       const isEmailOrContactSearch = job.searchType === 'emails' || job.searchType === 'contacts';
       
-      // Joke phases: setup after finding companies, punchline after finding contacts (only for contacts/emails search)
-      // Companies-only gets only setup, contacts/emails search gets both setup and punchline
-      const jokePhaseCount = hasJoke ? (isEmailOrContactSearch ? 2 : 1) : 0;
-      
       // Calculate total phases based on actual workflow:
-      // Companies-only: Finding companies (1) + Saving companies (2) + [Joke setup] + Processing credits + Completed = 4 base
-      // With contacts/emails: Finding companies + Saving companies + [Joke setup] + Finding contacts + [Punchline] + Finding emails + Processing credits + Completed = 6 base
-      const basePhases = isEmailOrContactSearch ? 6 : 4;
-      const totalPhases = basePhases + jokePhaseCount;
+      // Companies-only: Finding companies (1) + Saving companies (2) + Processing credits + Completed = 4
+      // With contacts/emails: Finding companies + Saving companies + Finding contacts + Finding emails + Processing credits + Completed = 6
+      // Note: Jokes are NOT separate phases - they temporarily override phase labels at the start of Finding contacts/emails
+      const totalPhases = isEmailOrContactSearch ? 6 : 4;
       let currentPhase = 1;
       
       await this.updateJobProgress(job.id, {
@@ -184,29 +180,21 @@ export class SearchJobService {
       
       console.log(`[SearchJobService] Saved ${savedCompanies.length} companies for immediate display`);
       
-      // Joke Setup Phase: Show the joke setup after finding companies
-      if (hasJoke && joke) {
-        currentPhase++;
-        await this.updateJobProgress(job.id, {
-          phase: `Joke: ${joke.setup}`,
-          completed: currentPhase,
-          total: totalPhases,
-          message: 'A little humor while we work...'
-        });
-        await delay(4500); // Show joke setup for 4.5 seconds
-      }
-      
       // Phase 3: Parallel company details and contact discovery
       if (job.searchType === 'contacts' || job.searchType === 'emails') {
         currentPhase++;
-        await this.updateJobProgress(job.id, {
-          phase: 'Finding contacts',
-          completed: currentPhase,
-          total: totalPhases,
-          message: 'Adding company details and finding key contacts'
-        });
+        
+        // Show joke setup as temporary phase label override (if available)
+        if (hasJoke && joke) {
+          await this.updateJobProgress(job.id, {
+            phase: `Joke: ${joke.setup}`,
+            completed: currentPhase,
+            total: totalPhases,
+            message: 'A little humor while we search...'
+          });
+        }
 
-        // Prepare parallel tasks
+        // Prepare and START parallel tasks immediately (work runs during joke display)
         const parallelTasks: Promise<any>[] = [];
         
         // Task 1: Enrich company descriptions
@@ -216,30 +204,33 @@ export class SearchJobService {
         });
         parallelTasks.push(enrichmentTask);
         
-        // Task 2: Find contacts
+        // Task 2: Find contacts (no onProgress to avoid overwriting joke display)
         const { ContactSearchService } = await import('./contact-search-service');
-        const contactPhaseNumber = currentPhase; // Capture current phase for callback
         const contactTask = ContactSearchService.searchContacts({
           companies: savedCompanies,
           userId: job.userId,
           searchConfig: job.contactSearchConfig as ContactSearchConfig || ContactSearchService.getDefaultConfig(),
-          jobId: job.jobId,
-          onProgress: async (message: string) => {
-            // Update progress to show contact search status
-            await this.updateJobProgress(job.id, {
-              phase: 'Finding contacts',
-              completed: contactPhaseNumber,
-              total: totalPhases,
-              message
-            });
-          }
+          jobId: job.jobId
         }).catch(error => {
           console.error(`[SearchJobService] Contact search failed:`, error);
           return []; // Return empty array on failure
         });
         parallelTasks.push(contactTask);
         
-        // Execute both tasks in parallel
+        // Wait for joke to display (work is running in parallel)
+        if (hasJoke && joke) {
+          await delay(5000);
+        }
+        
+        // Now show the real phase label
+        await this.updateJobProgress(job.id, {
+          phase: 'Finding contacts',
+          completed: currentPhase,
+          total: totalPhases,
+          message: 'Adding company details and finding key contacts'
+        });
+        
+        // Execute both tasks in parallel (or wait for them to complete if already running)
         console.log(`[SearchJobService] Starting parallel enrichment and contact search`);
         const [enrichedDescriptions, contactResults] = await Promise.all(parallelTasks);
         
@@ -291,29 +282,42 @@ export class SearchJobService {
         
         console.log(`[SearchJobService] Updated job with enriched data and ${contacts.length} contacts`);
         
-        // Joke Punchline Phase: Show the punchline after finding contacts, before finding emails
-        if (hasJoke && joke) {
-          currentPhase++;
-          await this.updateJobProgress(job.id, {
-            phase: `Punchline: ${joke.punchline}`,
-            completed: currentPhase,
-            total: totalPhases,
-            message: '...wait for it!'
-          });
-          await delay(4500); // Show punchline for 4.5 seconds
-        }
-        
         // Phase 4: Find emails for contacts if searchType is 'emails' or 'contacts'
         if ((job.searchType === 'emails' || job.searchType === 'contacts') && contacts.length > 0) {
           currentPhase++;
+          
+          // Show punchline as temporary phase label override (if available)
+          if (hasJoke && joke) {
+            await this.updateJobProgress(job.id, {
+              phase: `Punchline: ${joke.punchline}`,
+              completed: currentPhase,
+              total: totalPhases,
+              message: '...wait for it!'
+            });
+          }
+          
+          // Calculate when progress updates can resume (after punchline display)
+          const suppressProgressUntil = hasJoke && joke ? Date.now() + 5000 : 0;
+          
+          // Start email enrichment work (runs in parallel with punchline display)
+          console.log(`[SearchJobService] Starting email search (Apollo/Perplexity/Hunter) for ${contacts.length} contacts`);
+          const emailPromise = this.enrichContactsWithEmails(job, contacts, savedCompanies, totalPhases, currentPhase, suppressProgressUntil);
+          
+          // Wait for punchline to display (work is running in parallel)
+          if (hasJoke && joke) {
+            await delay(5000);
+          }
+          
+          // Now show the real phase label
           await this.updateJobProgress(job.id, {
             phase: 'Finding emails',
             completed: currentPhase,
             total: totalPhases,
             message: `Searching for email addresses for ${contacts.length} contacts`
           });
-          console.log(`[SearchJobService] Starting email search (Apollo/Perplexity/Hunter) for ${contacts.length} contacts`);
-          const enrichmentResult = await this.enrichContactsWithEmails(job, contacts, savedCompanies, totalPhases, currentPhase);
+          
+          // Wait for email work to complete
+          const enrichmentResult = await emailPromise;
           sourceBreakdown = enrichmentResult.sourceBreakdown;
         }
       }
@@ -849,7 +853,8 @@ export class SearchJobService {
     contacts: any[], 
     companies: any[],
     totalPhases: number,
-    currentPhase: number = 4
+    currentPhase: number = 4,
+    suppressProgressUntil: number = 0 // Timestamp until which progress updates should be suppressed (for joke display)
   ): Promise<{ sourceBreakdown: { Perplexity: number; Apollo: number; Hunter: number }; emailsFound: number }> {
     const { parallelTieredEmailSearch } = await import('./parallel-email-search');
     const { processBatch } = await import('../utils/batch-processor');
@@ -932,13 +937,15 @@ export class SearchJobService {
           }
         }
         
-        // Update progress after each batch
-        await this.updateJobProgress(job.id, {
-          phase: 'Finding emails',
-          completed: currentPhase,
-          total: totalPhases,
-          message: `Finding emails: ${companiesProcessed}/${totalCompanies} companies processed (${totalEmailsFound} emails found)`
-        });
+        // Update progress after each batch (skip if still in joke/punchline display window)
+        if (Date.now() >= suppressProgressUntil) {
+          await this.updateJobProgress(job.id, {
+            phase: 'Finding emails',
+            completed: currentPhase,
+            total: totalPhases,
+            message: `Finding emails: ${companiesProcessed}/${totalCompanies} companies processed (${totalEmailsFound} emails found)`
+          });
+        }
         
         // Update job results with current email data for progressive display
         const companiesWithCurrentEmails = companies.map(company => {
