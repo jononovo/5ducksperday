@@ -406,7 +406,7 @@ export default function LandingStealth() {
                         >
                           <Button 
                             size="icon" 
-                            className="h-10 w-10 rounded-none bg-gray-700 text-white hover:bg-gray-600 hover:scale-105 active:scale-95 transition-all"
+                            className="h-10 w-10 rounded-md bg-gray-700 text-white hover:bg-gray-600 hover:scale-105 active:scale-95 transition-all flex items-center justify-center"
                             onClick={handleQuack}
                             data-testid="button-quack-floating"
                           >
