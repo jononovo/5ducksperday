@@ -96,7 +96,7 @@ export default function LandingStealth() {
     },
     {
       quote: "...simplifies prospecting & outreach into one page",
-      author: "Mike Ross",
+      author: "Mike Polinski",
       role: "Startup Insider",
       image: mikeImage
     }
