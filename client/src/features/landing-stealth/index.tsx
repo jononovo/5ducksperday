@@ -83,7 +83,7 @@ export default function LandingStealth() {
 
   const testimonials = [
     {
-      quote: "Sales for dummies (or busy people?)",
+      quote: "Sales for dummies (or busy people)",
       author: "Alex Rivera",
       role: "Growth Hacker Daily",
       image: alexImage
