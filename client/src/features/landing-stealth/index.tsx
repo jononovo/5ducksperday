@@ -103,6 +103,11 @@ export default function LandingStealth() {
   ];
 
   useEffect(() => {
+    // Pause cycling when overlay is open and user is typing
+    if (currentIndex === 5 && code.length > 0) {
+      return;
+    }
+    
     const item = content[currentIndex];
     const duration = (item as any).duration || 6000;
     
@@ -118,7 +123,7 @@ export default function LandingStealth() {
       clearTimeout(timeout);
       clearInterval(testimonialInterval);
     };
-  }, [currentIndex]);
+  }, [currentIndex, code]);
 
   const handleQuack = () => {
     if (code.toLowerCase() === "quack") {
@@ -311,41 +316,36 @@ export default function LandingStealth() {
 
           {currentIndex !== 5 && (
             <div className="flex flex-col gap-4 w-full max-w-md mt-4">
-              <div className="flex flex-col sm:flex-row gap-4 w-full">
-                <div className="relative flex-1 group/input">
-                  <Input 
-                    type="text" 
-                    placeholder="ENTER_SECRET_CODE" 
-                    className="h-16 bg-black/40 backdrop-blur-md border-none text-xl md:text-2xl px-8 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-white/40 font-code tracking-widest uppercase text-white w-full relative z-10 transition-all duration-500 text-center"
-                    value={code}
-                    onChange={(e) => setCode(e.target.value)}
-                    onFocus={() => setCurrentIndex(5)}
-                    data-testid="input-secret-code"
-                  />
+              <div className="relative flex-1 group/input flex items-center">
+                <Input 
+                  type="text" 
+                  placeholder="ENTER_SECRET_CODE" 
+                  className="h-16 bg-black/40 backdrop-blur-md border-none text-xl md:text-2xl pl-8 pr-16 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-white/40 font-code tracking-widest uppercase text-white w-full relative z-10 transition-all duration-500 text-center"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && code.length >= 6 && handleQuack()}
+                  onFocus={() => setCurrentIndex(5)}
+                  data-testid="input-secret-code"
+                />
 
-                  <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
-                  <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
-                  <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
-                  <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
-                </div>
+                <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
+                <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
+                <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
+                <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
                 
                 <AnimatePresence>
                   {code.length >= 6 && (
-                    <motion.div
-                      initial={{ width: 0, opacity: 0, scale: 0.8 }}
-                      animate={{ width: "auto", opacity: 1, scale: 1 }}
-                      exit={{ width: 0, opacity: 0, scale: 0.8 }}
+                    <motion.button
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
                       transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                      className="absolute right-3 z-20 p-2 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors flex items-center justify-center"
+                      onClick={handleQuack}
+                      data-testid="button-quack"
                     >
-                      <Button 
-                        size="lg" 
-                        className="h-16 px-10 text-xl font-bold rounded-none bg-primary text-primary-foreground hover:bg-blue-400 hover:scale-105 active:scale-95 transition-all shadow-[0_0_30px_-5px_rgba(56,189,248,0.6)] font-code tracking-wider whitespace-nowrap"
-                        onClick={handleQuack}
-                        data-testid="button-quack"
-                      >
-                        [ QUACK! ]
-                      </Button>
-                    </motion.div>
+                      <ArrowRight className="w-5 h-5 text-white" />
+                    </motion.button>
                   )}
                 </AnimatePresence>
               </div>
@@ -617,7 +617,7 @@ export default function LandingStealth() {
                          </div>
                          <div className="text-left">
                            <p className="text-xl font-bold text-white leading-tight">{testimonials[currentTestimonialIndex].author}</p>
-                           <p className="text-xs font-mono text-yellow-400 uppercase tracking-widest leading-tight opacity-90 mt-1">{testimonials[currentTestimonialIndex].role}</p>
+                           <p className="text-xs font-mono text-gray-400 uppercase tracking-widest leading-tight mt-1">{testimonials[currentTestimonialIndex].role}</p>
                          </div>
                       </div>
 
