@@ -130,10 +130,11 @@ export class SearchJobService {
       const isEmailOrContactSearch = job.searchType === 'emails' || job.searchType === 'contacts';
       
       // Calculate total phases based on actual workflow:
-      // Companies-only: Finding companies (1) + Saving companies (2) + Processing credits + Completed = 4
-      // With contacts/emails: Finding companies + Saving companies + Finding contacts + Finding emails + Processing credits + Completed = 6
-      // Note: Jokes are NOT separate phases - they temporarily override phase labels at the start of Finding contacts/emails
-      const totalPhases = isEmailOrContactSearch ? 6 : 4;
+      // Companies-only: Finding companies (1) + Saving companies (2) + Completed = 3
+      // With contacts/emails: Finding companies + Saving companies + Finding contacts + Finding emails + Completed = 5
+      // Note: Jokes are NOT separate phases - they temporarily override phase labels
+      // Note: Processing credits happens silently (not shown on progress bar)
+      const totalPhases = isEmailOrContactSearch ? 5 : 3;
       let currentPhase = 1;
       
       await this.updateJobProgress(job.id, {
@@ -329,18 +330,9 @@ export class SearchJobService {
         }
       }
 
-      // Phase: Deduct credits if applicable
+      // Deduct credits silently (not shown on progress bar as it's instantaneous)
       if (job.source !== 'cron' && savedCompanies.length > 0) {
-        currentPhase++;
-        await this.updateJobProgress(job.id, {
-          phase: 'Processing credits',
-          completed: currentPhase,
-          total: totalPhases,
-          message: 'Updating account credits'
-        });
-
         const creditType = isEmailOrContactSearch ? 'email_search' : 'company_search';
-        
         await CreditService.deductCredits(
           job.userId,
           creditType as any,
