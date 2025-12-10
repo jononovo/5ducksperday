@@ -4,6 +4,7 @@ import { findKeyDecisionMakers } from "../contacts/finder";
 import { CreditService } from "../../features/billing/credits/service";
 import type { InsertSearchJob, SearchJob } from "@shared/schema";
 import type { ContactSearchConfig } from "../types";
+import { fetchRandomJoke, delay, type Joke } from "./joke-service";
 
 export interface CreateJobParams {
   userId: number;
@@ -123,11 +124,19 @@ export class SearchJobService {
       }
       
       // Regular flow: Fast company discovery with parallel enrichment
+      // Fetch a joke at the start of the search (runs in parallel with initialization)
+      const joke = await fetchRandomJoke();
+      const hasJoke = joke !== null;
+      const jokePhaseCount = hasJoke ? 2 : 0; // 2 extra phases for setup and punchline
+      
       // Phase 1: Fast company discovery (just names & websites)
-      const totalPhases = (job.searchType === 'emails' || job.searchType === 'contacts') ? 7 : 6;
+      const basePhases = (job.searchType === 'emails' || job.searchType === 'contacts') ? 7 : 6;
+      const totalPhases = basePhases + jokePhaseCount;
+      let currentPhase = 1;
+      
       await this.updateJobProgress(job.id, {
         phase: 'Finding companies',
-        completed: 1,
+        completed: currentPhase,
         total: totalPhases,
         message: 'Discovering matching companies'
       });
@@ -136,9 +145,10 @@ export class SearchJobService {
       console.log(`[SearchJobService] Discovered ${discoveredCompanies.length} companies for job ${jobId}`);
 
       // Phase 2: Save companies immediately for fast display
+      currentPhase++;
       await this.updateJobProgress(job.id, {
         phase: 'Saving companies',
-        completed: 2,
+        completed: currentPhase,
         total: totalPhases,
         message: `Processing ${discoveredCompanies.length} companies`
       });
@@ -168,11 +178,24 @@ export class SearchJobService {
       
       console.log(`[SearchJobService] Saved ${savedCompanies.length} companies for immediate display`);
       
+      // Joke Setup Phase: Show the joke setup after finding companies
+      if (hasJoke && joke) {
+        currentPhase++;
+        await this.updateJobProgress(job.id, {
+          phase: `Joke: ${joke.setup}`,
+          completed: currentPhase,
+          total: totalPhases,
+          message: 'A little humor while we work...'
+        });
+        await delay(4500); // Show joke setup for 4.5 seconds
+      }
+      
       // Phase 3: Parallel company details and contact discovery
       if (job.searchType === 'contacts' || job.searchType === 'emails') {
+        currentPhase++;
         await this.updateJobProgress(job.id, {
           phase: 'Finding contacts',
-          completed: 3,
+          completed: currentPhase,
           total: totalPhases,
           message: 'Adding company details and finding key contacts'
         });
@@ -189,6 +212,7 @@ export class SearchJobService {
         
         // Task 2: Find contacts
         const { ContactSearchService } = await import('./contact-search-service');
+        const contactPhaseNumber = currentPhase; // Capture current phase for callback
         const contactTask = ContactSearchService.searchContacts({
           companies: savedCompanies,
           userId: job.userId,
@@ -198,7 +222,7 @@ export class SearchJobService {
             // Update progress to show contact search status
             await this.updateJobProgress(job.id, {
               phase: 'Finding contacts',
-              completed: 3,
+              completed: contactPhaseNumber,
               total: totalPhases,
               message
             });
@@ -261,26 +285,39 @@ export class SearchJobService {
         
         console.log(`[SearchJobService] Updated job with enriched data and ${contacts.length} contacts`);
         
+        // Joke Punchline Phase: Show the punchline after finding contacts, before finding emails
+        if (hasJoke && joke) {
+          currentPhase++;
+          await this.updateJobProgress(job.id, {
+            phase: `Punchline: ${joke.punchline}`,
+            completed: currentPhase,
+            total: totalPhases,
+            message: '...wait for it!'
+          });
+          await delay(4500); // Show punchline for 4.5 seconds
+        }
+        
         // Phase 4: Find emails for contacts if searchType is 'emails' or 'contacts'
         if ((job.searchType === 'emails' || job.searchType === 'contacts') && contacts.length > 0) {
+          currentPhase++;
           await this.updateJobProgress(job.id, {
             phase: 'Finding emails',
-            completed: 4,
+            completed: currentPhase,
             total: totalPhases,
             message: `Searching for email addresses for ${contacts.length} contacts`
           });
           console.log(`[SearchJobService] Starting email search (Apollo/Perplexity/Hunter) for ${contacts.length} contacts`);
-          const enrichmentResult = await this.enrichContactsWithEmails(job, contacts, savedCompanies, totalPhases);
+          const enrichmentResult = await this.enrichContactsWithEmails(job, contacts, savedCompanies, totalPhases, currentPhase);
           sourceBreakdown = enrichmentResult.sourceBreakdown;
         }
       }
 
       // Phase 5: Deduct credits if applicable
-      const creditPhase = (job.searchType === 'emails' || job.searchType === 'contacts') ? 6 : 5;
+      currentPhase++;
       if (job.source !== 'cron' && savedCompanies.length > 0) {
         await this.updateJobProgress(job.id, {
           phase: 'Processing credits',
-          completed: creditPhase,
+          completed: currentPhase,
           total: totalPhases,
           message: 'Updating account credits'
         });
@@ -296,10 +333,10 @@ export class SearchJobService {
       }
 
       // Phase 6: Mark job as completed
-      const completedPhase = (job.searchType === 'emails' || job.searchType === 'contacts') ? 7 : 6;
+      currentPhase++;
       await this.updateJobProgress(job.id, {
         phase: 'Completed',
-        completed: completedPhase,
+        completed: currentPhase,
         total: totalPhases,
         message: 'Search completed successfully'
       });
