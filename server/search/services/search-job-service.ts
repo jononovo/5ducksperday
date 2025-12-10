@@ -67,14 +67,14 @@ export class SearchJobService {
         return;
       }
 
-      // Mark job as processing
+      // Mark job as processing (total will be updated once we know the exact phase count)
       await storage.updateSearchJob(job.id, {
         status: 'processing',
         startedAt: new Date(),
         progress: {
           phase: 'Starting search',
           completed: 0,
-          total: 5,
+          total: 8, // Will be recalculated when we know joke status
           message: 'Initializing search process'
         }
       });
@@ -127,10 +127,16 @@ export class SearchJobService {
       // Fetch a joke at the start of the search (runs in parallel with initialization)
       const joke = await fetchRandomJoke();
       const hasJoke = joke !== null;
-      const jokePhaseCount = hasJoke ? 2 : 0; // 2 extra phases for setup and punchline
+      const isEmailOrContactSearch = job.searchType === 'emails' || job.searchType === 'contacts';
       
-      // Phase 1: Fast company discovery (just names & websites)
-      const basePhases = (job.searchType === 'emails' || job.searchType === 'contacts') ? 7 : 6;
+      // Joke phases: setup after finding companies, punchline after finding contacts (only for contacts/emails search)
+      // Companies-only gets only setup, contacts/emails search gets both setup and punchline
+      const jokePhaseCount = hasJoke ? (isEmailOrContactSearch ? 2 : 1) : 0;
+      
+      // Calculate total phases based on actual workflow:
+      // Companies-only: Finding companies (1) + Saving companies (2) + [Joke setup] + Processing credits + Completed = 4 base
+      // With contacts/emails: Finding companies + Saving companies + [Joke setup] + Finding contacts + [Punchline] + Finding emails + Processing credits + Completed = 6 base
+      const basePhases = isEmailOrContactSearch ? 6 : 4;
       const totalPhases = basePhases + jokePhaseCount;
       let currentPhase = 1;
       
@@ -312,9 +318,9 @@ export class SearchJobService {
         }
       }
 
-      // Phase 5: Deduct credits if applicable
-      currentPhase++;
+      // Phase: Deduct credits if applicable
       if (job.source !== 'cron' && savedCompanies.length > 0) {
+        currentPhase++;
         await this.updateJobProgress(job.id, {
           phase: 'Processing credits',
           completed: currentPhase,
@@ -322,8 +328,7 @@ export class SearchJobService {
           message: 'Updating account credits'
         });
 
-        const creditType = (job.searchType === 'emails' || job.searchType === 'contacts') ? 'email_search' : 
-                          'company_search';
+        const creditType = isEmailOrContactSearch ? 'email_search' : 'company_search';
         
         await CreditService.deductCredits(
           job.userId,
@@ -332,7 +337,7 @@ export class SearchJobService {
         );
       }
 
-      // Phase 6: Mark job as completed
+      // Final Phase: Mark job as completed
       currentPhase++;
       await this.updateJobProgress(job.id, {
         phase: 'Completed',
