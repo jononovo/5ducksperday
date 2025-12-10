@@ -617,7 +617,7 @@ export default function LandingStealth() {
                          </div>
                          <div className="text-left">
                            <p className="text-xl font-bold text-white leading-tight">{testimonials[currentTestimonialIndex].author}</p>
-                           <p className="text-xs font-mono text-yellow-400 uppercase tracking-widest leading-tight opacity-90 mt-1">{testimonials[currentTestimonialIndex].role}</p>
+                           <p className="text-xs font-mono text-gray-400 uppercase tracking-widest leading-tight mt-1">{testimonials[currentTestimonialIndex].role}</p>
                          </div>
                       </div>
 
