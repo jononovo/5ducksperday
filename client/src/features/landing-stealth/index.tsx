@@ -444,7 +444,7 @@ export default function LandingStealth() {
                   className="h-16 bg-black/40 backdrop-blur-md border-none text-xl md:text-2xl pl-8 pr-16 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-white/40 font-code tracking-widest uppercase text-white w-full relative z-10 transition-all duration-500 text-center"
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && code.length >= 6 && handleQuack()}
+                  onKeyDown={(e) => e.key === "Enter" && code.length >= 5 && handleQuack()}
                   onFocus={() => setCurrentIndex(5)}
                   data-testid="input-secret-code"
                 />
@@ -455,7 +455,7 @@ export default function LandingStealth() {
                 <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
                 
                 <AnimatePresence>
-                  {code.length >= 6 && (
+                  {code.length >= 5 && (
                     <motion.button
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
@@ -525,7 +525,7 @@ export default function LandingStealth() {
                           }`}
                           value={code}
                           onChange={(e) => setCode(e.target.value)}
-                          onKeyDown={(e) => e.key === "Enter" && code.length >= 6 && handleQuack()}
+                          onKeyDown={(e) => e.key === "Enter" && code.length >= 5 && handleQuack()}
                           autoFocus
                           disabled={isUnlocking}
                           data-testid="input-secret-code-floating"
@@ -537,7 +537,7 @@ export default function LandingStealth() {
                         <div className={`absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 transition-colors pointer-events-none z-10 ${isUnlocking ? 'border-yellow-400' : 'border-white/60 group-focus-within/input:border-white'}`} />
                         
                         <AnimatePresence>
-                          {code.length >= 6 && (
+                          {code.length >= 5 && (
                             <motion.div
                               initial={{ opacity: 0, scale: 0.8 }}
                               animate={{ 
