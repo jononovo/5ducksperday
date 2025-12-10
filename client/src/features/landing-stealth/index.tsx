@@ -386,6 +386,7 @@ export default function LandingStealth() {
                       className="h-16 bg-black border-none text-xl md:text-2xl pl-8 pr-16 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-white/40 font-code tracking-widest uppercase text-white w-full relative z-10 transition-all duration-500 text-center shadow-[0_0_30px_rgba(59,130,246,0.3)]"
                       value={code}
                       onChange={(e) => setCode(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && code.length >= 6 && handleQuack()}
                       autoFocus
                       data-testid="input-secret-code-floating"
                     />
