@@ -3,21 +3,15 @@ import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Map, X, Unlock, Sparkles, User, Mail, ChevronRight, ChevronLeft, Check } from "lucide-react";
+import { ArrowRight, Map, X, Unlock, Sparkles, User, Mail, ChevronRight, ChevronLeft, Check, Loader2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
+import { useRegistrationModal } from "@/hooks/use-registration-modal";
 import confetti from "canvas-confetti";
 
-type OnboardingPhase = "A" | "B" | "C";
-type OnboardingStep = 0 | 1 | 2 | 3 | 4 | 5;
-
-interface FormData {
+interface ApplyFormData {
   name: string;
   email: string;
-  role: string;
-  offering: string;
-  target: string;
-  goal: string;
 }
 
 import duckImage from "./assets/3d_cute_duckling_mascot_edited.png";
@@ -31,26 +25,31 @@ import sarahImage from "./assets/professional_headshot_of_sarah_chen.png";
 import mikeImage from "./assets/professional_headshot_of_mike_ross.png";
 import alexImage from "./assets/natural_outdoor_portrait_of_older_alex_rivera_with_beard.png";
 
+const LOADING_MESSAGES = [
+  "Unlocking sales processes...",
+  "Loading registration portal...",
+];
+
 export default function LandingStealth() {
   const [code, setCode] = useState("");
   const { toast } = useToast();
+  const { openModal } = useRegistrationModal();
   const [isHoveringDuck, setIsHoveringDuck] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentTestimonialIndex, setCurrentTestimonialIndex] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
   const [isQuestHovered, setIsQuestHovered] = useState(false);
   
-  // Onboarding flow state
-  const [phase, setPhase] = useState<OnboardingPhase>("A");
-  const [step, setStep] = useState<OnboardingStep>(0);
+  // Unlock flow state
   const [isUnlocking, setIsUnlocking] = useState(false);
-  const [formData, setFormData] = useState<FormData>({
+  const [showAccessGranted, setShowAccessGranted] = useState(false);
+  const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
+  
+  // Apply for code flow state
+  const [showApplyForm, setShowApplyForm] = useState(false);
+  const [applyFormData, setApplyFormData] = useState<ApplyFormData>({
     name: "",
     email: "",
-    role: "",
-    offering: "",
-    target: "",
-    goal: "",
   });
   
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -202,18 +201,22 @@ export default function LandingStealth() {
       // Fire confetti immediately
       fireUnlockConfetti();
       
-      // Show toast
-      toast({
-        title: "LEVEL UNLOCKED! 🦆",
-        description: "Welcome to the inner circle.",
-        className: "bg-primary text-primary-foreground border-none font-heading font-bold",
-      });
-      
-      // Transition to Phase B after animation delay
+      // Show Access Granted overlay after brief animation
       setTimeout(() => {
-        setPhase("B");
         setIsUnlocking(false);
-      }, 800);
+        setShowAccessGranted(true);
+        setLoadingMessageIndex(0);
+        
+        // Cycle through loading messages
+        setTimeout(() => setLoadingMessageIndex(1), 1500);
+        
+        // Open registration modal after loading sequence
+        setTimeout(() => {
+          setShowAccessGranted(false);
+          setCurrentIndex(0);
+          openModal();
+        }, 3500);
+      }, 600);
     } else {
       toast({
         title: "WRONG CODE 🚫",
@@ -224,10 +227,16 @@ export default function LandingStealth() {
     }
   };
   
-  const handlePhaseB_Continue = () => {
-    if (formData.name && formData.email) {
-      setPhase("C");
-      setStep(0);
+  const handleApplySubmit = () => {
+    if (applyFormData.name && applyFormData.email) {
+      toast({
+        title: "Application Received! 🎉",
+        description: "We'll send you a code when you're approved.",
+        className: "bg-primary text-primary-foreground border-none font-heading font-bold",
+      });
+      setShowApplyForm(false);
+      setApplyFormData({ name: "", email: "" });
+      setCurrentIndex(0);
     } else {
       toast({
         title: "Please fill in your details",
@@ -235,32 +244,6 @@ export default function LandingStealth() {
         variant: "destructive",
       });
     }
-  };
-  
-  const handleNextStep = () => {
-    if (step < 5) {
-      setStep((prev) => (prev + 1) as OnboardingStep);
-    }
-  };
-  
-  const handlePrevStep = () => {
-    if (step > 0) {
-      setStep((prev) => (prev - 1) as OnboardingStep);
-    } else {
-      // Go back to Phase B
-      setPhase("B");
-    }
-  };
-  
-  const handleSelectOption = (field: keyof FormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    // Auto-advance after selection with small delay for visual feedback
-    setTimeout(() => {
-      // Allow advancing from step 1-4 to the next step (including to step 5 completion)
-      if (step >= 1 && step <= 4) {
-        setStep((prev) => (prev + 1) as OnboardingStep);
-      }
-    }, 300);
   };
 
   return (
@@ -486,7 +469,7 @@ export default function LandingStealth() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5, delay: 0.3 }}
-                onClick={() => { setCurrentIndex(0); setPhase("A"); }}
+                onClick={() => { setCurrentIndex(0); setShowApplyForm(false); }}
                 className="fixed top-6 right-6 z-50 p-2 rounded-full bg-black/60 hover:bg-black/80 transition-colors cursor-pointer"
                 data-testid="button-close-overlay"
               >
@@ -494,11 +477,11 @@ export default function LandingStealth() {
               </motion.button>
               
               <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 max-w-md w-full scale-110 shadow-2xl flex flex-col gap-4 px-4">
-                {/* Phase A: Secret Code Input */}
+                {/* Secret Code Input */}
                 <AnimatePresence mode="wait">
-                  {phase === "A" && (
+                  {!showAccessGranted && (
                     <motion.div 
-                      key="phase-a"
+                      key="code-input"
                       initial={{ opacity: 1 }}
                       exit={{ opacity: 0, y: -20 }}
                       className="w-full"
@@ -579,134 +562,92 @@ export default function LandingStealth() {
                   )}
                 </AnimatePresence>
 
-                {/* Phase B: Expanded Contact Fields */}
-                <AnimatePresence>
-                  {phase === "B" && (
-                    <motion.div
-                      key="phase-b"
-                      initial={{ opacity: 0, height: 0, y: 20 }}
-                      animate={{ opacity: 1, height: "auto", y: 0 }}
-                      exit={{ opacity: 0, height: 0, y: -20 }}
-                      transition={{ 
-                        type: "spring", 
-                        stiffness: 200, 
-                        damping: 25,
-                        opacity: { duration: 0.3 }
-                      }}
-                      className="w-full overflow-hidden"
-                    >
-                      {/* Unlock success header */}
-                      <motion.div 
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.1 }}
-                        className="flex items-center justify-center gap-3 mb-6"
-                      >
-                        <motion.div
-                          animate={{ 
-                            boxShadow: [
-                              "0 0 20px rgba(250,204,21,0.3)",
-                              "0 0 40px rgba(250,204,21,0.6)",
-                              "0 0 20px rgba(250,204,21,0.3)"
-                            ]
-                          }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                          className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center"
-                        >
-                          <Sparkles className="w-6 h-6 text-white" />
-                        </motion.div>
-                        <div>
-                          <h3 className="text-xl font-bold text-white font-heading">Access Granted!</h3>
-                          <p className="text-sm text-gray-400">Tell us about yourself</p>
-                        </div>
-                      </motion.div>
-
-                      {/* Glowing container for fields */}
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.2 }}
-                        className="relative"
-                      >
-                        <div className="absolute inset-0 bg-gradient-to-b from-yellow-500/10 via-amber-500/5 to-transparent blur-2xl rounded-lg" />
-                        
-                        <div className="relative space-y-4 p-6 bg-black/40 backdrop-blur-md rounded-lg border border-white/10">
-                          {/* Name Input */}
-                          <motion.div
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.3 }}
-                          >
-                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                              Your Name
-                            </label>
-                            <div className="relative">
-                              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                              <Input
-                                type="text"
-                                placeholder="Enter your name"
-                                value={formData.name}
-                                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                                className="h-12 bg-black/60 border-white/10 pl-11 text-white placeholder:text-gray-500 focus-visible:ring-yellow-500/50 focus-visible:border-yellow-500/50"
-                                data-testid="input-name"
-                              />
-                            </div>
-                          </motion.div>
-
-                          {/* Email Input */}
-                          <motion.div
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.4 }}
-                          >
-                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                              Email Address
-                            </label>
-                            <div className="relative">
-                              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                              <Input
-                                type="email"
-                                placeholder="you@example.com"
-                                value={formData.email}
-                                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                                className="h-12 bg-black/60 border-white/10 pl-11 text-white placeholder:text-gray-500 focus-visible:ring-yellow-500/50 focus-visible:border-yellow-500/50"
-                                data-testid="input-email"
-                              />
-                            </div>
-                          </motion.div>
-
-                          {/* Continue Button */}
-                          <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.5 }}
-                            className="pt-2"
-                          >
-                            <Button
-                              onClick={handlePhaseB_Continue}
-                              className="w-full h-12 bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-black font-bold text-lg shadow-[0_0_20px_rgba(250,204,21,0.3)] hover:shadow-[0_0_30px_rgba(250,204,21,0.5)] transition-all"
-                              data-testid="button-continue-setup"
-                            >
-                              Continue to Setup
-                              <ChevronRight className="w-5 h-5 ml-2" />
-                            </Button>
-                          </motion.div>
-                        </div>
-                      </motion.div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* Apply for code link - only show in Phase A */}
-                {phase === "A" && !isUnlocking && (
+                {/* Apply for code link and accordion form */}
+                {!isUnlocking && !showAccessGranted && (
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="w-full text-center mt-24"
                   >
-                    <Button variant="link" className="text-white/60 hover:text-white transition-colors font-code uppercase tracking-widest text-sm no-underline hover:no-underline cursor-pointer" data-testid="link-apply-code">
+                    <Button 
+                      variant="link" 
+                      className="text-white/60 hover:text-white transition-colors font-code uppercase tracking-widest text-sm no-underline hover:no-underline cursor-pointer" 
+                      onClick={() => setShowApplyForm(!showApplyForm)}
+                      data-testid="link-apply-code"
+                    >
                       Apply for a code <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
+                    
+                    {/* Apply Form Accordion */}
+                    <AnimatePresence>
+                      {showApplyForm && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0, y: -10 }}
+                          animate={{ opacity: 1, height: "auto", y: 0 }}
+                          exit={{ opacity: 0, height: 0, y: -10 }}
+                          transition={{ type: "spring", stiffness: 200, damping: 25 }}
+                          className="mt-6 overflow-hidden"
+                        >
+                          <div className="relative">
+                            <div className="absolute inset-0 bg-gradient-to-b from-blue-500/10 via-cyan-500/5 to-transparent blur-2xl rounded-lg" />
+                            
+                            <div className="relative space-y-4 p-6 bg-black/40 backdrop-blur-md rounded-lg border border-white/10 text-left">
+                              <p className="text-sm text-gray-400 text-center mb-4">
+                                Request early access to 5Ducks
+                              </p>
+                              
+                              {/* Name Input */}
+                              <div>
+                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                                  Your Name
+                                </label>
+                                <div className="relative">
+                                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                                  <Input
+                                    type="text"
+                                    placeholder="Enter your name"
+                                    value={applyFormData.name}
+                                    onChange={(e) => setApplyFormData(prev => ({ ...prev, name: e.target.value }))}
+                                    className="h-12 bg-black/60 border-white/10 pl-11 text-white placeholder:text-gray-500 focus-visible:ring-blue-500/50 focus-visible:border-blue-500/50"
+                                    data-testid="input-apply-name"
+                                  />
+                                </div>
+                              </div>
+
+                              {/* Email Input */}
+                              <div>
+                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                                  Email Address
+                                </label>
+                                <div className="relative">
+                                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                                  <Input
+                                    type="email"
+                                    placeholder="you@example.com"
+                                    value={applyFormData.email}
+                                    onChange={(e) => setApplyFormData(prev => ({ ...prev, email: e.target.value }))}
+                                    className="h-12 bg-black/60 border-white/10 pl-11 text-white placeholder:text-gray-500 focus-visible:ring-blue-500/50 focus-visible:border-blue-500/50"
+                                    data-testid="input-apply-email"
+                                  />
+                                </div>
+                              </div>
+
+                              {/* Submit Button */}
+                              <div className="pt-2">
+                                <Button
+                                  onClick={handleApplySubmit}
+                                  className="w-full h-12 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-bold text-lg shadow-[0_0_20px_rgba(59,130,246,0.3)] hover:shadow-[0_0_30px_rgba(59,130,246,0.5)] transition-all"
+                                  data-testid="button-submit-application"
+                                >
+                                  Request Access
+                                  <ArrowRight className="w-5 h-5 ml-2" />
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </motion.div>
                 )}
               </div>
@@ -714,322 +655,64 @@ export default function LandingStealth() {
             document.body
           )}
           
-          {/* Phase C: Full-screen Onboarding Modal */}
-          {isMounted && phase === "C" && createPortal(
+          {/* Access Granted Overlay */}
+          {isMounted && showAccessGranted && createPortal(
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[60] bg-gradient-to-b from-gray-900 via-black to-gray-900 flex flex-col"
+              className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-md flex items-center justify-center"
             >
-              {/* Progress Bar */}
-              <div className="w-full h-1 bg-gray-800">
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 200, damping: 20 }}
+                className="text-center"
+              >
                 <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${((step + 1) / 6) * 100}%` }}
-                  transition={{ type: "spring", stiffness: 100, damping: 20 }}
-                  className="h-full bg-gradient-to-r from-yellow-500 to-amber-500"
-                />
-              </div>
-
-              {/* Header */}
-              <div className="flex items-center justify-between p-4 border-b border-white/10">
-                <Button
-                  variant="ghost"
-                  onClick={handlePrevStep}
-                  className="text-white/60 hover:text-white"
-                  data-testid="button-back"
+                  animate={{ 
+                    boxShadow: [
+                      "0 0 40px rgba(250,204,21,0.4)",
+                      "0 0 80px rgba(250,204,21,0.6)",
+                      "0 0 40px rgba(250,204,21,0.4)"
+                    ]
+                  }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                  className="w-24 h-24 mx-auto mb-8 rounded-full bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center"
                 >
-                  <ChevronLeft className="w-5 h-5 mr-1" />
-                  Back
-                </Button>
-                <span className="text-sm text-gray-500 font-mono">
-                  Step {step + 1} of 6
-                </span>
-                <Button
-                  variant="ghost"
-                  onClick={() => { setPhase("A"); setCurrentIndex(0); }}
-                  className="text-white/60 hover:text-white"
-                  data-testid="button-close-onboarding"
+                  <Unlock className="w-12 h-12 text-white" />
+                </motion.div>
+                
+                <motion.h2 
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                  className="text-4xl md:text-5xl font-bold text-white mb-4 font-heading"
                 >
-                  <X className="w-5 h-5" />
-                </Button>
-              </div>
-
-              {/* Content Area */}
-              <div className="flex-1 flex items-center justify-center p-8 overflow-y-auto">
-                <div className="max-w-lg w-full">
+                  Access Granted!
+                </motion.h2>
+                
+                <motion.div 
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                  className="flex items-center justify-center gap-3 text-gray-400"
+                >
+                  <Loader2 className="w-5 h-5 animate-spin" />
                   <AnimatePresence mode="wait">
-                    {/* Step 0: Welcome */}
-                    {step === 0 && (
-                      <motion.div
-                        key="step-0"
-                        initial={{ opacity: 0, x: 50 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -50 }}
-                        className="text-center"
-                      >
-                        <motion.div
-                          animate={{ y: [0, -10, 0] }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                          className="text-8xl mb-6"
-                        >
-                          🦆
-                        </motion.div>
-                        <h2 className="text-3xl font-bold text-white mb-4 font-heading">
-                          Welcome, {formData.name}!
-                        </h2>
-                        <p className="text-gray-400 text-lg mb-8">
-                          Let's set up your personalized sales journey. This will only take a minute.
-                        </p>
-                        <Button
-                          onClick={handleNextStep}
-                          className="h-14 px-8 bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-black font-bold text-lg"
-                          data-testid="button-start-journey"
-                        >
-                          Let's Go!
-                          <ChevronRight className="w-5 h-5 ml-2" />
-                        </Button>
-                      </motion.div>
-                    )}
-
-                    {/* Step 1: Role */}
-                    {step === 1 && (
-                      <motion.div
-                        key="step-1"
-                        initial={{ opacity: 0, x: 50 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -50 }}
-                      >
-                        <h2 className="text-2xl font-bold text-white mb-2 font-heading text-center">
-                          What's your role?
-                        </h2>
-                        <p className="text-gray-400 text-center mb-8">
-                          This helps us personalize your experience
-                        </p>
-                        <div className="grid gap-3">
-                          {[
-                            { value: "founder", label: "Founder / CEO", icon: "🚀" },
-                            { value: "sales", label: "Sales Professional", icon: "💼" },
-                            { value: "marketing", label: "Marketing", icon: "📣" },
-                            { value: "other", label: "Other", icon: "✨" },
-                          ].map((option) => (
-                            <motion.button
-                              key={option.value}
-                              whileHover={{ scale: 1.02 }}
-                              whileTap={{ scale: 0.98 }}
-                              onClick={() => handleSelectOption("role", option.value)}
-                              className={`p-4 rounded-lg border text-left flex items-center gap-4 transition-all ${
-                                formData.role === option.value
-                                  ? "bg-yellow-500/20 border-yellow-500 text-white"
-                                  : "bg-white/5 border-white/10 text-gray-300 hover:bg-white/10 hover:border-white/20"
-                              }`}
-                              data-testid={`option-role-${option.value}`}
-                            >
-                              <span className="text-2xl">{option.icon}</span>
-                              <span className="font-medium">{option.label}</span>
-                              {formData.role === option.value && (
-                                <Check className="w-5 h-5 ml-auto text-yellow-500" />
-                              )}
-                            </motion.button>
-                          ))}
-                        </div>
-                      </motion.div>
-                    )}
-
-                    {/* Step 2: Offering */}
-                    {step === 2 && (
-                      <motion.div
-                        key="step-2"
-                        initial={{ opacity: 0, x: 50 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -50 }}
-                      >
-                        <h2 className="text-2xl font-bold text-white mb-2 font-heading text-center">
-                          What are you selling?
-                        </h2>
-                        <p className="text-gray-400 text-center mb-8">
-                          We'll tailor your outreach strategy accordingly
-                        </p>
-                        <div className="grid gap-3">
-                          {[
-                            { value: "product", label: "Product", desc: "Physical or digital goods", icon: "📦" },
-                            { value: "service", label: "Service", desc: "Consulting, agency, or professional services", icon: "🛠️" },
-                            { value: "saas", label: "SaaS / Software", desc: "Subscription-based software", icon: "💻" },
-                            { value: "both", label: "Both", desc: "Products and services", icon: "🎯" },
-                          ].map((option) => (
-                            <motion.button
-                              key={option.value}
-                              whileHover={{ scale: 1.02 }}
-                              whileTap={{ scale: 0.98 }}
-                              onClick={() => handleSelectOption("offering", option.value)}
-                              className={`p-4 rounded-lg border text-left flex items-center gap-4 transition-all ${
-                                formData.offering === option.value
-                                  ? "bg-yellow-500/20 border-yellow-500 text-white"
-                                  : "bg-white/5 border-white/10 text-gray-300 hover:bg-white/10 hover:border-white/20"
-                              }`}
-                              data-testid={`option-offering-${option.value}`}
-                            >
-                              <span className="text-2xl">{option.icon}</span>
-                              <div>
-                                <span className="font-medium block">{option.label}</span>
-                                <span className="text-sm text-gray-500">{option.desc}</span>
-                              </div>
-                              {formData.offering === option.value && (
-                                <Check className="w-5 h-5 ml-auto text-yellow-500" />
-                              )}
-                            </motion.button>
-                          ))}
-                        </div>
-                      </motion.div>
-                    )}
-
-                    {/* Step 3: Target */}
-                    {step === 3 && (
-                      <motion.div
-                        key="step-3"
-                        initial={{ opacity: 0, x: 50 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -50 }}
-                      >
-                        <h2 className="text-2xl font-bold text-white mb-2 font-heading text-center">
-                          Who's your ideal customer?
-                        </h2>
-                        <p className="text-gray-400 text-center mb-8">
-                          This helps us find the right prospects for you
-                        </p>
-                        <div className="grid gap-3">
-                          {[
-                            { value: "b2b", label: "B2B", desc: "Other businesses and companies", icon: "🏢" },
-                            { value: "b2c", label: "B2C", desc: "Individual consumers", icon: "👤" },
-                            { value: "both", label: "Both B2B & B2C", desc: "Mixed customer base", icon: "🌐" },
-                          ].map((option) => (
-                            <motion.button
-                              key={option.value}
-                              whileHover={{ scale: 1.02 }}
-                              whileTap={{ scale: 0.98 }}
-                              onClick={() => handleSelectOption("target", option.value)}
-                              className={`p-4 rounded-lg border text-left flex items-center gap-4 transition-all ${
-                                formData.target === option.value
-                                  ? "bg-yellow-500/20 border-yellow-500 text-white"
-                                  : "bg-white/5 border-white/10 text-gray-300 hover:bg-white/10 hover:border-white/20"
-                              }`}
-                              data-testid={`option-target-${option.value}`}
-                            >
-                              <span className="text-2xl">{option.icon}</span>
-                              <div>
-                                <span className="font-medium block">{option.label}</span>
-                                <span className="text-sm text-gray-500">{option.desc}</span>
-                              </div>
-                              {formData.target === option.value && (
-                                <Check className="w-5 h-5 ml-auto text-yellow-500" />
-                              )}
-                            </motion.button>
-                          ))}
-                        </div>
-                      </motion.div>
-                    )}
-
-                    {/* Step 4: Goal */}
-                    {step === 4 && (
-                      <motion.div
-                        key="step-4"
-                        initial={{ opacity: 0, x: 50 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -50 }}
-                      >
-                        <h2 className="text-2xl font-bold text-white mb-2 font-heading text-center">
-                          What's your main goal?
-                        </h2>
-                        <p className="text-gray-400 text-center mb-8">
-                          We'll prioritize features that help you achieve this
-                        </p>
-                        <div className="grid gap-3">
-                          {[
-                            { value: "leads", label: "Generate More Leads", desc: "Build a bigger pipeline", icon: "🎣" },
-                            { value: "deals", label: "Close More Deals", desc: "Convert leads to customers", icon: "🤝" },
-                            { value: "pipeline", label: "Build My Pipeline", desc: "Organize and track prospects", icon: "📊" },
-                            { value: "automate", label: "Automate Outreach", desc: "Save time on repetitive tasks", icon: "🤖" },
-                          ].map((option) => (
-                            <motion.button
-                              key={option.value}
-                              whileHover={{ scale: 1.02 }}
-                              whileTap={{ scale: 0.98 }}
-                              onClick={() => handleSelectOption("goal", option.value)}
-                              className={`p-4 rounded-lg border text-left flex items-center gap-4 transition-all ${
-                                formData.goal === option.value
-                                  ? "bg-yellow-500/20 border-yellow-500 text-white"
-                                  : "bg-white/5 border-white/10 text-gray-300 hover:bg-white/10 hover:border-white/20"
-                              }`}
-                              data-testid={`option-goal-${option.value}`}
-                            >
-                              <span className="text-2xl">{option.icon}</span>
-                              <div>
-                                <span className="font-medium block">{option.label}</span>
-                                <span className="text-sm text-gray-500">{option.desc}</span>
-                              </div>
-                              {formData.goal === option.value && (
-                                <Check className="w-5 h-5 ml-auto text-yellow-500" />
-                              )}
-                            </motion.button>
-                          ))}
-                        </div>
-                      </motion.div>
-                    )}
-
-                    {/* Step 5: Completion */}
-                    {step === 5 && (
-                      <motion.div
-                        key="step-5"
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.9 }}
-                        className="text-center"
-                        onAnimationComplete={() => {
-                          // Fire celebration confetti
-                          confetti({
-                            particleCount: 150,
-                            spread: 100,
-                            origin: { y: 0.6 },
-                            colors: ['#fbbf24', '#f59e0b', '#22c55e', '#10b981', '#3b82f6'],
-                          });
-                        }}
-                      >
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
-                          className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-[0_0_40px_rgba(34,197,94,0.4)]"
-                        >
-                          <Check className="w-12 h-12 text-white" />
-                        </motion.div>
-                        <h2 className="text-3xl font-bold text-white mb-4 font-heading">
-                          You're All Set! 🎉
-                        </h2>
-                        <p className="text-gray-400 text-lg mb-8">
-                          Your personalized sales journey is ready. Let's start finding your ideal customers.
-                        </p>
-                        <Button
-                          onClick={() => {
-                            setPhase("A");
-                            setCurrentIndex(0);
-                            toast({
-                              title: "Setup Complete!",
-                              description: "Welcome to the platform. Your journey begins now.",
-                              className: "bg-green-600 text-white border-none",
-                            });
-                          }}
-                          className="h-14 px-8 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold text-lg"
-                          data-testid="button-complete"
-                        >
-                          Start My Journey
-                          <ChevronRight className="w-5 h-5 ml-2" />
-                        </Button>
-                      </motion.div>
-                    )}
+                    <motion.span
+                      key={loadingMessageIndex}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.3 }}
+                      className="text-lg"
+                    >
+                      {LOADING_MESSAGES[loadingMessageIndex]}
+                    </motion.span>
                   </AnimatePresence>
-                </div>
-              </div>
+                </motion.div>
+              </motion.div>
             </motion.div>,
             document.body
           )}
