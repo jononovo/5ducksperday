@@ -373,7 +373,7 @@ export default function LandingStealth() {
               </motion.button>
               <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 max-w-md w-full scale-110 shadow-2xl flex flex-col gap-4 px-4">
                 <div className="w-full">
-                  <div className="relative flex-1 group/input">
+                  <div className="relative flex-1 group/input flex items-center">
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -402,7 +402,7 @@ export default function LandingStealth() {
                           animate={{ opacity: 1, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.8 }}
                           transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 z-20"
+                          className="absolute right-3 z-20"
                         >
                           <Button 
                             size="icon" 
