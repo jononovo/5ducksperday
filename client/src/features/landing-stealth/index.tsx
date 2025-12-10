@@ -410,7 +410,7 @@ export default function LandingStealth() {
                           onClick={handleQuack}
                           data-testid="button-quack-floating"
                         >
-                          QUACK! <ArrowRight className="w-4 h-4 ml-2" />
+                          <ArrowRight className="w-5 h-5" />
                         </Button>
                       </motion.div>
                     )}
