@@ -1,11 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Map, X } from "lucide-react";
+import { ArrowRight, Map, X, Unlock, Sparkles, User, Mail, ChevronRight, ChevronLeft, Check, Loader2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
+import { useRegistrationModal } from "@/hooks/use-registration-modal";
+import confetti from "canvas-confetti";
+
+interface ApplyFormData {
+  name: string;
+  email: string;
+}
 
 import duckImage from "./assets/3d_cute_duckling_mascot_edited.png";
 import bgImage from "./assets/abstract_3d_sales_background_with_envelopes_and_charts.png";
@@ -18,18 +25,79 @@ import sarahImage from "./assets/professional_headshot_of_sarah_chen.png";
 import mikeImage from "./assets/professional_headshot_of_mike_ross.png";
 import alexImage from "./assets/natural_outdoor_portrait_of_older_alex_rivera_with_beard.png";
 
+const LOADING_MESSAGES = [
+  "Unlocking sales processes...",
+  "Loading registration portal...",
+];
+
 export default function LandingStealth() {
   const [code, setCode] = useState("");
   const { toast } = useToast();
+  const { openModal } = useRegistrationModal();
   const [isHoveringDuck, setIsHoveringDuck] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentTestimonialIndex, setCurrentTestimonialIndex] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
   const [isQuestHovered, setIsQuestHovered] = useState(false);
+  
+  // Unlock flow state
+  const [isUnlocking, setIsUnlocking] = useState(false);
+  const [showAccessGranted, setShowAccessGranted] = useState(false);
+  const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
+  
+  // Apply for code flow state
+  const [showApplyForm, setShowApplyForm] = useState(false);
+  const [applyFormData, setApplyFormData] = useState<ApplyFormData>({
+    name: "",
+    email: "",
+  });
+  
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
+  
+  // Fire confetti from the button position
+  const fireUnlockConfetti = () => {
+    const button = buttonRef.current;
+    if (!button) {
+      // Fallback to center
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { x: 0.5, y: 0.5 },
+        colors: ['#fbbf24', '#f59e0b', '#d97706', '#22c55e', '#10b981'],
+      });
+      return;
+    }
+    
+    const rect = button.getBoundingClientRect();
+    const x = (rect.left + rect.width / 2) / window.innerWidth;
+    const y = (rect.top + rect.height / 2) / window.innerHeight;
+    
+    // Golden sparkle burst
+    confetti({
+      particleCount: 80,
+      spread: 60,
+      origin: { x, y },
+      colors: ['#fbbf24', '#f59e0b', '#d97706', '#fef3c7'],
+      shapes: ['circle', 'square'],
+      scalar: 1.2,
+    });
+    
+    // Secondary burst with stars
+    setTimeout(() => {
+      confetti({
+        particleCount: 40,
+        spread: 100,
+        origin: { x, y },
+        colors: ['#22c55e', '#10b981', '#a3e635'],
+        shapes: ['circle'],
+        scalar: 0.8,
+      });
+    }, 150);
+  };
 
   const content = [
     { 
@@ -127,17 +195,53 @@ export default function LandingStealth() {
 
   const handleQuack = () => {
     if (code.toLowerCase() === "quack") {
-      toast({
-        title: "LEVEL UNLOCKED! 🦆",
-        description: "Welcome to the inner circle.",
-        className: "bg-primary text-primary-foreground border-none font-heading font-bold",
-      });
+      // Start unlock animation sequence
+      setIsUnlocking(true);
+      
+      // Fire confetti immediately
+      fireUnlockConfetti();
+      
+      // Show Access Granted overlay after brief animation
+      setTimeout(() => {
+        setIsUnlocking(false);
+        setShowAccessGranted(true);
+        setLoadingMessageIndex(0);
+        
+        // Cycle through loading messages
+        setTimeout(() => setLoadingMessageIndex(1), 1500);
+        
+        // Open registration modal after loading sequence
+        setTimeout(() => {
+          setShowAccessGranted(false);
+          setCurrentIndex(0);
+          openModal();
+        }, 3500);
+      }, 600);
     } else {
       toast({
         title: "WRONG CODE 🚫",
         description: "That's not the secret password!",
         variant: "destructive",
         className: "font-heading font-bold",
+      });
+    }
+  };
+  
+  const handleApplySubmit = () => {
+    if (applyFormData.name && applyFormData.email) {
+      toast({
+        title: "Application Received! 🎉",
+        description: "We'll send you a code when you're approved.",
+        className: "bg-primary text-primary-foreground border-none font-heading font-bold",
+      });
+      setShowApplyForm(false);
+      setApplyFormData({ name: "", email: "" });
+      setCurrentIndex(0);
+    } else {
+      toast({
+        title: "Please fill in your details",
+        description: "We need your name and email to continue.",
+        variant: "destructive",
       });
     }
   };
@@ -323,7 +427,7 @@ export default function LandingStealth() {
                   className="h-16 bg-black/40 backdrop-blur-md border-none text-xl md:text-2xl pl-8 pr-16 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-white/40 font-code tracking-widest uppercase text-white w-full relative z-10 transition-all duration-500 text-center"
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && code.length >= 6 && handleQuack()}
+                  onKeyDown={(e) => e.key === "Enter" && code.length >= 5 && handleQuack()}
                   onFocus={() => setCurrentIndex(5)}
                   data-testid="input-secret-code"
                 />
@@ -334,7 +438,7 @@ export default function LandingStealth() {
                 <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
                 
                 <AnimatePresence>
-                  {code.length >= 6 && (
+                  {code.length >= 5 && (
                     <motion.button
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
@@ -365,71 +469,251 @@ export default function LandingStealth() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5, delay: 0.3 }}
-                onClick={() => setCurrentIndex(0)}
+                onClick={() => { setCurrentIndex(0); setShowApplyForm(false); }}
                 className="fixed top-6 right-6 z-50 p-2 rounded-full bg-black/60 hover:bg-black/80 transition-colors cursor-pointer"
                 data-testid="button-close-overlay"
               >
                 <X className="w-6 h-6 text-white/70 hover:text-white" />
               </motion.button>
+              
               <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 max-w-md w-full scale-110 shadow-2xl flex flex-col gap-4 px-4">
-                <div className="w-full">
-                  <div className="relative flex-1 group/input flex items-center">
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="absolute inset-0 bg-blue-500/20 blur-xl rounded-lg z-0"
-                    />
-                    
-                    <Input 
-                      type="text" 
-                      placeholder="ENTER_SECRET_CODE" 
-                      className="h-16 bg-black border-none text-xl md:text-2xl pl-8 pr-16 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-white/40 font-code tracking-widest uppercase text-white w-full relative z-10 transition-all duration-500 text-center shadow-[0_0_30px_rgba(59,130,246,0.3)]"
-                      value={code}
-                      onChange={(e) => setCode(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && code.length >= 6 && handleQuack()}
-                      autoFocus
-                      data-testid="input-secret-code-floating"
-                    />
-
-                    <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
-                    <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
-                    <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
-                    <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
-                    
-                    <AnimatePresence>
-                      {code.length >= 6 && (
+                {/* Secret Code Input */}
+                <AnimatePresence mode="wait">
+                  {!showAccessGranted && (
+                    <motion.div 
+                      key="code-input"
+                      initial={{ opacity: 1 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      className="w-full"
+                    >
+                      <div className="relative flex-1 group/input flex items-center">
                         <motion.div
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.8 }}
-                          transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                          className="absolute right-3 z-20"
+                          initial={{ opacity: 0 }}
+                          animate={{ 
+                            opacity: isUnlocking ? 0.8 : 1,
+                            scale: isUnlocking ? 1.2 : 1,
+                          }}
+                          className={`absolute inset-0 blur-xl rounded-lg z-0 transition-colors duration-300 ${
+                            isUnlocking ? 'bg-yellow-500/40' : 'bg-blue-500/20'
+                          }`}
+                        />
+                        
+                        <Input 
+                          type="text" 
+                          placeholder="ENTER_SECRET_CODE" 
+                          className={`h-16 bg-black border-none text-xl md:text-2xl pl-8 pr-16 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-white/40 font-code tracking-widest uppercase text-white w-full relative z-10 transition-all duration-500 text-center ${
+                            isUnlocking 
+                              ? 'shadow-[0_0_40px_rgba(250,204,21,0.5)]' 
+                              : 'shadow-[0_0_30px_rgba(59,130,246,0.3)]'
+                          }`}
+                          value={code}
+                          onChange={(e) => setCode(e.target.value)}
+                          onKeyDown={(e) => e.key === "Enter" && code.length >= 5 && handleQuack()}
+                          autoFocus
+                          disabled={isUnlocking}
+                          data-testid="input-secret-code-floating"
+                        />
+
+                        <div className={`absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 transition-colors pointer-events-none z-10 ${isUnlocking ? 'border-yellow-400' : 'border-white/60 group-focus-within/input:border-white'}`} />
+                        <div className={`absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 transition-colors pointer-events-none z-10 ${isUnlocking ? 'border-yellow-400' : 'border-white/60 group-focus-within/input:border-white'}`} />
+                        <div className={`absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 transition-colors pointer-events-none z-10 ${isUnlocking ? 'border-yellow-400' : 'border-white/60 group-focus-within/input:border-white'}`} />
+                        <div className={`absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 transition-colors pointer-events-none z-10 ${isUnlocking ? 'border-yellow-400' : 'border-white/60 group-focus-within/input:border-white'}`} />
+                        
+                        <AnimatePresence>
+                          {code.length >= 5 && (
+                            <motion.div
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ 
+                                opacity: 1, 
+                                scale: isUnlocking ? [1, 1.3, 1] : 1,
+                              }}
+                              exit={{ opacity: 0, scale: 0.8 }}
+                              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                              className="absolute right-3 z-20"
+                            >
+                              <Button 
+                                ref={buttonRef}
+                                size="icon" 
+                                className={`h-10 w-10 rounded-md text-white hover:scale-105 active:scale-95 transition-all flex items-center justify-center ${
+                                  isUnlocking 
+                                    ? 'bg-gradient-to-r from-yellow-500 to-amber-500 shadow-[0_0_20px_rgba(250,204,21,0.6)]' 
+                                    : 'bg-gray-700 hover:bg-gray-600'
+                                }`}
+                                onClick={handleQuack}
+                                disabled={isUnlocking}
+                                data-testid="button-quack-floating"
+                              >
+                                {isUnlocking ? (
+                                  <motion.div
+                                    animate={{ rotate: [0, 360] }}
+                                    transition={{ duration: 0.5 }}
+                                  >
+                                    <Unlock className="w-5 h-5" />
+                                  </motion.div>
+                                ) : (
+                                  <ArrowRight className="w-5 h-5" />
+                                )}
+                              </Button>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Apply for code link and accordion form */}
+                {!isUnlocking && !showAccessGranted && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="w-full text-center mt-24"
+                  >
+                    <Button 
+                      variant="link" 
+                      className="text-white/60 hover:text-white transition-colors font-code uppercase tracking-widest text-sm no-underline hover:no-underline cursor-pointer" 
+                      onClick={() => setShowApplyForm(!showApplyForm)}
+                      data-testid="link-apply-code"
+                    >
+                      Apply for a code <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                    
+                    {/* Apply Form Accordion */}
+                    <AnimatePresence>
+                      {showApplyForm && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0, y: -10 }}
+                          animate={{ opacity: 1, height: "auto", y: 0 }}
+                          exit={{ opacity: 0, height: 0, y: -10 }}
+                          transition={{ type: "spring", stiffness: 200, damping: 25 }}
+                          className="mt-6 overflow-hidden"
                         >
-                          <Button 
-                            size="icon" 
-                            className="h-10 w-10 rounded-md bg-gray-700 text-white hover:bg-gray-600 hover:scale-105 active:scale-95 transition-all flex items-center justify-center"
-                            onClick={handleQuack}
-                            data-testid="button-quack-floating"
-                          >
-                            <ArrowRight className="w-5 h-5" />
-                          </Button>
+                          <div className="relative">
+                            <div className="absolute inset-0 bg-gradient-to-b from-blue-500/10 via-cyan-500/5 to-transparent blur-2xl rounded-lg" />
+                            
+                            <div className="relative space-y-4 p-6 bg-black/40 backdrop-blur-md rounded-lg border border-white/10 text-left">
+                              <p className="text-sm text-gray-400 text-center mb-4">
+                                Request early access to 5Ducks
+                              </p>
+                              
+                              {/* Name Input */}
+                              <div>
+                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                                  Your Name
+                                </label>
+                                <div className="relative">
+                                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                                  <Input
+                                    type="text"
+                                    placeholder="Enter your name"
+                                    value={applyFormData.name}
+                                    onChange={(e) => setApplyFormData(prev => ({ ...prev, name: e.target.value }))}
+                                    className="h-12 bg-black/60 border-white/10 pl-11 text-white placeholder:text-gray-500 focus-visible:ring-blue-500/50 focus-visible:border-blue-500/50"
+                                    data-testid="input-apply-name"
+                                  />
+                                </div>
+                              </div>
+
+                              {/* Email Input */}
+                              <div>
+                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                                  Email Address
+                                </label>
+                                <div className="relative">
+                                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                                  <Input
+                                    type="email"
+                                    placeholder="you@example.com"
+                                    value={applyFormData.email}
+                                    onChange={(e) => setApplyFormData(prev => ({ ...prev, email: e.target.value }))}
+                                    className="h-12 bg-black/60 border-white/10 pl-11 text-white placeholder:text-gray-500 focus-visible:ring-blue-500/50 focus-visible:border-blue-500/50"
+                                    data-testid="input-apply-email"
+                                  />
+                                </div>
+                              </div>
+
+                              {/* Submit Button */}
+                              <div className="pt-2">
+                                <Button
+                                  onClick={handleApplySubmit}
+                                  className="w-full h-12 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-bold text-lg shadow-[0_0_20px_rgba(59,130,246,0.3)] hover:shadow-[0_0_30px_rgba(59,130,246,0.5)] transition-all"
+                                  data-testid="button-submit-application"
+                                >
+                                  Request Access
+                                  <ArrowRight className="w-5 h-5 ml-2" />
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
                         </motion.div>
                       )}
                     </AnimatePresence>
-                  </div>
-                </div>
-
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="w-full text-center mt-24"
-                >
-                  <Button variant="link" className="text-white/60 hover:text-white transition-colors font-code uppercase tracking-widest text-sm no-underline hover:no-underline cursor-pointer" data-testid="link-apply-code">
-                    Apply for a code <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </motion.div>
+                  </motion.div>
+                )}
               </div>
             </>,
+            document.body
+          )}
+          
+          {/* Access Granted Overlay */}
+          {isMounted && showAccessGranted && createPortal(
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-md flex items-center justify-center"
+            >
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 200, damping: 20 }}
+                className="text-center"
+              >
+                <motion.div
+                  animate={{ 
+                    boxShadow: [
+                      "0 0 40px rgba(250,204,21,0.4)",
+                      "0 0 80px rgba(250,204,21,0.6)",
+                      "0 0 40px rgba(250,204,21,0.4)"
+                    ]
+                  }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                  className="w-24 h-24 mx-auto mb-8 rounded-full bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center"
+                >
+                  <Unlock className="w-12 h-12 text-white" />
+                </motion.div>
+                
+                <motion.h2 
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                  className="text-4xl md:text-5xl font-bold text-white mb-4 font-heading"
+                >
+                  Access Granted!
+                </motion.h2>
+                
+                <motion.div 
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                  className="flex items-center justify-center gap-3 text-gray-400"
+                >
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <AnimatePresence mode="wait">
+                    <motion.span
+                      key={loadingMessageIndex}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.3 }}
+                      className="text-lg"
+                    >
+                      {LOADING_MESSAGES[loadingMessageIndex]}
+                    </motion.span>
+                  </AnimatePresence>
+                </motion.div>
+              </motion.div>
+            </motion.div>,
             document.body
           )}
             
