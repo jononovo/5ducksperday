@@ -607,8 +607,8 @@ export default function LandingStealth() {
                         &ldquo;{testimonials[currentTestimonialIndex].quote}&rdquo;
                       </h3>
 
-                      <div className="relative z-10 flex items-center gap-5 bg-[#151520] border border-white/10 p-6 pr-10 rounded-2xl shadow-2xl md:-translate-y-8 shrink-0 mt-8 md:mt-0">
-                         <div className="w-20 h-20 rounded-xl overflow-hidden border border-white/20 shadow-lg shrink-0">
+                      <div className="relative z-10 flex items-center gap-5 p-6 pr-10 md:-translate-y-8 shrink-0 mt-8 md:mt-0">
+                         <div className="w-20 h-20 rounded-full overflow-hidden border border-white/20 shadow-lg shrink-0">
                            <img 
                              src={testimonials[currentTestimonialIndex].image} 
                              alt={testimonials[currentTestimonialIndex].author}
