@@ -383,7 +383,7 @@ export default function LandingStealth() {
                     <Input 
                       type="text" 
                       placeholder="ENTER_SECRET_CODE" 
-                      className="h-16 bg-blue-950/30 backdrop-blur-md border-none text-xl md:text-2xl px-8 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-white/40 font-code tracking-widest uppercase text-white w-full relative z-10 transition-all duration-500 text-center shadow-[0_0_30px_rgba(59,130,246,0.3)]"
+                      className="h-16 bg-black border-none text-xl md:text-2xl px-8 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-white/40 font-code tracking-widest uppercase text-white w-full relative z-10 transition-all duration-500 text-center shadow-[0_0_30px_rgba(59,130,246,0.3)]"
                       value={code}
                       onChange={(e) => setCode(e.target.value)}
                       autoFocus
@@ -405,12 +405,12 @@ export default function LandingStealth() {
                         transition={{ type: "spring", stiffness: 300, damping: 25 }}
                       >
                         <Button 
-                          size="lg" 
-                          className="h-16 px-10 text-xl font-bold rounded-none bg-primary text-primary-foreground hover:bg-blue-400 hover:scale-105 active:scale-95 transition-all shadow-[0_0_30px_-5px_rgba(56,189,248,0.6)] font-code tracking-wider whitespace-nowrap"
+                          size="default" 
+                          className="h-12 px-6 text-sm font-bold rounded-none bg-gray-700 text-white hover:bg-gray-600 hover:scale-105 active:scale-95 transition-all font-code tracking-wider whitespace-nowrap"
                           onClick={handleQuack}
                           data-testid="button-quack-floating"
                         >
-                          [ QUACK! ]
+                          QUACK! <ArrowRight className="w-4 h-4 ml-2" />
                         </Button>
                       </motion.div>
                     )}
