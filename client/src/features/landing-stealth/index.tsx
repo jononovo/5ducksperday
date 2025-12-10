@@ -3,7 +3,8 @@ import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Map, X } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 
 import duckImage from "./assets/3d_cute_duckling_mascot_edited.png";
@@ -24,6 +25,7 @@ export default function LandingStealth() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentTestimonialIndex, setCurrentTestimonialIndex] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
+  const [isQuestHovered, setIsQuestHovered] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -81,7 +83,7 @@ export default function LandingStealth() {
 
   const testimonials = [
     {
-      quote: "Sales for dummies (or busy people?)",
+      quote: "Sales for dummies (or busy people)",
       author: "Alex Rivera",
       role: "Growth Hacker Daily",
       image: alexImage
@@ -94,7 +96,7 @@ export default function LandingStealth() {
     },
     {
       quote: "...simplifies prospecting & outreach into one page",
-      author: "Mike Ross",
+      author: "Mike Polinski",
       role: "Startup Insider",
       image: mikeImage
     }
@@ -178,9 +180,14 @@ export default function LandingStealth() {
           className="flex flex-col gap-8 max-w-xl"
         >
           <div className="space-y-4 relative pt-12 lg:pt-24">
-            <span className="block text-sm lg:text-base text-gray-400 font-medium tracking-widest uppercase mb-2 opacity-80 pl-1 font-mono">
+            <motion.span 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 0.8, y: 0 }}
+              transition={{ duration: 0.5, delay: 0 }}
+              className="block text-sm lg:text-base text-gray-400 font-medium tracking-widest uppercase mb-2 pl-1 font-mono"
+            >
               Founder-led
-            </span>
+            </motion.span>
             <h1 className="text-6xl lg:text-8xl font-bold leading-[0.9] tracking-normal text-gray-200 font-serif h-[1.8em] relative z-20">
               <span className="block mb-2">
                 <AnimatePresence mode="wait">
@@ -189,7 +196,7 @@ export default function LandingStealth() {
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: -20, opacity: 0 }}
-                    transition={{ duration: 0.5 }}
+                    transition={{ duration: 0.5, delay: 0.4 }}
                     className="inline-block"
                   >
                     {content[currentIndex].text}.
@@ -203,7 +210,7 @@ export default function LandingStealth() {
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: -20, opacity: 0 }}
-                    transition={{ duration: 0.5 }}
+                    transition={{ duration: 0.5, delay: 0.6 }}
                     className="inline-block"
                   >
                     {currentIndex >= 3 ? "Simplified." : "Gamified."}
@@ -233,9 +240,73 @@ export default function LandingStealth() {
               </AnimatePresence>
             </div>
 
-            <p className="text-xl text-muted-foreground leading-relaxed max-w-md font-medium relative z-20">
-              Start with finding customers & emailing them.
-            </p>
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 1.4 }}
+              className="text-xl text-muted-foreground leading-relaxed max-w-md font-medium relative z-20 pt-8"
+            >
+              <TooltipProvider delayDuration={1500}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span 
+                      className="inline-flex items-center gap-2 cursor-pointer"
+                      onMouseEnter={() => setIsQuestHovered(true)}
+                      onMouseLeave={() => setIsQuestHovered(false)}
+                      style={{ perspective: "600px" }}
+                    >
+                      <motion.span
+                        animate={isQuestHovered ? {
+                          scale: [1, 1.2, 1],
+                          rotate: [0, 15, 0]
+                        } : {}}
+                        transition={{ duration: 0.4, ease: "easeOut" }}
+                      >
+                        <Map className="w-5 h-5" />
+                      </motion.span>
+                      <motion.span
+                        animate={{ 
+                          color: isQuestHovered ? "rgba(255,255,255,1)" : "rgba(255,255,255,0.7)",
+                          textShadow: isQuestHovered ? "0 0 8px rgba(255,255,255,0.3)" : "none"
+                        }}
+                        transition={{ duration: 0.2 }}
+                        className="cursor-pointer"
+                      >
+                        Quest 1:
+                      </motion.span>
+                      <span className="inline-flex items-center overflow-hidden">
+                        <motion.span
+                          className="inline-flex text-muted-foreground/70"
+                          initial="hidden"
+                          animate={isQuestHovered ? "revealed" : "hidden"}
+                          variants={{
+                            hidden: { transition: { staggerChildren: 0.015, staggerDirection: -1 } },
+                            revealed: { transition: { staggerChildren: 0.025, delayChildren: 0.05 } }
+                          }}
+                        >
+                          {"Find your target customers".split("").map((char, i) => (
+                            <motion.span
+                              key={i}
+                              className="inline-block"
+                              variants={{
+                                hidden: { x: -8, opacity: 0, scale: 0.8 },
+                                revealed: { x: 0, opacity: 1, scale: 1 }
+                              }}
+                              transition={{ duration: 0.15, ease: "easeOut" }}
+                            >
+                              {char === " " ? "\u00A0" : char}
+                            </motion.span>
+                          ))}
+                        </motion.span>
+                      </span>
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-xs bg-gray-900 text-white border-gray-700">
+                    <p>Don't worry "Fluffy" 🐥 has AI search for this - She's incredible!</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </motion.div>
           </div>
 
           {currentIndex !== 5 && (
@@ -248,6 +319,7 @@ export default function LandingStealth() {
                     className="h-16 bg-black/40 backdrop-blur-md border-none text-xl md:text-2xl px-8 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-white/40 font-code tracking-widest uppercase text-white w-full relative z-10 transition-all duration-500 text-center"
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
+                    onFocus={() => setCurrentIndex(5)}
                     data-testid="input-secret-code"
                   />
 
@@ -289,9 +361,19 @@ export default function LandingStealth() {
                 className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
                 transition={{ duration: 0.5 }}
               />
+              <motion.button
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                onClick={() => setCurrentIndex(0)}
+                className="fixed top-6 right-6 z-50 p-2 rounded-full bg-black/60 hover:bg-black/80 transition-colors cursor-pointer"
+                data-testid="button-close-overlay"
+              >
+                <X className="w-6 h-6 text-white/70 hover:text-white" />
+              </motion.button>
               <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 max-w-md w-full scale-110 shadow-2xl flex flex-col gap-4 px-4">
-                <div className="flex flex-col sm:flex-row gap-4 w-full">
-                  <div className="relative flex-1 group/input">
+                <div className="w-full">
+                  <div className="relative flex-1 group/input flex items-center">
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -301,9 +383,11 @@ export default function LandingStealth() {
                     <Input 
                       type="text" 
                       placeholder="ENTER_SECRET_CODE" 
-                      className="h-16 bg-blue-950/30 backdrop-blur-md border-none text-xl md:text-2xl px-8 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-white/40 font-code tracking-widest uppercase text-white w-full relative z-10 transition-all duration-500 text-center shadow-[0_0_30px_rgba(59,130,246,0.3)]"
+                      className="h-16 bg-black border-none text-xl md:text-2xl pl-8 pr-16 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-white/40 font-code tracking-widest uppercase text-white w-full relative z-10 transition-all duration-500 text-center shadow-[0_0_30px_rgba(59,130,246,0.3)]"
                       value={code}
                       onChange={(e) => setCode(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && code.length >= 6 && handleQuack()}
+                      autoFocus
                       data-testid="input-secret-code-floating"
                     />
 
@@ -311,27 +395,28 @@ export default function LandingStealth() {
                     <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
                     <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
                     <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-white/60 group-focus-within/input:border-white transition-colors pointer-events-none z-10" />
-                  </div>
-                  
-                  <AnimatePresence>
-                    {code.length >= 6 && (
-                      <motion.div
-                        initial={{ width: 0, opacity: 0, scale: 0.8 }}
-                        animate={{ width: "auto", opacity: 1, scale: 1 }}
-                        exit={{ width: 0, opacity: 0, scale: 0.8 }}
-                        transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                      >
-                        <Button 
-                          size="lg" 
-                          className="h-16 px-10 text-xl font-bold rounded-none bg-primary text-primary-foreground hover:bg-blue-400 hover:scale-105 active:scale-95 transition-all shadow-[0_0_30px_-5px_rgba(56,189,248,0.6)] font-code tracking-wider whitespace-nowrap"
-                          onClick={handleQuack}
-                          data-testid="button-quack-floating"
+                    
+                    <AnimatePresence>
+                      {code.length >= 6 && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.8 }}
+                          transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                          className="absolute right-3 z-20"
                         >
-                          [ QUACK! ]
-                        </Button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                          <Button 
+                            size="icon" 
+                            className="h-10 w-10 rounded-md bg-gray-700 text-white hover:bg-gray-600 hover:scale-105 active:scale-95 transition-all flex items-center justify-center"
+                            onClick={handleQuack}
+                            data-testid="button-quack-floating"
+                          >
+                            <ArrowRight className="w-5 h-5" />
+                          </Button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 </div>
 
                 <motion.div
@@ -518,12 +603,12 @@ export default function LandingStealth() {
                   >
                     <div className="flex flex-col md:flex-row items-end justify-center md:pl-20">
                       
-                      <h3 className="relative z-20 text-4xl md:text-6xl font-serif italic leading-[1.1] text-white max-w-2xl text-left drop-shadow-2xl -mb-8 md:-mb-0 md:-mr-24 pointer-events-none">
+                      <h3 className="relative z-20 text-4xl md:text-6xl font-serif italic leading-[1.1] text-white max-w-2xl text-left drop-shadow-2xl -mb-8 md:-mb-0 pointer-events-none">
                         &ldquo;{testimonials[currentTestimonialIndex].quote}&rdquo;
                       </h3>
 
-                      <div className="relative z-10 flex items-center gap-5 bg-[#151520] border border-white/10 p-6 pr-10 rounded-2xl shadow-2xl md:-translate-y-8 shrink-0 mt-8 md:mt-0">
-                         <div className="w-20 h-20 rounded-xl overflow-hidden border border-white/20 shadow-lg shrink-0">
+                      <div className="relative z-10 flex items-center gap-5 p-6 pr-10 md:-translate-y-8 shrink-0 mt-8 md:mt-0">
+                         <div className="w-20 h-20 rounded-full overflow-hidden border border-white/20 shadow-lg shrink-0">
                            <img 
                              src={testimonials[currentTestimonialIndex].image} 
                              alt={testimonials[currentTestimonialIndex].author}
@@ -532,7 +617,7 @@ export default function LandingStealth() {
                          </div>
                          <div className="text-left">
                            <p className="text-xl font-bold text-white leading-tight">{testimonials[currentTestimonialIndex].author}</p>
-                           <p className="text-xs font-mono text-primary uppercase tracking-widest leading-tight opacity-90 mt-1">{testimonials[currentTestimonialIndex].role}</p>
+                           <p className="text-xs font-mono text-yellow-400 uppercase tracking-widest leading-tight opacity-90 mt-1">{testimonials[currentTestimonialIndex].role}</p>
                          </div>
                       </div>
 
@@ -541,18 +626,20 @@ export default function LandingStealth() {
                 </AnimatePresence>
               </div>
               
-              <div className="flex justify-center gap-2 mt-24 md:mt-20">
+              <div className="flex justify-center gap-1 mt-24 md:mt-20">
                 {testimonials.map((_, idx) => (
                   <button
                     key={idx}
                     onClick={() => setCurrentTestimonialIndex(idx)}
-                    className={`h-1 rounded-full transition-all duration-300 ${
+                    className="py-4 px-2 group"
+                    data-testid={`button-testimonial-${idx}`}
+                  >
+                    <div className={`h-1 rounded-full transition-all duration-300 ${
                       idx === currentTestimonialIndex 
                         ? "bg-gray-600 w-8" 
-                        : "bg-white/10 hover:bg-white/20 w-4"
-                    }`}
-                    data-testid={`button-testimonial-${idx}`}
-                  />
+                        : "bg-white/10 group-hover:bg-white/20 w-4"
+                    }`} />
+                  </button>
                 ))}
               </div>
             </div>
