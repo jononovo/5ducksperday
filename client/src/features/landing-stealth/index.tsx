@@ -626,18 +626,20 @@ export default function LandingStealth() {
                 </AnimatePresence>
               </div>
               
-              <div className="flex justify-center gap-2 mt-24 md:mt-20">
+              <div className="flex justify-center gap-1 mt-24 md:mt-20">
                 {testimonials.map((_, idx) => (
                   <button
                     key={idx}
                     onClick={() => setCurrentTestimonialIndex(idx)}
-                    className={`h-1 rounded-full transition-all duration-300 ${
+                    className="py-4 px-2 group"
+                    data-testid={`button-testimonial-${idx}`}
+                  >
+                    <div className={`h-1 rounded-full transition-all duration-300 ${
                       idx === currentTestimonialIndex 
                         ? "bg-gray-600 w-8" 
-                        : "bg-white/10 hover:bg-white/20 w-4"
-                    }`}
-                    data-testid={`button-testimonial-${idx}`}
-                  />
+                        : "bg-white/10 group-hover:bg-white/20 w-4"
+                    }`} />
+                  </button>
                 ))}
               </div>
             </div>
