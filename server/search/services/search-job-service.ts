@@ -219,7 +219,7 @@ export class SearchJobService {
         
         // Wait for joke to display (work is running in parallel)
         if (hasJoke && joke) {
-          await delay(5000);
+          await delay(4500);
         }
         
         // Now show the real phase label
@@ -297,7 +297,7 @@ export class SearchJobService {
           }
           
           // Calculate when progress updates can resume (after punchline display)
-          const suppressProgressUntil = hasJoke && joke ? Date.now() + 5000 : 0;
+          const suppressProgressUntil = hasJoke && joke ? Date.now() + 4500 : 0;
           
           // Start email enrichment work (runs in parallel with punchline display)
           console.log(`[SearchJobService] Starting email search (Apollo/Perplexity/Hunter) for ${contacts.length} contacts`);
@@ -305,7 +305,7 @@ export class SearchJobService {
           
           // Wait for punchline to display (work is running in parallel)
           if (hasJoke && joke) {
-            await delay(5000);
+            await delay(4500);
           }
           
           // Now show the real phase label
