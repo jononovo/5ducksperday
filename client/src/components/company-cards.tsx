@@ -68,6 +68,7 @@ interface CompanyCardsProps {
   getCompanySelectionState?: (company: Company & { contacts?: ContactWithCompanyInfo[] }) => 'checked' | 'indeterminate' | 'unchecked';
   onCompanySelectionChange?: (company: Company & { contacts?: ContactWithCompanyInfo[] }) => void;
   topActionsTrailing?: React.ReactNode;
+  onShowReport?: () => void;
 }
 
 // Unified CompanyCard component
@@ -418,7 +419,8 @@ export default function CompanyCards({
   onContactSelectionChange,
   getCompanySelectionState,
   onCompanySelectionChange,
-  topActionsTrailing
+  topActionsTrailing,
+  onShowReport
 }: CompanyCardsProps) {
   const [, setLocation] = useLocation();
   
@@ -747,6 +749,16 @@ export default function CompanyCards({
               Slides
             </Button>
           </div>
+          
+          {onShowReport && (
+            <button
+              onClick={onShowReport}
+              className="text-[11px] text-gray-400 hover:text-gray-600 hover:underline ml-2 transition-colors"
+              data-testid="link-show-report"
+            >
+              Report
+            </button>
+          )}
         </div>
         
         {/* Slide Counter and Navigation for Slides View */}

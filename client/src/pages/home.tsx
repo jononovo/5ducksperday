@@ -11,10 +11,8 @@ import { TableSkeleton } from "@/components/ui/table-skeleton";
 const CompanyCards = lazy(() => import("@/components/company-cards"));
 const PromptEditor = lazy(() => import("@/components/prompt-editor"));
 
-// Import components with named exports directly for now
-import { EmailSearchSummary } from "@/components/email-search-summary";
-import { ContactDiscoveryReport } from "@/components/contact-discovery-report";
-import { MainSearchSummary } from "@/components/main-search-summary";
+// Import consolidated search report modal
+import { SearchReportModal } from "@/features/search-report";
 import { OnboardingFlowOrchestrator } from "@/components/onboarding/OnboardingFlowOrchestrator";
 import { EmailDrawer, useEmailDrawer } from "@/features/email-drawer";
 import { SearchManagementDrawer, useSearchManagementDrawer } from "@/features/search-management-drawer";
@@ -324,6 +322,13 @@ export default function Home() {
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const listMutationInProgressRef = useRef(false);
   const listUpdateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // Ref to store pending metrics to persist after list creation
+  const pendingMetricsRef = useRef<{
+    totalContacts: number | null;
+    totalEmails: number | null;
+    searchDurationSeconds: number | null;
+    sourceBreakdown: SourceBreakdown | null;
+  } | null>(null);
 
 
 
@@ -679,6 +684,19 @@ export default function Home() {
         }
       );
       console.log('Persisted new listId to localStorage:', listId);
+      
+      // Persist any pending metrics that were collected before list creation
+      if (pendingMetricsRef.current && listId) {
+        const pendingMetrics = pendingMetricsRef.current;
+        apiRequest("PATCH", `/api/lists/${listId}/metrics`, pendingMetrics)
+          .then(() => {
+            console.log(`Persisted pending search metrics to newly created list ${listId}`);
+            pendingMetricsRef.current = null; // Clear pending metrics
+          })
+          .catch((error) => {
+            console.error('Failed to persist pending search metrics:', error);
+          });
+      }
       // No toast notification (silent auto-save)
     },
     onError: (error) => {
@@ -1331,6 +1349,22 @@ export default function Home() {
       const totalContacts = companiesWithContacts.reduce((sum, company) => 
         sum + (company.contacts?.length || 0), 0);
       
+      // Load persisted search metrics if available
+      if (list.totalContacts !== null || list.totalEmails !== null || list.searchDurationSeconds !== null) {
+        setMainSearchMetrics({
+          totalContacts: list.totalContacts ?? 0,
+          totalEmails: list.totalEmails ?? 0,
+          duration: list.searchDurationSeconds ? list.searchDurationSeconds * 1000 : 0,
+          sourceBreakdown: list.sourceBreakdown ?? { Perplexity: 0, Apollo: 0, Hunter: 0 }
+        });
+        console.log('Loaded persisted search metrics:', {
+          totalContacts: list.totalContacts,
+          totalEmails: list.totalEmails,
+          searchDurationSeconds: list.searchDurationSeconds,
+          sourceBreakdown: list.sourceBreakdown
+        });
+      }
+      
       toast({
         title: "Search Loaded",
         description: `Loaded "${list.prompt}" with ${list.resultCount} companies and ${totalContacts} contacts`,
@@ -1614,8 +1648,7 @@ export default function Home() {
     return pendingApolloIds.has(contactId);
   };
   
-  // State for other UI components not handled by extracted hooks
-  const [contactReportVisible, setContactReportVisible] = useState(false);
+  // State for consolidated search report modal
   const [mainSummaryVisible, setMainSummaryVisible] = useState(false);
   const [mainSearchMetrics, setMainSearchMetrics] = useState({
     query: "",
@@ -1623,7 +1656,8 @@ export default function Home() {
     totalContacts: 0,
     totalEmails: 0,
     searchDuration: 0,
-    companies: [] as any[]
+    companies: [] as any[],
+    sourceBreakdown: undefined as { Perplexity: number; Apollo: number; Hunter: number } | undefined
   });
   
 
@@ -2058,16 +2092,19 @@ export default function Home() {
 
   return (
     <>
-      {/* Main Search Summary Modal - Rendered at root level to avoid overflow clipping */}
-      <MainSearchSummary
-        query={mainSearchMetrics.query}
-        totalCompanies={mainSearchMetrics.totalCompanies}
-        totalContacts={mainSearchMetrics.totalContacts}
-        totalEmails={mainSearchMetrics.totalEmails}
-        searchDuration={mainSearchMetrics.searchDuration}
+      {/* Consolidated Search Report Modal - Rendered at root level to avoid overflow clipping */}
+      <SearchReportModal
+        metrics={{
+          query: mainSearchMetrics.query,
+          totalCompanies: mainSearchMetrics.totalCompanies,
+          totalContacts: mainSearchMetrics.totalContacts,
+          totalEmails: mainSearchMetrics.totalEmails,
+          searchDuration: mainSearchMetrics.searchDuration,
+          companies: mainSearchMetrics.companies,
+          sourceBreakdown: mainSearchMetrics.sourceBreakdown
+        }}
         isVisible={mainSummaryVisible}
         onClose={() => setMainSummaryVisible(false)}
-        companies={mainSearchMetrics.companies}
       />
       
       <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden relative">
@@ -2188,19 +2225,47 @@ export default function Home() {
                     hasSearchResults={currentResults ? currentResults.length > 0 : false}
                     onSessionIdChange={setCurrentSessionId}
                     hideRoleButtons={!!(searchSectionCollapsed && currentResults && currentResults.length > 0 && !inputHasChanged)}
-                    onSearchMetricsUpdate={(metrics, showSummary) => {
-                      setMainSearchMetrics(metrics);
+                    onSearchMetricsUpdate={async (metrics, showSummary) => {
+                      setMainSearchMetrics({
+                        ...metrics,
+                        sourceBreakdown: metrics.sourceBreakdown
+                      });
                       setMainSummaryVisible(showSummary);
-                      // Show contact report only when search completes and has actual contacts
-                      if (showSummary && metrics.totalCompanies > 0 && metrics.totalContacts > 0) {
-                        setContactReportVisible(true);
-                        // Show email summary if search type was 'emails' and emails were found
-                        if (metrics.searchType === 'emails' && metrics.totalEmails && metrics.totalEmails > 0) {
-                          emailOrchestration.updateEmailSearchMetrics(
-                            metrics.totalEmails,
-                            metrics.sourceBreakdown || { Perplexity: metrics.totalEmails, Apollo: 0, Hunter: 0 }
-                          );
+                      
+                      // Transform companies to reportCompanies format for persistence
+                      const reportCompanies = metrics.companies?.map((company: any) => ({
+                        id: company.id,
+                        name: company.name,
+                        contacts: company.contacts?.map((contact: any) => ({
+                          id: contact.id,
+                          name: contact.name,
+                          role: contact.role,
+                          email: contact.email,
+                          probability: contact.probability
+                        }))
+                      })) ?? null;
+                      
+                      // Prepare metrics for persistence
+                      const metricsToSave = {
+                        totalContacts: metrics.totalContacts ?? null,
+                        totalEmails: metrics.totalEmails ?? null,
+                        searchDurationSeconds: metrics.searchDuration ?? null,
+                        sourceBreakdown: metrics.sourceBreakdown ?? null,
+                        reportCompanies
+                      };
+                      
+                      // Persist metrics to database if we have a saved list
+                      if (currentListId && metrics) {
+                        try {
+                          await apiRequest("PATCH", `/api/lists/${currentListId}/metrics`, metricsToSave);
+                          console.log(`Persisted search metrics to list ${currentListId}`);
+                        } catch (error) {
+                          console.error('Failed to persist search metrics:', error);
                         }
+                      } else if (metrics) {
+                        // Store metrics in ref to persist after list creation
+                        pendingMetricsRef.current = metricsToSave;
+                        console.log('Stored pending metrics for later persistence');
                       }
                     }}
                     onOpenSearchDrawer={() => searchManagementDrawer.openDrawer()}
@@ -2282,37 +2347,6 @@ export default function Home() {
           {currentResults && currentResults.length > 0 ? (
             <Card className={`w-full rounded-none md:rounded-lg border-0 transition-all duration-300 ${emailDrawer.isOpen ? 'shadow-none' : ''}`}>
               
-              {/* Contact Discovery Report - with reduced padding */}
-              {contactReportVisible && (
-                <div className="px-0 md:px-4 pt-0 pb-2">
-                  <ContactDiscoveryReport 
-                    companiesWithContacts={currentResults?.filter(company => 
-                      company.contacts && company.contacts.length > 0).length || 0}
-                    totalCompanies={currentResults?.length || 0}
-                    totalContacts={currentResults?.reduce((sum, company) => 
-                      sum + (company.contacts?.length || 0), 0) || 0}
-                    onClose={() => setContactReportVisible(false)}
-                    isVisible={contactReportVisible}
-                  />
-                </div>
-              )}
-
-              {/* Email Search Summary - with reduced padding */}
-              {emailOrchestration.summaryVisible && (
-                <div className="px-0 md:px-4 pt-1 pb-0">
-                  <EmailSearchSummary 
-                    companiesWithEmails={currentResults?.filter(company => 
-                      emailOrchestration.getTopContacts(company, 3).some(contact => contact.email && contact.email.length > 5)).length || 0}
-                    totalCompanies={currentResults?.length || 0}
-                    totalEmailsFound={emailOrchestration.lastEmailSearchCount || currentResults?.reduce((total, company) => 
-                      total + (emailOrchestration.getTopContacts(company, 3).filter(contact => contact.email && contact.email.length > 5).length), 0) || 0}
-                    sourceBreakdown={emailOrchestration.lastSourceBreakdown || undefined}
-                    onClose={() => emailOrchestration.closeSummary()}
-                    isVisible={emailOrchestration.summaryVisible}
-                  />
-                </div>
-              )}
-              
               {/* Email Search Progress - with reduced padding */}
               {emailOrchestration.isSearching && (
                 <div className="px-0 md:px-4 pt-0 pb-3">
@@ -2353,6 +2387,7 @@ export default function Home() {
                           selectedContactIds={Array.from(selectedContacts)}
                         />
                       ) : undefined}
+                      onShowReport={() => setMainSummaryVisible(true)}
                   />
                   </Suspense>
                 </div>

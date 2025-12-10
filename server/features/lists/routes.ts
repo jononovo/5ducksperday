@@ -104,6 +104,42 @@ export function registerSearchListsRoutes(app: Application, requireAuth: any) {
     }
   });
 
+  // Update list metrics (for search report persistence)
+  router.patch('/:listId/metrics', async (req: Request, res: Response) => {
+    try {
+      const userId = getUserId(req);
+      const listId = parseInt(req.params.listId);
+      const { totalContacts, totalEmails, searchDurationSeconds, sourceBreakdown, reportCompanies } = req.body;
+      
+      console.log(`PATCH /api/lists/${listId}/metrics called by user ${userId}`);
+      
+      if (isNaN(listId)) {
+        return res.status(400).json({ message: "Invalid list ID" });
+      }
+      
+      const updated = await SearchListsService.updateSearchListMetrics(listId, {
+        totalContacts,
+        totalEmails,
+        searchDurationSeconds,
+        sourceBreakdown,
+        reportCompanies
+      }, userId);
+      
+      if (!updated) {
+        return res.status(404).json({
+          message: "List not found or you don't have permission to update it"
+        });
+      }
+      
+      res.json(updated);
+    } catch (error) {
+      console.error('Metrics update error:', error);
+      res.status(500).json({
+        message: error instanceof Error ? error.message : "Failed to update metrics"
+      });
+    }
+  });
+
   // Update list
   router.put('/:listId', requireAuth, async (req: Request, res: Response) => {
     try {

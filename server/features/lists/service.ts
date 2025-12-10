@@ -277,4 +277,41 @@ export class SearchListsService {
     console.log(`List ${listId} successfully updated with ${savedCompanyIds.length} companies`);
     return updated;
   }
+
+  static async updateSearchListMetrics(
+    listId: number,
+    metrics: {
+      totalContacts?: number | null;
+      totalEmails?: number | null;
+      searchDurationSeconds?: number | null;
+      sourceBreakdown?: { Perplexity: number; Apollo: number; Hunter: number } | null;
+      reportCompanies?: Array<{ id: number; name: string; contacts?: Array<{ id: number; name?: string; role?: string; email?: string; probability?: number }> }> | null;
+    },
+    userId: number
+  ): Promise<SearchListResponse | null> {
+    console.log(`Updating metrics for list ${listId} for user ${userId}:`, metrics);
+    
+    // Check if list exists and user has permission
+    const existingList = await storage.getSearchList(listId, userId);
+    if (!existingList) {
+      console.log(`Metrics update failed: List ${listId} not found for user ${userId}`);
+      return null;
+    }
+    
+    const updated = await storage.updateSearchList(listId, {
+      totalContacts: metrics.totalContacts ?? undefined,
+      totalEmails: metrics.totalEmails ?? undefined,
+      searchDurationSeconds: metrics.searchDurationSeconds ?? undefined,
+      sourceBreakdown: metrics.sourceBreakdown ?? undefined,
+      reportCompanies: metrics.reportCompanies ?? undefined
+    }, userId);
+    
+    if (!updated) {
+      console.log(`Metrics update failed: updateSearchList returned null for list ${listId}`);
+      return null;
+    }
+    
+    console.log(`Metrics for list ${listId} successfully updated`);
+    return updated;
+  }
 }
