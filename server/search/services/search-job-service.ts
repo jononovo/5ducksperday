@@ -180,21 +180,19 @@ export class SearchJobService {
       
       console.log(`[SearchJobService] Saved ${savedCompanies.length} companies for immediate display`);
       
+      // Show "Companies ready!" for 2 seconds while next phase work starts in parallel
+      await this.updateJobProgress(job.id, {
+        phase: 'Companies ready!',
+        completed: currentPhase,
+        total: totalPhases,
+        message: `${savedCompanies.length} companies loaded to page`
+      });
+      
       // Phase 3: Parallel company details and contact discovery
       if (job.searchType === 'contacts' || job.searchType === 'emails') {
         currentPhase++;
         
-        // Show joke setup as temporary phase label override (if available)
-        if (hasJoke && joke) {
-          await this.updateJobProgress(job.id, {
-            phase: `Joke: ${joke.setup}`,
-            completed: currentPhase,
-            total: totalPhases,
-            message: 'A little humor while we search...'
-          });
-        }
-
-        // Prepare and START parallel tasks immediately (work runs during joke display)
+        // Prepare and START parallel tasks immediately (work runs during "Companies ready!" and joke display)
         const parallelTasks: Promise<any>[] = [];
         
         // Task 1: Enrich company descriptions
@@ -204,7 +202,7 @@ export class SearchJobService {
         });
         parallelTasks.push(enrichmentTask);
         
-        // Task 2: Find contacts (no onProgress to avoid overwriting joke display)
+        // Task 2: Find contacts (no onProgress to avoid overwriting displays)
         const { ContactSearchService } = await import('./contact-search-service');
         const contactTask = ContactSearchService.searchContacts({
           companies: savedCompanies,
@@ -217,8 +215,17 @@ export class SearchJobService {
         });
         parallelTasks.push(contactTask);
         
-        // Wait for joke to display (work is running in parallel)
+        // Wait for "Companies ready!" to display (work is running in parallel)
+        await delay(2000);
+        
+        // Show joke setup as temporary phase label override (if available)
         if (hasJoke && joke) {
+          await this.updateJobProgress(job.id, {
+            phase: `Joke: ${joke.setup}`,
+            completed: currentPhase,
+            total: totalPhases,
+            message: 'A little humor while we search...'
+          });
           await delay(4500);
         }
         
