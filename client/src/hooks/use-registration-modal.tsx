@@ -6,9 +6,7 @@ type RegistrationModalContextType = {
   openModal: () => void;
   closeModal: () => void;
   openForProtectedRoute: () => void;
-  openForLandingPage: () => void;
   isOpenedFromProtectedRoute: boolean;
-  isOpenedFromLandingPage: boolean;
   setRegistrationSuccessCallback: (callback: () => void) => void;
 };
 
@@ -17,9 +15,7 @@ const RegistrationModalContext = createContext<RegistrationModalContextType>({
   openModal: () => {},
   closeModal: () => {},
   openForProtectedRoute: () => {},
-  openForLandingPage: () => {},
   isOpenedFromProtectedRoute: false,
-  isOpenedFromLandingPage: false,
   setRegistrationSuccessCallback: () => {},
 });
 
@@ -33,7 +29,6 @@ export const RegistrationModalProvider = ({ children }: RegistrationModalProvide
   // Modal should be closed by default
   const [isOpen, setIsOpen] = useState(false);
   const [isOpenedFromProtectedRoute, setIsOpenedFromProtectedRoute] = useState(false);
-  const [isOpenedFromLandingPage, setIsOpenedFromLandingPage] = useState(false);
   const [onSuccessCallback, setOnSuccessCallback] = useState<(() => void) | null>(null);
   const { user } = useAuth();
 
@@ -52,15 +47,9 @@ export const RegistrationModalProvider = ({ children }: RegistrationModalProvide
     setIsOpen(true);
   };
 
-  const openForLandingPage = () => {
-    setIsOpenedFromLandingPage(true);
-    setIsOpen(true);
-  };
-
   const closeModal = () => {
     setIsOpen(false);
     setIsOpenedFromProtectedRoute(false);
-    setIsOpenedFromLandingPage(false);
   };
 
   const setRegistrationSuccessCallback = (callback: () => void) => {
@@ -87,9 +76,7 @@ export const RegistrationModalProvider = ({ children }: RegistrationModalProvide
         openModal, 
         closeModal,
         openForProtectedRoute,
-        openForLandingPage,
         isOpenedFromProtectedRoute,
-        isOpenedFromLandingPage,
         setRegistrationSuccessCallback
       }}
     >
