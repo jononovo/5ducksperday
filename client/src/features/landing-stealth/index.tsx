@@ -976,7 +976,7 @@ export default function LandingStealth() {
               
               <div className="space-y-6 text-gray-400 leading-relaxed">
                 <p className="text-lg">
-                  I do <span className="text-yellow-400 font-bold">10 push-ups</span> before every shower and I realized that if I do 20, I will very soon stop doing them. But I will explain that later.
+                  I do <span className="text-white italic">10 push-ups</span> before every shower and I realized that if I do 20, I will very soon stop doing them. But I will explain that later.
                 </p>
                 
                 <p>
@@ -984,19 +984,19 @@ export default function LandingStealth() {
                 </p>
                 
                 <p>
-                  I then got distracted in workflows to optimize the sales and lead generation. However, finally coming back to this, I decided to launch it because, who the hell wants to open their inbox (with all those clickbait newsletters and juicy news updates) and THEN start sending sales emails?!? <span className="text-purple-400">That's like asking an alcoholic to work at a bar.</span> It's so distracting.
+                  I then got distracted in workflows to optimize the sales and lead generation. However, finally coming back to this, I decided to launch it because, who the hell wants to open their inbox (with all those clickbait newsletters and juicy news updates) and THEN start sending sales emails?!? <span className="text-white italic">That's like asking an alcoholic to work at a bar.</span> It's so distracting.
                 </p>
                 
                 <p>
-                  The other thing I realized is that all the other lead generation services that popped-up when I was searching, were for people with <span className="text-gray-300">big budgets</span> and usually needed someone to set it up for them.
+                  The other thing I realized is that all the other lead generation services that popped-up when I was searching, were for people with <span className="text-white italic">big budgets</span> and usually needed someone to set it up for them.
                 </p>
                 
                 <p>
-                  I wanted something for the <span className="text-yellow-400 font-bold">small guy</span> that he could get running in less than 60 seconds. And that could be <span className="text-green-400">addictive and fun</span>.
+                  I wanted something for the <span className="text-white italic">small guy</span> that he could get running in less than 60 seconds. And that could be <span className="text-white italic">addictive and fun</span>.
                 </p>
                 
                 <p>
-                  Now back to those pushups. Well, I realized that the harder the task is, the more likely that I will abandon it, and not make it habit. And I figured, if I can make the selling process much, much easier, but then put a limit so that people will not feel guilty leaving after <span className="text-yellow-400 font-bold">five minutes</span>, that they might enjoy it more AND may make a habit out of it.
+                  Now back to those pushups. Well, I realized that the harder the task is, the more likely that I will abandon it, and not make it habit. And I figured, if I can make the selling process much, much easier, but then put a limit so that people will not feel guilty leaving after <span className="text-white italic">five minutes</span>, that they might enjoy it more AND may make a habit out of it.
                 </p>
                 
                 <p className="text-gray-300 pt-4">
