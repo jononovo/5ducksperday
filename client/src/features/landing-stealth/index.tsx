@@ -271,6 +271,7 @@ export default function LandingStealth() {
   };
 
   return (
+    <div className="dark">
     <div className="min-h-screen w-full bg-background overflow-x-hidden relative flex flex-col">
       <div className="relative z-10 min-h-[90vh] flex flex-col justify-center">
         <div className="absolute top-6 left-6 md:top-10 md:left-10 z-30">
@@ -964,6 +965,7 @@ export default function LandingStealth() {
         onClose={handleCloseOverlay}
         onComplete={handleOnboardingComplete}
       />
+    </div>
     </div>
   );
 }
