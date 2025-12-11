@@ -63,10 +63,10 @@ export const STEALTH_INITIAL_DATA: StealthOnboardingData = {
 };
 
 const SECTION_CREDITS = {
-  A: 50,
-  B: 75,
-  C: 100,
-  D: 50,
+  A: 120,
+  B: 150,
+  C: 150,
+  D: 180,
 };
 
 export const STEALTH_QUESTIONS: Question<StealthOnboardingData>[] = [
