@@ -72,6 +72,7 @@ export function OnboardingShell<T extends Record<string, string>>({
       data,
       onSelect: handleSelect,
       onTextInput: handleTextInput,
+      onNext: handleNext,
     };
 
     if (currentQuestion.component && componentRegistry[currentQuestion.component]) {
