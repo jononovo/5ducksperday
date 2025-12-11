@@ -8,7 +8,6 @@ interface StealthOnboardingModalProps {
   isOpen: boolean;
   onClose: () => void;
   onComplete: () => void;
-  userData: { name: string; email: string };
 }
 
 interface QuestionOption {
@@ -69,7 +68,7 @@ const QUESTIONS = [
   },
 ];
 
-export function StealthOnboardingModal({ isOpen, onClose, onComplete, userData }: StealthOnboardingModalProps) {
+export function StealthOnboardingModal({ isOpen, onClose, onComplete }: StealthOnboardingModalProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [data, setData] = useState<OnboardingData>({
     purpose: "",
@@ -176,7 +175,7 @@ export function StealthOnboardingModal({ isOpen, onClose, onComplete, userData }
                       transition={{ delay: 0.3 }}
                       className="text-3xl md:text-4xl font-bold text-white mb-2"
                     >
-                      Hey {userData.name.split(" ")[0]}!
+                      Welcome aboard!
                     </motion.h1>
                     <motion.p
                       initial={{ opacity: 0, y: 20 }}
