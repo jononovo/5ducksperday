@@ -4,6 +4,7 @@ export type QuestionType =
   | "welcome" 
   | "section-intro" 
   | "single-select" 
+  | "multi-select"
   | "text-input" 
   | "multi-field"
   | "section-complete" 
@@ -77,6 +78,7 @@ export interface QuestionComponentProps<T extends Record<string, string>> {
   data: T;
   onSelect?: (questionId: string, optionId: string) => void;
   onTextInput?: (questionId: string, value: string) => void;
+  onNext?: () => void;
 }
 
 export interface ScreenComponentProps {

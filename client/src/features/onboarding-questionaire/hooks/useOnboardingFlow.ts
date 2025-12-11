@@ -52,6 +52,11 @@ export function useOnboardingFlow<T extends Record<string, string>>(
       return value !== "" && value !== undefined;
     }
 
+    if (type === "multi-select") {
+      const value = data[id as keyof T];
+      return typeof value === "string" && value.trim() !== "";
+    }
+
     if (type === "text-input") {
       const value = data[id as keyof T];
       return typeof value === "string" && value.trim() !== "";

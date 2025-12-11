@@ -1,3 +1,4 @@
+import { useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import type { QuestionComponentProps } from "../types";
 
@@ -5,7 +6,28 @@ export function QuestionSingleSelect<T extends Record<string, string>>({
   question,
   data,
   onSelect,
+  onNext,
 }: QuestionComponentProps<T>) {
+  const autoAdvanceRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (autoAdvanceRef.current) {
+        clearTimeout(autoAdvanceRef.current);
+      }
+    };
+  }, []);
+
+  const handleOptionClick = (optionId: string) => {
+    if (autoAdvanceRef.current) {
+      clearTimeout(autoAdvanceRef.current);
+    }
+    onSelect?.(question.id, optionId);
+    autoAdvanceRef.current = setTimeout(() => {
+      onNext?.();
+    }, 400);
+  };
+
   return (
     <div className="space-y-8">
       <div className="text-center">
@@ -29,7 +51,7 @@ export function QuestionSingleSelect<T extends Record<string, string>>({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              onClick={() => onSelect?.(question.id, option.id)}
+              onClick={() => handleOptionClick(option.id)}
               className={`w-full p-4 rounded-xl border-2 transition-all duration-200 flex items-center gap-4 text-left group ${
                 isSelected
                   ? "bg-yellow-500/10 border-yellow-500/50 shadow-[0_0_20px_rgba(250,204,21,0.2)]"

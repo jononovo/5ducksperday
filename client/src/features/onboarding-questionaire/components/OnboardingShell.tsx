@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 import type { OnboardingShellProps, QuestionComponentProps } from "../types";
 import { fireSectionConfetti, fireFinalConfetti } from "../utils/confetti";
 import { QuestionSingleSelect } from "./QuestionSingleSelect";
+import { QuestionMultiSelect } from "./QuestionMultiSelect";
 import { QuestionTextInput } from "./QuestionTextInput";
 import { WelcomeScreen } from "./WelcomeScreen";
 import { SectionIntro } from "./SectionIntro";
@@ -72,6 +73,7 @@ export function OnboardingShell<T extends Record<string, string>>({
       data,
       onSelect: handleSelect,
       onTextInput: handleTextInput,
+      onNext: handleNext,
     };
 
     if (currentQuestion.component && componentRegistry[currentQuestion.component]) {
@@ -115,6 +117,8 @@ export function OnboardingShell<T extends Record<string, string>>({
         );
       case "single-select":
         return <QuestionSingleSelect {...props} />;
+      case "multi-select":
+        return <QuestionMultiSelect {...props} />;
       case "text-input":
         return <QuestionTextInput {...props} />;
       case "multi-field":
@@ -183,23 +187,25 @@ export function OnboardingShell<T extends Record<string, string>>({
         </div>
       </div>
 
-      <div className="px-6 py-6">
-        <div className="max-w-lg mx-auto">
-          <Button
-            onClick={handleContinue}
-            disabled={!canContinue()}
-            className={`w-full h-14 text-lg font-bold rounded-xl transition-all ${
-              canContinue()
-                ? "bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-black shadow-[0_0_30px_rgba(250,204,21,0.3)]"
-                : "bg-white/10 text-gray-500 cursor-not-allowed"
-            }`}
-            data-testid="button-onboarding-continue"
-          >
-            {getButtonText()}
-            <ChevronRight className="w-5 h-5 ml-2" />
-          </Button>
+      {currentQuestion?.type !== "single-select" && (
+        <div className="px-6 py-6">
+          <div className="max-w-lg mx-auto">
+            <Button
+              onClick={handleContinue}
+              disabled={!canContinue()}
+              className={`w-full h-14 text-lg font-bold rounded-xl transition-all ${
+                canContinue()
+                  ? "bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-black shadow-[0_0_30px_rgba(250,204,21,0.3)]"
+                  : "bg-white/10 text-gray-500 cursor-not-allowed"
+              }`}
+              data-testid="button-onboarding-continue"
+            >
+              {getButtonText()}
+              <ChevronRight className="w-5 h-5 ml-2" />
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
     </motion.div>,
     document.body
   );
