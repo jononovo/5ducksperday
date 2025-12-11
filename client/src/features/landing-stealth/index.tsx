@@ -972,7 +972,7 @@ export default function LandingStealth() {
             >
               <div className="flex items-center gap-3 mb-8">
                 <span className="text-4xl">🎮</span>
-                <h3 className="text-3xl md:text-4xl font-serif text-white">My Story</h3>
+                <h3 className="text-3xl md:text-5xl font-serif text-white">My Story</h3>
               </div>
               
               <div className="space-y-6 text-gray-400 leading-relaxed">
