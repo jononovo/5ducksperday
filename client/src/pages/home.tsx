@@ -2273,6 +2273,33 @@ export default function Home() {
                   />
                 </Suspense>
                 
+                {/* Search suggestions - shown only when no results */}
+                {!currentResults && (
+                  <div className="mt-4 text-center">
+                    <p className="text-sm text-muted-foreground mb-3">Or select one of the suggestions below:</p>
+                    <div className="flex flex-wrap justify-center gap-2">
+                      {[
+                        "Recently exited startups in Miami",
+                        "Real-estate lawyers in Salt Lake City",
+                        "Stationary suppliers in Scranton",
+                        "Health-tech SaaS in Brooklyn"
+                      ].map((suggestion) => (
+                        <button
+                          key={suggestion}
+                          onClick={() => {
+                            setCurrentQuery(suggestion);
+                            setInputHasChanged(true);
+                          }}
+                          className="px-3 py-1.5 text-sm bg-muted hover:bg-muted/80 rounded-full transition-colors hover:shadow-sm"
+                          data-testid={`button-suggestion-${suggestion.toLowerCase().replace(/\s+/g, '-').slice(0, 30)}`}
+                        >
+                          {suggestion}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
                 {/* Action buttons menu - Moved here from search results, Hidden in focus mode and active search state */}
                 {currentResults && currentResults.length > 0 && !inputHasChanged && !emailDrawer.isOpen && (
                   <div className="px-0 py-3 flex items-center justify-between bg-white dark:bg-transparent transition-all duration-300">
