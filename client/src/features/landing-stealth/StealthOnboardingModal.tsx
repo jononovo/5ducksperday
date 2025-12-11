@@ -25,7 +25,7 @@ type QuestionType = "welcome" | "section-intro" | "single-select" | "text-input"
 interface Question {
   id: string;
   type: QuestionType;
-  section?: "A" | "B" | "C";
+  section?: "A" | "B" | "C" | "D";
   title: string;
   subtitle?: string;
   emoji?: string;
@@ -69,6 +69,7 @@ const SECTION_CREDITS = {
   A: 50,
   B: 75,
   C: 100,
+  D: 50,
 };
 
 const QUESTIONS: Question[] = [
@@ -235,21 +236,41 @@ const QUESTIONS: Question[] = [
     inputType: "textarea",
   },
   {
+    id: "section-c-complete",
+    type: "section-complete",
+    section: "C",
+    title: "You're a star!",
+    subtitle: "Fluffy knows your product now",
+    emoji: "⭐",
+    credits: SECTION_CREDITS.C,
+  },
+  
+  // ===== SECTION D: Product Pricing =====
+  {
+    id: "section-d-intro",
+    type: "section-intro",
+    section: "D",
+    title: "Let's talk pricing",
+    subtitle: "This helps Fluffy understand your offer",
+    emoji: "💰",
+  },
+  {
     id: "hasFixedPricing",
     type: "single-select",
-    section: "C",
+    section: "D",
     title: "Do you have a fixed price or package?",
     subtitle: "Let Fluffy know how you charge",
     options: [
       { id: "yes", label: "Yes, I have set pricing", icon: <Package className="w-5 h-5" /> },
       { id: "no", label: "No, it varies by project", icon: <TrendingUp className="w-5 h-5" /> },
+      { id: "skip", label: "Skip for now", icon: <ChevronRight className="w-5 h-5" /> },
     ],
   },
   // Fixed pricing sub-slides
   {
     id: "packageName",
     type: "text-input",
-    section: "C",
+    section: "D",
     title: "What's your package or product called?",
     subtitle: "Give it a name that sticks",
     placeholder: "e.g., Growth Plan, Pro Package, Starter Kit",
@@ -260,7 +281,7 @@ const QUESTIONS: Question[] = [
   {
     id: "packageCost",
     type: "text-input",
-    section: "C",
+    section: "D",
     title: "How much does it cost?",
     subtitle: "Ballpark is fine!",
     placeholder: "e.g., $99/month, $2,500 one-time, Starting at $500",
@@ -271,7 +292,7 @@ const QUESTIONS: Question[] = [
   {
     id: "packageIncludes",
     type: "text-input",
-    section: "C",
+    section: "D",
     title: "What's included?",
     subtitle: "The highlights that make it awesome",
     placeholder: "e.g., 3 revisions, 24/7 support, unlimited users",
@@ -283,7 +304,7 @@ const QUESTIONS: Question[] = [
   {
     id: "serviceDescription",
     type: "text-input",
-    section: "C",
+    section: "D",
     title: "Describe a service you offer right now",
     subtitle: "Just one or two lines is perfect",
     placeholder: "e.g., Custom website design for small businesses",
@@ -294,7 +315,7 @@ const QUESTIONS: Question[] = [
   {
     id: "serviceCost",
     type: "text-input",
-    section: "C",
+    section: "D",
     title: "What's typically paid for that?",
     subtitle: "A range works great here",
     placeholder: "e.g., $2,000-$5,000 depending on scope",
@@ -305,7 +326,7 @@ const QUESTIONS: Question[] = [
   {
     id: "serviceOther",
     type: "text-input",
-    section: "C",
+    section: "D",
     title: "Anything else we should know?",
     subtitle: "Optional but helpful for Fluffy",
     placeholder: "e.g., Projects usually take 2-4 weeks",
@@ -314,13 +335,13 @@ const QUESTIONS: Question[] = [
     conditionalValue: "no",
   },
   {
-    id: "section-c-complete",
+    id: "section-d-complete",
     type: "section-complete",
-    section: "C",
-    title: "You're a star!",
+    section: "D",
+    title: "Perfect!",
     subtitle: "Fluffy is ready to help you sell",
-    emoji: "⭐",
-    credits: SECTION_CREDITS.C,
+    emoji: "🎯",
+    credits: SECTION_CREDITS.D,
   },
   
   // ===== FINAL =====
