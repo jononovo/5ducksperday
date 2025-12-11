@@ -60,6 +60,20 @@ export default function LandingStealth() {
   
   const buttonRef = useRef<HTMLButtonElement>(null);
 
+  // Force dark mode on this page regardless of user preference
+  useEffect(() => {
+    const root = document.documentElement;
+    const wasDark = root.classList.contains('dark');
+    root.classList.add('dark');
+    
+    return () => {
+      // Restore previous state when leaving the page
+      if (!wasDark) {
+        root.classList.remove('dark');
+      }
+    };
+  }, []);
+
   useEffect(() => {
     setIsMounted(true);
   }, []);

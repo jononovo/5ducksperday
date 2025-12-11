@@ -138,10 +138,11 @@ export function registerRoutes(app: Express) {
   // Serve static files from the static directory
   app.use('/static', express.static(path.join(__dirname, '../static')));
   
-  // Serve the static landing page at root route
-  app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../static/landing.html'));
-  });
+  // Landing page is now handled by React app (LandingStealth component)
+  // To restore static landing: uncomment below
+  // app.get('/', (req, res) => {
+  //   res.sendFile(path.join(__dirname, '../static/landing.html'));
+  // });
   
   // Serve the static pricing page
   app.get('/pricing', (req, res) => {

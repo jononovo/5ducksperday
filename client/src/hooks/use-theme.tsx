@@ -32,7 +32,7 @@ function getStoredTheme(): Theme {
       return stored;
     }
   }
-  return "system";
+  return "light";
 }
 
 function applyTheme(theme: Theme) {
