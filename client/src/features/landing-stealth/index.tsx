@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
 import confetti from "canvas-confetti";
 import { StealthOnboardingModal } from "./StealthOnboardingModal";
+import { FooterStealth } from "@/components/footer-stealth";
 
 interface ApplyFormData {
   name: string;
@@ -953,6 +954,9 @@ export default function LandingStealth() {
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <FooterStealth />
 
       {/* Onboarding Questionnaire Modal */}
       <StealthOnboardingModal
