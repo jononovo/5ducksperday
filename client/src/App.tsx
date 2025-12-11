@@ -66,7 +66,8 @@ function Router() {
   return (
     <>
       <Switch>
-        {/* Static landing page is served directly by Express at "/" */}
+        {/* Default landing page - Stealth Mode */}
+        <Route path="/" component={LandingStealth} />
         
         {/* React version of landing page for comparison */}
         <Route path="/react-landing" component={Landing} />
