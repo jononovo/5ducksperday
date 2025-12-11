@@ -32,7 +32,7 @@ export function RegistrationModal() {
                        window.location.hostname === '0.0.0.0';
   
   // Allow modal on stealth page for testing the onboarding flow
-  const isStealthPage = window.location.pathname === '/s' || window.location.pathname === '/';
+  const isStealthPage = window.location.pathname === '/s';
 
   // If user is already logged in, we'll close the modal
   // but we don't return early to avoid React hooks errors
