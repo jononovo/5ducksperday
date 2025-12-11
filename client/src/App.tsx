@@ -75,6 +75,7 @@ function Router() {
         
         {/* Stealth Mode Landing Page */}
         <Route path="/landing-stealth" component={LandingStealth} />
+        <Route path="/s" component={LandingStealth} />
         
         {/* Strategic Planning Page (no nav) */}
         <Route path="/planning" component={Planning} />
