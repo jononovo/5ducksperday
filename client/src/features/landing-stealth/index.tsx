@@ -33,7 +33,7 @@ const LOADING_MESSAGES = [
 export default function LandingStealth() {
   const [code, setCode] = useState("");
   const { toast } = useToast();
-  const { openModal } = useRegistrationModal();
+  const { openForLandingPage } = useRegistrationModal();
   const [isHoveringDuck, setIsHoveringDuck] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentTestimonialIndex, setCurrentTestimonialIndex] = useState(0);
@@ -214,7 +214,7 @@ export default function LandingStealth() {
         setTimeout(() => {
           setShowAccessGranted(false);
           setCurrentIndex(0);
-          openModal();
+          openForLandingPage();
         }, 3500);
       }, 600);
     } else {
