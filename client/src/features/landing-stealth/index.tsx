@@ -8,11 +8,14 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useToast } from "@/hooks/use-toast";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
 import confetti from "canvas-confetti";
+import { StealthOnboardingModal } from "./StealthOnboardingModal";
 
 interface ApplyFormData {
   name: string;
   email: string;
 }
+
+type OnboardingPhase = "A" | "B" | "C";
 
 import duckImage from "./assets/3d_cute_duckling_mascot_edited.png";
 import bgImage from "./assets/abstract_3d_sales_background_with_envelopes_and_charts.png";
@@ -44,6 +47,10 @@ export default function LandingStealth() {
   const [isUnlocking, setIsUnlocking] = useState(false);
   const [showAccessGranted, setShowAccessGranted] = useState(false);
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
+  
+  // Progressive onboarding phase: A = code input, B = expanded form, C = modal questionnaire
+  const [onboardingPhase, setOnboardingPhase] = useState<OnboardingPhase>("A");
+  const [phaseBData, setPhaseBData] = useState({ name: "", email: "" });
   
   // Apply for code flow state
   const [showApplyForm, setShowApplyForm] = useState(false);
@@ -201,21 +208,20 @@ export default function LandingStealth() {
       // Fire confetti immediately
       fireUnlockConfetti();
       
-      // Show Access Granted overlay after brief animation
+      // Show Access Granted overlay briefly, then transition to Phase B
       setTimeout(() => {
         setIsUnlocking(false);
         setShowAccessGranted(true);
         setLoadingMessageIndex(0);
         
-        // Cycle through loading messages
-        setTimeout(() => setLoadingMessageIndex(1), 1500);
+        // Quick loading message
+        setTimeout(() => setLoadingMessageIndex(1), 1000);
         
-        // Open registration modal after loading sequence
+        // Transition to Phase B (expanded form) instead of opening registration modal
         setTimeout(() => {
           setShowAccessGranted(false);
-          setCurrentIndex(0);
-          openModal();
-        }, 3500);
+          setOnboardingPhase("B");
+        }, 2000);
       }, 600);
     } else {
       toast({
@@ -225,6 +231,43 @@ export default function LandingStealth() {
         className: "font-heading font-bold",
       });
     }
+  };
+  
+  const handlePhaseBSubmit = () => {
+    if (phaseBData.name && phaseBData.email) {
+      // Fire another confetti burst
+      confetti({
+        particleCount: 60,
+        spread: 80,
+        origin: { x: 0.5, y: 0.5 },
+        colors: ['#fbbf24', '#f59e0b', '#22c55e', '#10b981'],
+      });
+      // Transition to Phase C (onboarding modal)
+      setOnboardingPhase("C");
+    } else {
+      toast({
+        title: "Almost there!",
+        description: "Please fill in your name and email to continue.",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  const handleOnboardingComplete = () => {
+    // Close the onboarding modal and open registration
+    setOnboardingPhase("A");
+    setCurrentIndex(0);
+    setCode("");
+    setPhaseBData({ name: "", email: "" });
+    openModal();
+  };
+  
+  const handleCloseOverlay = () => {
+    setCurrentIndex(0);
+    setShowApplyForm(false);
+    setOnboardingPhase("A");
+    setCode("");
+    setPhaseBData({ name: "", email: "" });
   };
   
   const handleApplySubmit = () => {
@@ -456,7 +499,7 @@ export default function LandingStealth() {
             </div>
           )}
 
-          {isMounted && currentIndex === 5 && createPortal(
+          {isMounted && currentIndex === 5 && onboardingPhase !== "C" && createPortal(
             <>
               <motion.div
                 initial={{ opacity: 0 }}
@@ -469,7 +512,7 @@ export default function LandingStealth() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5, delay: 0.3 }}
-                onClick={() => { setCurrentIndex(0); setShowApplyForm(false); }}
+                onClick={handleCloseOverlay}
                 className="fixed top-6 right-6 z-50 p-2 rounded-full bg-black/60 hover:bg-black/80 transition-colors cursor-pointer"
                 data-testid="button-close-overlay"
               >
@@ -477,9 +520,9 @@ export default function LandingStealth() {
               </motion.button>
               
               <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 max-w-md w-full scale-110 shadow-2xl flex flex-col gap-4 px-4">
-                {/* Secret Code Input */}
+                {/* Phase A: Secret Code Input */}
                 <AnimatePresence mode="wait">
-                  {!showAccessGranted && (
+                  {onboardingPhase === "A" && !showAccessGranted && (
                     <motion.div 
                       key="code-input"
                       initial={{ opacity: 1 }}
@@ -562,8 +605,88 @@ export default function LandingStealth() {
                   )}
                 </AnimatePresence>
 
-                {/* Apply for code link and accordion form */}
-                {!isUnlocking && !showAccessGranted && (
+                {/* Phase B: Expanded Form with Name/Email */}
+                <AnimatePresence mode="wait">
+                  {onboardingPhase === "B" && (
+                    <motion.div
+                      key="phase-b-form"
+                      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                      transition={{ type: "spring", stiffness: 200, damping: 25 }}
+                      className="w-full"
+                    >
+                      <div className="relative">
+                        <div className="absolute inset-0 bg-gradient-to-b from-yellow-500/20 via-amber-500/10 to-transparent blur-2xl rounded-lg" />
+                        
+                        <div className="relative space-y-5 p-6 bg-black/60 backdrop-blur-md rounded-xl border border-yellow-500/30 shadow-[0_0_40px_rgba(250,204,21,0.15)]">
+                          <div className="text-center mb-6">
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.2 }}
+                              className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center shadow-[0_0_30px_rgba(250,204,21,0.4)]"
+                            >
+                              <Sparkles className="w-8 h-8 text-white" />
+                            </motion.div>
+                            <h3 className="text-xl font-bold text-white mb-1">You're in!</h3>
+                            <p className="text-sm text-gray-400">Just a few details to get started</p>
+                          </div>
+                          
+                          <div>
+                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                              Your Name
+                            </label>
+                            <div className="relative">
+                              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                              <Input
+                                type="text"
+                                placeholder="Enter your name"
+                                value={phaseBData.name}
+                                onChange={(e) => setPhaseBData(prev => ({ ...prev, name: e.target.value }))}
+                                className="h-12 bg-black/60 border-white/10 pl-11 text-white placeholder:text-gray-500 focus-visible:ring-yellow-500/50 focus-visible:border-yellow-500/50"
+                                data-testid="input-phase-b-name"
+                                autoFocus
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                              Email Address
+                            </label>
+                            <div className="relative">
+                              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                              <Input
+                                type="email"
+                                placeholder="you@example.com"
+                                value={phaseBData.email}
+                                onChange={(e) => setPhaseBData(prev => ({ ...prev, email: e.target.value }))}
+                                onKeyDown={(e) => e.key === "Enter" && phaseBData.name && phaseBData.email && handlePhaseBSubmit()}
+                                className="h-12 bg-black/60 border-white/10 pl-11 text-white placeholder:text-gray-500 focus-visible:ring-yellow-500/50 focus-visible:border-yellow-500/50"
+                                data-testid="input-phase-b-email"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="pt-2">
+                            <Button
+                              onClick={handlePhaseBSubmit}
+                              className="w-full h-12 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-black font-bold text-lg shadow-[0_0_20px_rgba(250,204,21,0.3)] hover:shadow-[0_0_30px_rgba(250,204,21,0.5)] transition-all"
+                              data-testid="button-phase-b-continue"
+                            >
+                              Continue
+                              <ArrowRight className="w-5 h-5 ml-2" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Apply for code link and accordion form - only show in Phase A */}
+                {onboardingPhase === "A" && !isUnlocking && !showAccessGranted && (
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -930,6 +1053,14 @@ export default function LandingStealth() {
           </div>
         </div>
       </div>
+
+      {/* Phase C: Onboarding Modal */}
+      <StealthOnboardingModal
+        isOpen={onboardingPhase === "C"}
+        onClose={handleCloseOverlay}
+        onComplete={handleOnboardingComplete}
+        userData={phaseBData}
+      />
     </div>
   );
 }
