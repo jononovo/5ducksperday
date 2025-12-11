@@ -1034,10 +1034,10 @@ export default function LandingStealth() {
             className="text-center mb-16"
           >
             <h2 className="text-3xl md:text-5xl font-serif text-white mb-4">
-              No-distraction Selling for Busy
+              No-distraction Selling
             </h2>
             <p className="text-xl text-gray-500 italic">
-              (or easily-distractable) People
+              for Busy (or easily-distractable) People
             </p>
           </motion.div>
           
