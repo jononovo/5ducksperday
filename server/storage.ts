@@ -228,9 +228,14 @@ class DatabaseStorage implements IStorage {
       .where(eq(userPreferences.userId, userId));
 
     if (existing) {
+      // Merge settings field if provided (to not overwrite other settings)
+      const mergedSettings = data.settings 
+        ? { ...(existing.settings || {}), ...data.settings }
+        : existing.settings;
+      
       const [updated] = await db
         .update(userPreferences)
-        .set({ ...data, updatedAt: new Date() })
+        .set({ ...data, settings: mergedSettings, updatedAt: new Date() })
         .where(eq(userPreferences.userId, userId))
         .returning();
       return updated;

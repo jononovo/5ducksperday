@@ -7,6 +7,18 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
     <title>5Ducks - Find the right people to sell to</title>
     
+    <!-- Theme bootstrap script - prevents flash of wrong theme -->
+    <script>
+      (function() {
+        const stored = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const theme = stored || 'system';
+        if (theme === 'dark' || (theme === 'system' && prefersDark)) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
+    
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-4K01JPM2D8"></script>
     <script>

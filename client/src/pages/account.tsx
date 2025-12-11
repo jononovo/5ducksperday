@@ -3,13 +3,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { CreditCard, ExternalLink, Mail } from "lucide-react";
+import { CreditCard, ExternalLink, Mail, Settings, Sun, Moon, Monitor } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { useTheme } from "@/hooks/use-theme";
 import { ProfileForm, type UserProfile, type SubscriptionStatus } from "@/features/user-account-settings";
 
 export default function AccountPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { theme, setTheme } = useTheme();
 
   // Fetch user profile data
   const { data: profile, isLoading } = useQuery<UserProfile>({
@@ -73,6 +75,60 @@ ${profile?.username}`
       <div className="space-y-6">
         {/* Profile Section - Using ProfileForm from feature module */}
         <ProfileForm profile={profile} isLoading={isLoading} />
+
+        {/* Settings Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              Settings
+            </CardTitle>
+            <CardDescription>
+              Customize your app experience
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Theme Toggle */}
+            <div className="space-y-3">
+              <Label>Appearance</Label>
+              <p className="text-xs text-muted-foreground">
+                Choose how the app looks for you
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant={theme === "light" ? "default" : "outline"}
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => setTheme("light")}
+                  data-testid="button-theme-light"
+                >
+                  <Sun className="mr-2 h-4 w-4" />
+                  Light
+                </Button>
+                <Button
+                  variant={theme === "dark" ? "default" : "outline"}
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => setTheme("dark")}
+                  data-testid="button-theme-dark"
+                >
+                  <Moon className="mr-2 h-4 w-4" />
+                  Dark
+                </Button>
+                <Button
+                  variant={theme === "system" ? "default" : "outline"}
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => setTheme("system")}
+                  data-testid="button-theme-system"
+                >
+                  <Monitor className="mr-2 h-4 w-4" />
+                  System
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Billing Section */}
         <Card>
