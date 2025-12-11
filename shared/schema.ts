@@ -213,10 +213,16 @@ export const emailTemplates = pgTable("email_templates", {
 export const userPreferences = pgTable("user_preferences", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
-  // hasSeenTour field removed
+  settings: jsonb("settings").$type<UserSettings>().default({}),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
 });
+
+// Type for user settings stored in JSONB column
+export interface UserSettings {
+  themePreference?: 'light' | 'dark' | 'system';
+  // Future settings can be added here without migrations
+}
 
 // Email sending preferences for fallback system
 export const userEmailPreferences = pgTable("user_email_preferences", {
@@ -340,9 +346,14 @@ const emailTemplateSchema = z.object({
   category: z.string().default('general')
 });
 
+// Zod schema for user settings
+export const userSettingsSchema = z.object({
+  themePreference: z.enum(['light', 'dark', 'system']).optional()
+});
+
 const userPreferencesSchema = z.object({
-  userId: z.number()
-  // hasSeenTour field removed
+  userId: z.number(),
+  settings: userSettingsSchema.optional()
 });
 
 const userEmailPreferencesSchema = z.object({

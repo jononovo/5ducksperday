@@ -247,7 +247,40 @@ input[type="checkbox"]:indeterminate::before {
     --font-serif: 'DM Serif Display', serif;
     --font-code: 'Courier New', monospace;
 
-    /* Dark Theme Colors */
+    /* Light Theme Colors (default) */
+    --background: 0 0% 100%;
+    --foreground: 240 10% 4%;
+
+    --primary: 217 100% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 5% 96%;
+    --secondary-foreground: 240 6% 10%;
+
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 46%;
+
+    --accent: 45 93% 47%;
+    --accent-foreground: 240 10% 4%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 4%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 4%;
+
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 217 100% 50%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --radius: 0.5rem;
+  }
+
+  /* Dark Theme Colors */
+  .dark {
     --background: 240 10% 4%;
     --foreground: 0 0% 98%;
 
@@ -263,11 +296,18 @@ input[type="checkbox"]:indeterminate::before {
     --accent: 45 93% 47%;
     --accent-foreground: 240 10% 4%;
 
+    --card: 240 10% 4%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 240 10% 4%;
+    --popover-foreground: 0 0% 98%;
+
     --border: 240 4% 16%;
     --input: 240 4% 16%;
     --ring: 45 93% 47%;
 
-    --radius: 0.5rem;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 0 0% 98%;
   }
 
   * {

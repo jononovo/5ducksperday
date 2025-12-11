@@ -12,6 +12,7 @@ import { AuthProvider } from "@/hooks/use-auth";
 import { RegistrationModalProvider } from "@/hooks/use-registration-modal";
 import { RegistrationModalContainer } from "@/components/registration-modal-container";
 import { Toaster } from "@/components/ui/toaster";
+import { ThemeProvider } from "@/hooks/use-theme";
 import "@/lib/firebase";
 import { initGA } from "@/lib/analytics";
 import { useAnalytics } from "@/hooks/use-analytics";
@@ -314,15 +315,17 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <RegistrationModalProvider>
-          <StrategyOverlayProvider>
-            <Router />
-            <RegistrationModalContainer />
-            <Toaster />
-          </StrategyOverlayProvider>
-        </RegistrationModalProvider>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <RegistrationModalProvider>
+            <StrategyOverlayProvider>
+              <Router />
+              <RegistrationModalContainer />
+              <Toaster />
+            </StrategyOverlayProvider>
+          </RegistrationModalProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
