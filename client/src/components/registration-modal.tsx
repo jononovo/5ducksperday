@@ -32,6 +32,9 @@ export function RegistrationModal() {
   const isDevelopment = window.location.hostname.includes('.replit.dev') || 
                        window.location.hostname === 'localhost' ||
                        window.location.hostname === '0.0.0.0';
+  
+  // Allow modal on stealth page for testing the onboarding flow
+  const isStealthPage = window.location.pathname === '/s';
 
   // If user is already logged in, we'll close the modal
   // but we don't return early to avoid React hooks errors
@@ -221,7 +224,8 @@ export function RegistrationModal() {
   };
 
   // Don't render the modal if user is already authenticated or in development mode
-  if (user || isDevelopment) {
+  // Exception: Allow modal on stealth page for testing
+  if (user || (isDevelopment && !isStealthPage)) {
     return null;
   }
 
