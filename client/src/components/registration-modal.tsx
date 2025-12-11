@@ -25,7 +25,7 @@ export function RegistrationModal() {
   
   // Use the auth hook
   const { user, signInWithGoogle, signInWithEmail, registerWithEmail } = useAuth();
-  const { closeModal, isOpenedFromProtectedRoute, isOpenedFromLandingPage } = useRegistrationModal();
+  const { closeModal, isOpenedFromProtectedRoute } = useRegistrationModal();
   const { toast } = useToast();
   
   // Check if we're in development mode
@@ -35,12 +35,11 @@ export function RegistrationModal() {
 
   // If user is already logged in, we'll close the modal
   // but we don't return early to avoid React hooks errors
-  // Exception: Don't auto-close when opened from landing page flow
   useEffect(() => {
-    if (user && !isOpenedFromLandingPage) {
+    if (user) {
       closeModal();
     }
-  }, [user, closeModal, isOpenedFromLandingPage]);
+  }, [user, closeModal]);
 
   // Lock body scroll when modal is open
   useEffect(() => {
@@ -222,8 +221,7 @@ export function RegistrationModal() {
   };
 
   // Don't render the modal if user is already authenticated or in development mode
-  // Exception: Allow modal to show when opened from landing page flow
-  if (!isOpenedFromLandingPage && (user || isDevelopment)) {
+  if (user || isDevelopment) {
     return null;
   }
 
