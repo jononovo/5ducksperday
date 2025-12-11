@@ -81,10 +81,10 @@ export const STEALTH_QUESTIONS: Question<StealthOnboardingData>[] = [
   },
   {
     id: "purpose",
-    type: "single-select",
+    type: "multi-select",
     section: "A",
     title: "What brings you here?",
-    subtitle: "Select the option that best describes you",
+    subtitle: "Select all that apply",
     options: [
       { id: "sales", label: "Grow my sales pipeline", icon: <TrendingUp className="w-5 h-5" /> },
       { id: "outreach", label: "Automate my outreach", icon: <Mail className="w-5 h-5" /> },
@@ -107,10 +107,10 @@ export const STEALTH_QUESTIONS: Question<StealthOnboardingData>[] = [
   },
   {
     id: "goal",
-    type: "single-select",
+    type: "multi-select",
     section: "A",
-    title: "What's your main goal?",
-    subtitle: "Pick your top priority",
+    title: "What are your goals?",
+    subtitle: "Select all that apply",
     options: [
       { id: "meetings", label: "Book more meetings", icon: <Briefcase className="w-5 h-5" /> },
       { id: "pipeline", label: "Build my pipeline", icon: <TrendingUp className="w-5 h-5" /> },
