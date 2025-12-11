@@ -53,6 +53,16 @@ interface OnboardingData {
   offeringType: string;
   productDescription: string;
   customerLove: string;
+  // Section C - Pricing
+  hasFixedPricing: string;
+  // Fixed pricing fields
+  packageName: string;
+  packageCost: string;
+  packageIncludes: string;
+  // Custom pricing fields
+  serviceDescription: string;
+  serviceCost: string;
+  serviceOther: string;
 }
 
 const SECTION_CREDITS = {
@@ -225,6 +235,85 @@ const QUESTIONS: Question[] = [
     inputType: "textarea",
   },
   {
+    id: "hasFixedPricing",
+    type: "single-select",
+    section: "C",
+    title: "Do you have a fixed price or package?",
+    subtitle: "Let Fluffy know how you charge",
+    options: [
+      { id: "yes", label: "Yes, I have set pricing", icon: <Package className="w-5 h-5" /> },
+      { id: "no", label: "No, it varies by project", icon: <TrendingUp className="w-5 h-5" /> },
+    ],
+  },
+  // Fixed pricing sub-slides
+  {
+    id: "packageName",
+    type: "text-input",
+    section: "C",
+    title: "What's your package or product called?",
+    subtitle: "Give it a name that sticks",
+    placeholder: "e.g., Growth Plan, Pro Package, Starter Kit",
+    inputType: "text",
+    conditionalOn: "hasFixedPricing",
+    conditionalValue: "yes",
+  },
+  {
+    id: "packageCost",
+    type: "text-input",
+    section: "C",
+    title: "How much does it cost?",
+    subtitle: "Ballpark is fine!",
+    placeholder: "e.g., $99/month, $2,500 one-time, Starting at $500",
+    inputType: "text",
+    conditionalOn: "hasFixedPricing",
+    conditionalValue: "yes",
+  },
+  {
+    id: "packageIncludes",
+    type: "text-input",
+    section: "C",
+    title: "What's included?",
+    subtitle: "The highlights that make it awesome",
+    placeholder: "e.g., 3 revisions, 24/7 support, unlimited users",
+    inputType: "textarea",
+    conditionalOn: "hasFixedPricing",
+    conditionalValue: "yes",
+  },
+  // Custom pricing sub-slides
+  {
+    id: "serviceDescription",
+    type: "text-input",
+    section: "C",
+    title: "Describe a service you offer right now",
+    subtitle: "Just one or two lines is perfect",
+    placeholder: "e.g., Custom website design for small businesses",
+    inputType: "textarea",
+    conditionalOn: "hasFixedPricing",
+    conditionalValue: "no",
+  },
+  {
+    id: "serviceCost",
+    type: "text-input",
+    section: "C",
+    title: "What's typically paid for that?",
+    subtitle: "A range works great here",
+    placeholder: "e.g., $2,000-$5,000 depending on scope",
+    inputType: "text",
+    conditionalOn: "hasFixedPricing",
+    conditionalValue: "no",
+  },
+  {
+    id: "serviceOther",
+    type: "text-input",
+    section: "C",
+    title: "Anything else we should know?",
+    subtitle: "Optional but helpful for Fluffy",
+    placeholder: "e.g., Projects usually take 2-4 weeks",
+    inputType: "textarea",
+    conditionalOn: "hasFixedPricing",
+    conditionalValue: "no",
+  },
+  {
     id: "section-c-complete",
     type: "section-complete",
     section: "C",
@@ -259,6 +348,13 @@ export function StealthOnboardingModal({ isOpen, onClose, onComplete }: StealthO
     offeringType: "",
     productDescription: "",
     customerLove: "",
+    hasFixedPricing: "",
+    packageName: "",
+    packageCost: "",
+    packageIncludes: "",
+    serviceDescription: "",
+    serviceCost: "",
+    serviceOther: "",
   });
   const [showCelebration, setShowCelebration] = useState(false);
   const [earnedCredits, setEarnedCredits] = useState(0);
@@ -384,6 +480,10 @@ export function StealthOnboardingModal({ isOpen, onClose, onComplete }: StealthO
           data.companyCity.trim() !== "" &&
           data.companyState.trim() !== ""
         );
+      }
+      // serviceOther is optional
+      if (currentQuestion.id === "serviceOther") {
+        return true;
       }
       const value = data[currentQuestion.id as keyof OnboardingData];
       return typeof value === 'string' && value.trim() !== "";
