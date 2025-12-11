@@ -1,9 +1,13 @@
 import { createContext, useState, useContext, useEffect, ReactNode } from "react";
 import { useAuth } from "./use-auth";
 
+export type RegistrationPage = "main" | "login" | "forgotPassword";
+
 type RegistrationModalContextType = {
   isOpen: boolean;
+  initialPage: RegistrationPage;
   openModal: () => void;
+  openModalForLogin: () => void;
   closeModal: () => void;
   openForProtectedRoute: () => void;
   isOpenedFromProtectedRoute: boolean;
@@ -12,7 +16,9 @@ type RegistrationModalContextType = {
 
 const RegistrationModalContext = createContext<RegistrationModalContextType>({
   isOpen: false,
+  initialPage: "main",
   openModal: () => {},
+  openModalForLogin: () => {},
   closeModal: () => {},
   openForProtectedRoute: () => {},
   isOpenedFromProtectedRoute: false,
@@ -28,6 +34,7 @@ interface RegistrationModalProviderProps {
 export const RegistrationModalProvider = ({ children }: RegistrationModalProviderProps) => {
   // Modal should be closed by default
   const [isOpen, setIsOpen] = useState(false);
+  const [initialPage, setInitialPage] = useState<RegistrationPage>("main");
   const [isOpenedFromProtectedRoute, setIsOpenedFromProtectedRoute] = useState(false);
   const [onSuccessCallback, setOnSuccessCallback] = useState<(() => void) | null>(null);
   const { user } = useAuth();
@@ -39,17 +46,26 @@ export const RegistrationModalProvider = ({ children }: RegistrationModalProvide
 
   const openModal = () => {
     setIsOpenedFromProtectedRoute(false);
+    setInitialPage("main");
+    setIsOpen(true);
+  };
+
+  const openModalForLogin = () => {
+    setIsOpenedFromProtectedRoute(false);
+    setInitialPage("login");
     setIsOpen(true);
   };
 
   const openForProtectedRoute = () => {
     setIsOpenedFromProtectedRoute(true);
+    setInitialPage("main");
     setIsOpen(true);
   };
 
   const closeModal = () => {
     setIsOpen(false);
     setIsOpenedFromProtectedRoute(false);
+    setInitialPage("main");
   };
 
   const setRegistrationSuccessCallback = (callback: () => void) => {
@@ -72,8 +88,10 @@ export const RegistrationModalProvider = ({ children }: RegistrationModalProvide
   return (
     <RegistrationModalContext.Provider 
       value={{ 
-        isOpen, 
-        openModal, 
+        isOpen,
+        initialPage,
+        openModal,
+        openModalForLogin,
         closeModal,
         openForProtectedRoute,
         isOpenedFromProtectedRoute,

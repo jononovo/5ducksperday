@@ -2,16 +2,15 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { Mail, ChevronRight, ArrowLeft } from "lucide-react";
-import { useRegistrationModal } from "@/hooks/use-registration-modal";
+import { useRegistrationModal, type RegistrationPage } from "@/hooks/use-registration-modal";
 import { firebaseAuth } from "@/lib/firebase";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 
-type RegistrationPage = "main" | "login" | "forgotPassword";
-
 export function RegistrationModal() {
-  const [currentPage, setCurrentPage] = useState<RegistrationPage>("main");
+  const { closeModal, isOpenedFromProtectedRoute, initialPage } = useRegistrationModal();
+  const [currentPage, setCurrentPage] = useState<RegistrationPage>(initialPage);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -25,7 +24,6 @@ export function RegistrationModal() {
   
   // Use the auth hook
   const { user, signInWithGoogle, signInWithEmail, registerWithEmail } = useAuth();
-  const { closeModal, isOpenedFromProtectedRoute } = useRegistrationModal();
   const { toast } = useToast();
   
   // Check if we're in development mode

@@ -36,7 +36,7 @@ const LOADING_MESSAGES = [
 export default function LandingStealth() {
   const [code, setCode] = useState("");
   const { toast } = useToast();
-  const { openModal, setRegistrationSuccessCallback } = useRegistrationModal();
+  const { openModal, openModalForLogin, setRegistrationSuccessCallback } = useRegistrationModal();
   const [isHoveringDuck, setIsHoveringDuck] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentTestimonialIndex, setCurrentTestimonialIndex] = useState(0);
@@ -304,9 +304,14 @@ export default function LandingStealth() {
         </div>
 
         <div className="absolute top-4 right-6 md:top-6 md:right-10 z-30">
-          <a href="/auth" className="text-sm text-white/10 hover:text-white/30 transition-colors font-bold uppercase tracking-widest" data-testid="link-login">
+          <button 
+            type="button"
+            onClick={() => openModalForLogin()}
+            className="text-sm text-white/10 hover:text-white/30 transition-colors font-bold uppercase tracking-widest bg-transparent border-none cursor-pointer" 
+            data-testid="link-login"
+          >
             Login
-          </a>
+          </button>
         </div>
 
         <div className="absolute inset-0 z-0">
