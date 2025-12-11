@@ -766,7 +766,7 @@ export default function LandingStealth() {
               <div className="flex -space-x-3">
                 {[danImage, sarahImage, mikeImage].map((img, i) => (
                   <div key={i} className="w-8 h-8 rounded-full overflow-hidden border border-white/10 shadow-lg bg-gray-800">
-                    <img src={img} alt="Player" className="w-full h-full object-cover" />
+                    <img src={img} alt="Player" loading="lazy" className="w-full h-full object-cover" />
                   </div>
                 ))}
               </div>
@@ -799,6 +799,7 @@ export default function LandingStealth() {
                       <img 
                         src={content[currentIndex].image} 
                         alt={content[currentIndex].label}
+                        loading="lazy"
                         className="w-full h-full object-cover opacity-90 transition-transform duration-700 group-hover:scale-105"
                       />
                     </div>
@@ -940,6 +941,7 @@ export default function LandingStealth() {
                            <img 
                              src={testimonials[currentTestimonialIndex].image} 
                              alt={testimonials[currentTestimonialIndex].author}
+                             loading="lazy"
                              className="w-full h-full object-cover"
                            />
                          </div>
@@ -1086,9 +1088,9 @@ export default function LandingStealth() {
               viewport={{ once: true }}
               className="group"
             >
-              <div className="relative h-full bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 hover:border-purple-500/30 transition-all duration-300">
-                <div className="w-14 h-14 bg-purple-500/10 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                  <Zap className="w-7 h-7 text-purple-400" />
+              <div className="relative h-full bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 hover:border-yellow-500/30 transition-all duration-300">
+                <div className="w-14 h-14 bg-yellow-500/10 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                  <Zap className="w-7 h-7 text-yellow-400" />
                 </div>
                 <h3 className="text-xl font-bold text-white mb-3">Daily master-plan via email</h3>
                 <p className="text-gray-500 leading-relaxed">
@@ -1104,9 +1106,9 @@ export default function LandingStealth() {
               viewport={{ once: true }}
               className="group"
             >
-              <div className="relative h-full bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 hover:border-green-500/30 transition-all duration-300">
-                <div className="w-14 h-14 bg-green-500/10 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                  <Star className="w-7 h-7 text-green-400" />
+              <div className="relative h-full bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 hover:border-yellow-500/30 transition-all duration-300">
+                <div className="w-14 h-14 bg-yellow-500/10 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                  <Star className="w-7 h-7 text-yellow-400" />
                 </div>
                 <h3 className="text-xl font-bold text-white mb-3">Done in 5 Mins (or less)</h3>
                 <p className="text-gray-500 leading-relaxed">
@@ -1125,7 +1127,7 @@ export default function LandingStealth() {
           >
             <Button 
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-bold px-8 py-6 rounded-full text-lg"
+              className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-bold px-8 py-6 rounded-full text-lg"
               data-testid="button-try-free"
             >
               Try it free (for 5 Minutes) <ArrowRight className="ml-2 w-5 h-5" />
