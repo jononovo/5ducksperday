@@ -766,7 +766,7 @@ export default function LandingStealth() {
               <div className="flex -space-x-3">
                 {[danImage, sarahImage, mikeImage].map((img, i) => (
                   <div key={i} className="w-8 h-8 rounded-full overflow-hidden border border-white/10 shadow-lg bg-gray-800">
-                    <img src={img} alt="Player" className="w-full h-full object-cover" />
+                    <img src={img} alt="Player" loading="lazy" className="w-full h-full object-cover" />
                   </div>
                 ))}
               </div>
@@ -799,6 +799,7 @@ export default function LandingStealth() {
                       <img 
                         src={content[currentIndex].image} 
                         alt={content[currentIndex].label}
+                        loading="lazy"
                         className="w-full h-full object-cover opacity-90 transition-transform duration-700 group-hover:scale-105"
                       />
                     </div>
@@ -940,6 +941,7 @@ export default function LandingStealth() {
                            <img 
                              src={testimonials[currentTestimonialIndex].image} 
                              alt={testimonials[currentTestimonialIndex].author}
+                             loading="lazy"
                              className="w-full h-full object-cover"
                            />
                          </div>
