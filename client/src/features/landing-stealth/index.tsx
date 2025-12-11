@@ -957,9 +957,8 @@ export default function LandingStealth() {
       </div>
 
       {/* My Story Section */}
-      <div className="relative z-20 py-24">
-        <div className="absolute inset-0 bg-gradient-to-b from-yellow-500/5 via-purple-500/10 to-blue-500/5" />
-        <div className="absolute inset-0 bg-[#0A0A10]/80" />
+      <div className="relative z-20 py-24 bg-[#0f1520]">
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-transparent to-blue-900/20" />
         
         <div className="container mx-auto px-6 relative z-10">
           <div className="max-w-3xl mx-auto">
