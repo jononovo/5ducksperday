@@ -2180,7 +2180,7 @@ export default function Home() {
                   </button>
                 )}
                 
-                {!currentResults && (
+                {!currentResults && !isAnalyzing && (
                   <div className="flex flex-col-reverse md:flex-row items-center gap-4 mb-3">
                     <div className="flex items-center gap-3">
                       <EggAnimation />
@@ -2192,11 +2192,13 @@ export default function Home() {
                   <PromptEditor
                     onAnalyze={() => {
                       setIsAnalyzing(true);
-                      // Clear list ID when starting a NEW search (different query)
+                      // Clear list ID and results when starting a NEW search (different query)
                       if (currentQuery && currentQuery !== lastExecutedQuery) {
-                        console.log('Starting new search - clearing list ID for query:', currentQuery);
+                        console.log('Starting new search - clearing list ID and results for query:', currentQuery);
                         setCurrentListId(null);
                         setIsSaved(false);
+                        setCurrentResults(null);
+                        setSelectedContacts(new Set());
                       }
                     }}
                     onComplete={handleAnalysisComplete}
@@ -2273,8 +2275,8 @@ export default function Home() {
                   />
                 </Suspense>
                 
-                {/* Search suggestions - shown only when no results */}
-                {!currentResults && (
+                {/* Search suggestions - shown only when no results and not actively searching */}
+                {!currentResults && !isAnalyzing && (
                   <div className="mt-4 text-center">
                     <p className="text-sm text-muted-foreground mb-3">Or select one of the suggestions below:</p>
                     <div className="flex flex-wrap justify-center gap-2">
@@ -2297,6 +2299,15 @@ export default function Home() {
                         </button>
                       ))}
                     </div>
+                  </div>
+                )}
+                
+                {/* Waiting message - shown when search is active but no results yet */}
+                {!currentResults && isAnalyzing && (
+                  <div className="mt-8 text-center">
+                    <p className="text-lg text-muted-foreground">
+                      ⏳ Your amazing list of companies will show up here.
+                    </p>
                   </div>
                 )}
                 
