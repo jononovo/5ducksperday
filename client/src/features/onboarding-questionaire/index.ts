@@ -2,6 +2,7 @@ export * from "./types";
 export { useOnboardingFlow } from "./hooks/useOnboardingFlow";
 export { OnboardingShell } from "./components/OnboardingShell";
 export { QuestionSingleSelect } from "./components/QuestionSingleSelect";
+export { QuestionMultiSelect } from "./components/QuestionMultiSelect";
 export { QuestionTextInput } from "./components/QuestionTextInput";
 export { QuestionCompanyDetails } from "./components/QuestionCompanyDetails";
 export { WelcomeScreen } from "./components/WelcomeScreen";

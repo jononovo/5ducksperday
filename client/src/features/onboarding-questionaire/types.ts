@@ -4,6 +4,7 @@ export type QuestionType =
   | "welcome" 
   | "section-intro" 
   | "single-select" 
+  | "multi-select"
   | "text-input" 
   | "multi-field"
   | "section-complete" 
