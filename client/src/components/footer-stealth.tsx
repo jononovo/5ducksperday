@@ -25,9 +25,15 @@ export function FooterStealth() {
                 </Link>
               </li>
               <li>
-                <Link href="/levels" className="text-gray-500 hover:text-white transition-colors" data-testid="link-footer-levels">
-                  Levels
-                </Link>
+                <a 
+                  href="/contact#vibe-coding" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-gray-500 hover:text-white transition-colors" 
+                  data-testid="link-footer-vibe-coding"
+                >
+                  Vibe-Coding
+                </a>
               </li>
               <li>
                 <Link href="/blog" className="text-gray-500 hover:text-white transition-colors" data-testid="link-footer-blog">
@@ -46,7 +52,7 @@ export function FooterStealth() {
                 </Link>
               </li>
               <li>
-                <Link href="/support" className="text-gray-500 hover:text-white transition-colors" data-testid="link-footer-support">
+                <Link href="/contact" className="text-gray-500 hover:text-white transition-colors" data-testid="link-footer-support">
                   Support
                 </Link>
               </li>
@@ -90,15 +96,6 @@ export function FooterStealth() {
             </span>
           </div>
           <div className="flex items-center space-x-6">
-            <a
-              href="/contact#vibe-coding"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-gray-600 hover:text-gray-400 transition-colors"
-              data-testid="link-footer-vibe-coding"
-            >
-              Vibe-coded with ♥️ in NYC
-            </a>
             <a
               href="https://www.linkedin.com/company/5ducks/"
               target="_blank"
