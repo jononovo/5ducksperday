@@ -408,6 +408,7 @@ export function QuestsPage() {
           isUnlocked={completedQuestsCount === totalQuests && totalQuests > 0}
           questsCompleted={completedQuestsCount}
           totalQuests={totalQuests}
+          userId="15"
         />
       </div>
     </div>

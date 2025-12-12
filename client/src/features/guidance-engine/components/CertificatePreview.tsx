@@ -74,9 +74,15 @@ export function CertificatePreview({ recipientName = "Your Name", completionDate
 interface CertificateFullProps {
   recipientName: string;
   completionDate: string;
+  credentialId?: string;
 }
 
-export function CertificateFull({ recipientName, completionDate }: CertificateFullProps) {
+function formatCredentialId(userId?: string): string {
+  const paddedId = (userId || "0").padStart(6, "0");
+  return `${paddedId}-PE021`;
+}
+
+export function CertificateFull({ recipientName, completionDate, credentialId }: CertificateFullProps) {
   return (
     <div className="relative w-full max-w-2xl mx-auto aspect-[1.4] rounded-xl overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border-2 border-amber-500/50 shadow-2xl">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-900/30 via-transparent to-transparent" />
@@ -144,37 +150,26 @@ export function CertificateFull({ recipientName, completionDate }: CertificateFu
         >
           has successfully completed all quests and demonstrated proficiency in B2B prospecting and email campaign management
         </motion.p>
-        
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7 }}
-          className="flex items-center gap-2 text-gray-400 mb-6"
-        >
-          <div className="w-12 h-px bg-gradient-to-r from-transparent to-amber-500/50" />
-          <p className="text-sm">
-            {completionDate}
-          </p>
-          <div className="w-12 h-px bg-gradient-to-l from-transparent to-amber-500/50" />
-        </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
+          transition={{ delay: 0.7 }}
           className="flex flex-col items-center"
         >
           <div className="w-32 h-px bg-gray-600 mb-2" />
-          <p className="text-xs text-gray-400">Director of GTM Programs</p>
+          <p className="text-xs text-gray-400 mb-1">Director of GTM Programs</p>
+          <p className="text-xs text-gray-500">{completionDate}</p>
         </motion.div>
 
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.9 }}
-          className="absolute bottom-3 left-1/2 -translate-x-1/2"
+          transition={{ delay: 0.8 }}
+          className="absolute bottom-3 left-0 right-0 px-8 flex justify-between items-center"
         >
-          <span className="text-xs text-gray-500 tracking-wider">5DUCKS</span>
+          <span className="text-[10px] text-gray-500 tracking-wider">5DUCKS</span>
+          <span className="text-[10px] text-gray-600 font-mono">{formatCredentialId(credentialId)}</span>
         </motion.div>
       </div>
     </div>

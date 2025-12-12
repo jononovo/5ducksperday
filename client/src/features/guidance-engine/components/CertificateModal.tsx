@@ -12,6 +12,7 @@ interface CertificateModalProps {
   recipientName: string;
   completionDate: string;
   isUnlocked: boolean;
+  userId?: string;
 }
 
 export function CertificateModal({ 
@@ -19,7 +20,8 @@ export function CertificateModal({
   onClose, 
   recipientName, 
   completionDate,
-  isUnlocked 
+  isUnlocked,
+  userId
 }: CertificateModalProps) {
   const [isDownloading, setIsDownloading] = useState(false);
 
@@ -28,7 +30,7 @@ export function CertificateModal({
     
     setIsDownloading(true);
     try {
-      const pdfBytes = await generateCertificatePDF(recipientName, completionDate);
+      const pdfBytes = await generateCertificatePDF(recipientName, completionDate, userId);
       const blob = new Blob([pdfBytes], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
       
@@ -61,7 +63,8 @@ export function CertificateModal({
           <div className="p-6 md:p-8">
             <CertificateFull 
               recipientName={recipientName} 
-              completionDate={completionDate} 
+              completionDate={completionDate}
+              credentialId={userId}
             />
 
             <div className="mt-6 flex justify-center">

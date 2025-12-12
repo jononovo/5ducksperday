@@ -1,8 +1,14 @@
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 
+function formatCredentialId(userId?: string): string {
+  const paddedId = (userId || "0").padStart(6, "0");
+  return `${paddedId}-PE021`;
+}
+
 export async function generateCertificatePDF(
   recipientName: string,
-  completionDate: string
+  completionDate: string,
+  userId?: string
 ): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create();
   
@@ -177,34 +183,8 @@ export async function generateCertificatePDF(
     color: grayText,
   });
 
-  const lineY = height - 450;
-  const lineLength = 80;
-  page.drawLine({
-    start: { x: width / 2 - 120, y: lineY },
-    end: { x: width / 2 - 120 + lineLength, y: lineY },
-    thickness: 1,
-    color: amberColor,
-    opacity: 0.5,
-  });
-  page.drawLine({
-    start: { x: width / 2 + 120 - lineLength, y: lineY },
-    end: { x: width / 2 + 120, y: lineY },
-    thickness: 1,
-    color: amberColor,
-    opacity: 0.5,
-  });
-
-  const dateWidth = helvetica.widthOfTextAtSize(completionDate, 12);
-  page.drawText(completionDate, {
-    x: (width - dateWidth) / 2,
-    y: lineY - 5,
-    size: 12,
-    font: helvetica,
-    color: grayText,
-  });
-
   // Signature line
-  const sigLineY = height - 510;
+  const sigLineY = height - 450;
   const sigLineWidth = 150;
   page.drawLine({
     start: { x: (width - sigLineWidth) / 2, y: sigLineY },
@@ -224,13 +204,33 @@ export async function generateCertificatePDF(
     color: grayText,
   });
 
-  const logoText = "5DUCKS";
-  const logoWidth = helveticaBold.widthOfTextAtSize(logoText, 10);
-  page.drawText(logoText, {
-    x: (width - logoWidth) / 2,
-    y: 25,
+  // Date below signature
+  const dateWidth = helvetica.widthOfTextAtSize(completionDate, 10);
+  page.drawText(completionDate, {
+    x: (width - dateWidth) / 2,
+    y: sigLineY - 30,
     size: 10,
+    font: helvetica,
+    color: grayText,
+  });
+
+  // Footer: 5DUCKS on left, credential ID on right
+  const logoText = "5DUCKS";
+  page.drawText(logoText, {
+    x: 30,
+    y: 20,
+    size: 8,
     font: helveticaBold,
+    color: grayText,
+  });
+
+  const credentialText = formatCredentialId(userId);
+  const credentialWidth = helvetica.widthOfTextAtSize(credentialText, 8);
+  page.drawText(credentialText, {
+    x: width - 30 - credentialWidth,
+    y: 20,
+    size: 8,
+    font: helvetica,
     color: grayText,
   });
 

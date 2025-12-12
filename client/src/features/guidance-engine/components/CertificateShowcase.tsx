@@ -10,6 +10,7 @@ interface CertificateShowcaseProps {
   isUnlocked: boolean;
   questsCompleted: number;
   totalQuests: number;
+  userId?: string;
 }
 
 export function CertificateShowcase({
@@ -18,6 +19,7 @@ export function CertificateShowcase({
   isUnlocked,
   questsCompleted,
   totalQuests,
+  userId,
 }: CertificateShowcaseProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -114,6 +116,7 @@ export function CertificateShowcase({
         recipientName={recipientName}
         completionDate={displayDate}
         isUnlocked={isUnlocked}
+        userId={userId}
       />
     </>
   );
