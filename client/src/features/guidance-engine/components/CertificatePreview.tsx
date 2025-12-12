@@ -149,7 +149,7 @@ export function CertificateFull({ recipientName, completionDate }: CertificateFu
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7 }}
-          className="flex items-center gap-2 text-gray-400"
+          className="flex items-center gap-2 text-gray-400 mb-4"
         >
           <div className="w-12 h-px bg-gradient-to-r from-transparent to-amber-500/50" />
           <p className="text-sm">
@@ -162,9 +162,8 @@ export function CertificateFull({ recipientName, completionDate }: CertificateFu
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2"
+          className="absolute bottom-6 left-1/2 -translate-x-1/2"
         >
-          <span className="text-2xl">🦆</span>
           <span className="text-xs text-gray-500 tracking-wider">5DUCKS</span>
         </motion.div>
       </div>
