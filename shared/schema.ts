@@ -80,6 +80,27 @@ export const userNotifications = pgTable("user_notifications", {
   index('idx_user_notifications_created_at').on(table.createdAt)
 ]);
 
+// User Guidance Progress - tracks quest/challenge completion for the guidance engine
+export interface GuidanceProgressSettings {
+  autoStartEnabled?: boolean;
+  showCompletionCelebrations?: boolean;
+}
+
+export const userGuidanceProgress = pgTable("user_guidance_progress", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  completedQuests: text("completed_quests").array().default([]),
+  completedChallenges: jsonb("completed_challenges").$type<Record<string, string[]>>().default({}),
+  currentQuestId: text("current_quest_id"),
+  currentChallengeIndex: integer("current_challenge_index").default(0),
+  currentStepIndex: integer("current_step_index").default(0),
+  settings: jsonb("settings").$type<GuidanceProgressSettings>().default({}),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow()
+}, (table) => [
+  uniqueIndex('idx_user_guidance_progress_user_id').on(table.userId)
+]);
+
 // OAuth tokens with encryption for sensitive data
 export const oauthTokens = pgTable("oauth_tokens", {
   id: serial("id").primaryKey(),
@@ -405,6 +426,18 @@ export type UserPreferences = typeof userPreferences.$inferSelect;
 export type InsertUserPreferences = z.infer<typeof insertUserPreferencesSchema>;
 export type UserEmailPreferences = typeof userEmailPreferences.$inferSelect;
 export type InsertUserEmailPreferences = z.infer<typeof insertUserEmailPreferencesSchema>;
+
+// User Guidance Progress types
+export type UserGuidanceProgress = typeof userGuidanceProgress.$inferSelect;
+export type InsertUserGuidanceProgress = {
+  userId: number;
+  completedQuests?: string[];
+  completedChallenges?: Record<string, string[]>;
+  currentQuestId?: string | null;
+  currentChallengeIndex?: number;
+  currentStepIndex?: number;
+  settings?: GuidanceProgressSettings;
+};
 
 // N8N workflow types have been removed
 

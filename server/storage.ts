@@ -4,7 +4,7 @@ import {
   senderProfiles, customerProfiles, campaigns, searchJobs,
   contactLists, contactListMembers, oauthTokens,
   userCredits, creditTransactions, subscriptions, userNotifications,
-  campaignRecipients,
+  campaignRecipients, userGuidanceProgress,
   type UserPreferences, type InsertUserPreferences,
   type UserEmailPreferences, type InsertUserEmailPreferences,
   type SearchList, type InsertSearchList,
@@ -19,7 +19,8 @@ import {
   type SearchJob, type InsertSearchJob,
   type ContactList, type InsertContactList,
   type ContactListMember, type InsertContactListMember,
-  type CampaignRecipient, type InsertCampaignRecipient
+  type CampaignRecipient, type InsertCampaignRecipient,
+  type UserGuidanceProgress, type InsertUserGuidanceProgress
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, sql, desc, lt, inArray, isNull, ne } from "drizzle-orm";
@@ -169,6 +170,10 @@ export interface IStorage {
   createUserNotification(userId: number, notification: { type: string; title: string; message: string; priority?: string; metadata?: any }): Promise<any>;
   markNotificationAsRead(notificationId: number): Promise<void>;
   dismissNotification(notificationId: number): Promise<void>;
+
+  // User Guidance Progress
+  getUserGuidanceProgress(userId: number): Promise<UserGuidanceProgress | null>;
+  updateUserGuidanceProgress(userId: number, data: Partial<InsertUserGuidanceProgress>): Promise<UserGuidanceProgress>;
 }
 
 class DatabaseStorage implements IStorage {
@@ -1508,6 +1513,42 @@ class DatabaseStorage implements IStorage {
         dismissedAt: new Date()
       })
       .where(eq(userNotifications.id, notificationId));
+  }
+
+  // User Guidance Progress Implementation
+  async getUserGuidanceProgress(userId: number): Promise<UserGuidanceProgress | null> {
+    const [progress] = await db.select()
+      .from(userGuidanceProgress)
+      .where(eq(userGuidanceProgress.userId, userId));
+    return progress || null;
+  }
+
+  async updateUserGuidanceProgress(userId: number, data: Partial<InsertUserGuidanceProgress>): Promise<UserGuidanceProgress> {
+    const existing = await this.getUserGuidanceProgress(userId);
+    
+    if (existing) {
+      const [updated] = await db.update(userGuidanceProgress)
+        .set({
+          ...data,
+          updatedAt: new Date()
+        })
+        .where(eq(userGuidanceProgress.userId, userId))
+        .returning();
+      return updated;
+    }
+    
+    const [created] = await db.insert(userGuidanceProgress)
+      .values({
+        userId,
+        completedQuests: data.completedQuests || [],
+        completedChallenges: data.completedChallenges || {},
+        currentQuestId: data.currentQuestId,
+        currentChallengeIndex: data.currentChallengeIndex || 0,
+        currentStepIndex: data.currentStepIndex || 0,
+        settings: data.settings || {}
+      })
+      .returning();
+    return created;
   }
 }
 
