@@ -159,8 +159,8 @@ export function CertificateFull({ recipientName, completionDate, credentialId }:
         >
           <svg 
             width="140" 
-            height="50" 
-            viewBox="0 0 140 50" 
+            height="45" 
+            viewBox="0 0 140 45" 
             className="mb-1"
             style={{ transform: 'rotate(-2deg)' }}
           >
@@ -171,21 +171,6 @@ export function CertificateFull({ recipientName, completionDate, credentialId }:
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-            />
-            <path
-              d="M15 12 C18 8, 22 6, 25 10 C28 14, 24 18, 20 16"
-              fill="none"
-              stroke="#D1D5DB"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-            />
-            <path
-              d="M70 42 C90 40, 110 38, 130 42"
-              fill="none"
-              stroke="#D1D5DB"
-              strokeWidth="1"
-              strokeLinecap="round"
-              opacity="0.6"
             />
           </svg>
           <div className="w-40 h-px bg-gray-600 mb-2" />
