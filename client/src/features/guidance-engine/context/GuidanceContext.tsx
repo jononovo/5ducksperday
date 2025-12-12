@@ -141,14 +141,11 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
     }
 
     const advanceWithDelay = () => {
-      const delay = currentStep.advanceDelay ?? 0;
-      if (delay > 0) {
-        advanceDelayTimerRef.current = setTimeout(() => {
-          engine.advanceStep();
-        }, delay);
-      } else {
+      // Default 1 second delay between steps so users notice completion before next prompt
+      const delay = currentStep.advanceDelay ?? 1000;
+      advanceDelayTimerRef.current = setTimeout(() => {
         engine.advanceStep();
-      }
+      }, delay);
     };
 
     let hasAdvancedForType = false;
