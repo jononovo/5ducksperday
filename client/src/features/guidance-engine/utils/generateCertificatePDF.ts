@@ -203,11 +203,32 @@ export async function generateCertificatePDF(
     color: grayText,
   });
 
+  // Signature line
+  const sigLineY = height - 510;
+  const sigLineWidth = 150;
+  page.drawLine({
+    start: { x: (width - sigLineWidth) / 2, y: sigLineY },
+    end: { x: (width + sigLineWidth) / 2, y: sigLineY },
+    thickness: 1,
+    color: grayText,
+    opacity: 0.6,
+  });
+
+  const sigTitle = "Director of GTM Programs";
+  const sigTitleWidth = helvetica.widthOfTextAtSize(sigTitle, 10);
+  page.drawText(sigTitle, {
+    x: (width - sigTitleWidth) / 2,
+    y: sigLineY - 15,
+    size: 10,
+    font: helvetica,
+    color: grayText,
+  });
+
   const logoText = "5DUCKS";
   const logoWidth = helveticaBold.widthOfTextAtSize(logoText, 10);
   page.drawText(logoText, {
     x: (width - logoWidth) / 2,
-    y: 40,
+    y: 25,
     size: 10,
     font: helveticaBold,
     color: grayText,
