@@ -1,0 +1,68 @@
+import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
+import type { ElementHighlightProps } from "../types";
+
+export function ElementHighlight({ targetSelector, isVisible }: ElementHighlightProps) {
+  const [rect, setRect] = useState<DOMRect | null>(null);
+  const animationRef = useRef<number>();
+
+  useEffect(() => {
+    if (!isVisible || !targetSelector) {
+      setRect(null);
+      return;
+    }
+
+    const updatePosition = () => {
+      const element = document.querySelector(targetSelector);
+      if (element) {
+        const newRect = element.getBoundingClientRect();
+        setRect(newRect);
+      } else {
+        setRect(null);
+      }
+      animationRef.current = requestAnimationFrame(updatePosition);
+    };
+
+    updatePosition();
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [targetSelector, isVisible]);
+
+  if (!isVisible || !rect) return null;
+
+  const padding = 6;
+  const highlightStyle: React.CSSProperties = {
+    position: "fixed",
+    top: rect.top - padding + window.scrollY,
+    left: rect.left - padding,
+    width: rect.width + padding * 2,
+    height: rect.height + padding * 2,
+    border: "3px solid #facc15",
+    borderRadius: "8px",
+    background: "rgba(250, 204, 21, 0.1)",
+    boxShadow: "0 0 20px rgba(250, 204, 21, 0.5)",
+    pointerEvents: "none" as const,
+    zIndex: 9998,
+    animation: "guidance-pulse 2s infinite",
+  };
+
+  return createPortal(
+    <>
+      <style>
+        {`
+          @keyframes guidance-pulse {
+            0% { box-shadow: 0 0 20px rgba(250, 204, 21, 0.5); }
+            50% { box-shadow: 0 0 40px rgba(250, 204, 21, 0.8); }
+            100% { box-shadow: 0 0 20px rgba(250, 204, 21, 0.5); }
+          }
+        `}
+      </style>
+      <div style={highlightStyle} data-testid="element-highlight" />
+    </>,
+    document.body
+  );
+}

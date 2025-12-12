@@ -2335,6 +2335,7 @@ export default function Home() {
                           emailOrchestration.runEmailSearch();
                         }}
                         disabled={emailOrchestration.isSearching}
+                        data-testid="find-emails-button"
                       >
                         <Mail className={`h-4 w-4 ${emailOrchestration.isSearching ? "animate-spin" : ""}`} />
                         <span>{emailOrchestration.isSearching ? "Searching..." : "Find Key Emails"}</span>
@@ -2383,7 +2384,7 @@ export default function Home() {
 
           {/* Companies Analysis Section - Moved to top */}
           {currentResults && currentResults.length > 0 ? (
-            <Card className={`w-full rounded-none md:rounded-lg border-0 transition-all duration-300 ${emailDrawer.isOpen ? 'shadow-none' : ''}`}>
+            <Card className={`w-full rounded-none md:rounded-lg border-0 transition-all duration-300 ${emailDrawer.isOpen ? 'shadow-none' : ''}`} data-testid="search-results-card">
               
               {/* Email Search Progress - with reduced padding */}
               {emailOrchestration.isSearching && (
