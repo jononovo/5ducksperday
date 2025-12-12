@@ -211,7 +211,7 @@ function QuestCard({
                       ) : challengeStatus === "in-progress" ? (
                         <Play className="h-4 w-4 text-amber-400" />
                       ) : (
-                        <ChevronRight className="h-4 w-4 text-gray-500" />
+                        <Play className="h-4 w-4 text-gray-500" />
                       )}
                     </div>
 
