@@ -26,35 +26,55 @@ interface GuidanceProviderProps {
   autoStartForNewUsers?: boolean;
 }
 
+const GUIDANCE_ENABLED_ROUTES = ["/app", "/quests", "/contacts", "/campaigns", "/outreach", "/replies", "/account", "/strategy"];
+
+function isGuidanceEnabledRoute(location: string): boolean {
+  return GUIDANCE_ENABLED_ROUTES.some(route => location === route || location.startsWith(route + "/"));
+}
+
 export function GuidanceProvider({ children, autoStartForNewUsers = true }: GuidanceProviderProps) {
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
   const engine = useGuidanceEngine();
   const [showChallengeComplete, setShowChallengeComplete] = useState(false);
   const [completedChallengeName, setCompletedChallengeName] = useState("");
   const [completedChallengeMessage, setCompletedChallengeMessage] = useState("");
-  const wasOnAppRoute = useRef(false);
+  const previousLocation = useRef<string | null>(null);
 
   const { state, currentQuest, currentChallenge, currentStep, getChallengeProgress } = engine;
 
-  // Only show guidance UI on /app routes (the search page)
+  const isOnEnabledRoute = isGuidanceEnabledRoute(location);
   const isOnAppRoute = location === "/app" || location.startsWith("/app/");
 
-  // Track route changes to resume guidance when returning to /app
+  // Handle route-based navigation for steps that require a specific page
   useEffect(() => {
-    const previouslyOnApp = wasOnAppRoute.current;
-    wasOnAppRoute.current = isOnAppRoute;
-
-    // User just navigated TO /app
-    if (isOnAppRoute && !previouslyOnApp) {
-      // If there's an active quest with progress, auto-resume after a short delay
-      if (state.currentQuestId && state.currentChallengeIndex >= 0 && !state.isActive) {
-        const timer = setTimeout(() => {
-          engine.resumeGuidance();
-        }, 500);
-        return () => clearTimeout(timer);
-      }
+    if (!state.isActive || !currentStep?.route) return;
+    
+    const expectedRoute = currentStep.route;
+    const isOnCorrectRoute = location === expectedRoute || location.startsWith(expectedRoute + "/");
+    
+    if (!isOnCorrectRoute) {
+      navigate(expectedRoute);
     }
-  }, [isOnAppRoute, state.currentQuestId, state.currentChallengeIndex, state.isActive, engine]);
+  }, [state.isActive, currentStep, location, navigate]);
+
+  // Track route changes and auto-resume guidance when navigating between enabled routes
+  useEffect(() => {
+    const prevLoc = previousLocation.current;
+    previousLocation.current = location;
+
+    if (!prevLoc) return;
+
+    const wasOnEnabled = isGuidanceEnabledRoute(prevLoc);
+    const isNowOnEnabled = isOnEnabledRoute;
+
+    // User navigated to an enabled route
+    if (isNowOnEnabled && state.currentQuestId && !state.isActive) {
+      const timer = setTimeout(() => {
+        engine.resumeGuidance();
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [location, isOnEnabledRoute, state.currentQuestId, state.isActive, engine]);
 
   useEffect(() => {
     // Auto-start guidance for new users when they reach /app
@@ -71,13 +91,13 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
   }, [autoStartForNewUsers, isOnAppRoute, state.currentQuestId, state.completedQuests.length, engine]);
 
   useEffect(() => {
-    if (isOnAppRoute && state.isActive && !state.isHeaderVisible) {
+    if (isOnEnabledRoute && state.isActive && !state.isHeaderVisible) {
       engine.pauseGuidance();
     }
-  }, [isOnAppRoute, state.isActive, state.isHeaderVisible, engine]);
+  }, [isOnEnabledRoute, state.isActive, state.isHeaderVisible, engine]);
 
   useEffect(() => {
-    if (!isOnAppRoute || !state.isActive || !currentStep) return;
+    if (!isOnEnabledRoute || !state.isActive || !currentStep) return;
 
     const handleElementClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
@@ -103,7 +123,7 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
       document.removeEventListener("click", handleElementClick, true);
       document.removeEventListener("keydown", handleKeyPress);
     };
-  }, [isOnAppRoute, state.isActive, currentStep, engine]);
+  }, [isOnEnabledRoute, state.isActive, currentStep, engine]);
 
   useEffect(() => {
     if (!state.isActive && currentChallenge && currentQuest) {
@@ -145,7 +165,7 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
   return (
     <GuidanceContext.Provider value={engine}>
       {/* Quest progress header renders before children to push content down */}
-      {isOnAppRoute && (
+      {isOnEnabledRoute && (
         <QuestProgressHeader
           questName={currentQuest?.name || "Quest"}
           challengesCompleted={challengeProgress.completed}
@@ -159,7 +179,7 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
       {children}
 
       {/* Other guidance UI elements render after children (overlays) */}
-      {isOnAppRoute && (
+      {isOnEnabledRoute && (
         <>
           <FluffyGuide
             onClick={handleFluffyClick}
