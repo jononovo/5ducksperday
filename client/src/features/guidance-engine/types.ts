@@ -10,6 +10,7 @@ export interface GuidanceStep {
   waitForUser?: boolean;
   validateCompletion?: () => boolean;
   route?: string;
+  advanceDelay?: number;
 }
 
 export interface Challenge {

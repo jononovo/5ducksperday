@@ -25,7 +25,8 @@ export const QUESTS: Quest[] = [
           {
             id: "step-2-type-query",
             selector: '[data-testid="search-input"]',
-            action: "view",
+            action: "type",
+            advanceDelay: 3000,
             instruction: "Type a search query like 'marketing agencies in Austin' - describe the type of businesses you want to find",
             tooltipPosition: "bottom",
             route: "/app",
