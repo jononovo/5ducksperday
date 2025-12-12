@@ -52,6 +52,7 @@ export interface GuidanceContextValue {
   resumeGuidance: () => void;
   toggleHeader: () => void;
   resetProgress: () => void;
+  restartChallenge: (questId: string, challengeIndex: number) => void;
   getChallengeProgress: () => { completed: number; total: number };
   getQuestProgress: () => { completed: number; total: number };
 }

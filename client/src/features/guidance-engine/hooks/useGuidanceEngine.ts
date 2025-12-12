@@ -182,6 +182,30 @@ export function useGuidanceEngine(): GuidanceContextValue {
     localStorage.removeItem(STORAGE_KEY);
   }, []);
 
+  const restartChallenge = useCallback((questId: string, challengeIndex: number) => {
+    const quest = getQuestById(questId);
+    if (!quest) return;
+    
+    const challenge = quest.challenges[challengeIndex];
+    if (!challenge) return;
+
+    const completedForQuest = state.completedChallenges[questId] || [];
+    const updatedCompleted = completedForQuest.filter(id => id !== challenge.id);
+
+    setState((prev) => ({
+      ...prev,
+      isActive: true,
+      currentQuestId: questId,
+      currentChallengeIndex: challengeIndex,
+      currentStepIndex: 0,
+      isHeaderVisible: true,
+      completedChallenges: {
+        ...prev.completedChallenges,
+        [questId]: updatedCompleted,
+      },
+    }));
+  }, [state.completedChallenges]);
+
   const getChallengeProgress = useCallback((): { completed: number; total: number } => {
     if (!currentQuest) return { completed: 0, total: 0 };
     const completedForQuest = state.completedChallenges[currentQuest.id] || [];
@@ -211,6 +235,7 @@ export function useGuidanceEngine(): GuidanceContextValue {
     resumeGuidance,
     toggleHeader,
     resetProgress,
+    restartChallenge,
     getChallengeProgress,
     getQuestProgress,
   };
