@@ -12,7 +12,6 @@ export function registerGuidanceRoutes(app: Express) {
         return res.json({
           completedQuests: [],
           completedChallenges: {},
-          dismissedChallengeModals: {},
           currentQuestId: null,
           currentChallengeIndex: 0,
           currentStepIndex: 0,
@@ -23,7 +22,6 @@ export function registerGuidanceRoutes(app: Express) {
       res.json({
         completedQuests: progress.completedQuests || [],
         completedChallenges: progress.completedChallenges || {},
-        dismissedChallengeModals: progress.dismissedChallengeModals || {},
         currentQuestId: progress.currentQuestId,
         currentChallengeIndex: progress.currentChallengeIndex || 0,
         currentStepIndex: progress.currentStepIndex || 0,
@@ -38,12 +36,11 @@ export function registerGuidanceRoutes(app: Express) {
   app.patch("/api/guidance/progress", async (req, res) => {
     try {
       const userId = getUserId(req);
-      const { completedQuests, completedChallenges, dismissedChallengeModals, currentQuestId, currentChallengeIndex, currentStepIndex, settings } = req.body;
+      const { completedQuests, completedChallenges, currentQuestId, currentChallengeIndex, currentStepIndex, settings } = req.body;
       
       const updated = await storage.updateUserGuidanceProgress(userId, {
         completedQuests,
         completedChallenges,
-        dismissedChallengeModals,
         currentQuestId,
         currentChallengeIndex,
         currentStepIndex,
@@ -53,7 +50,6 @@ export function registerGuidanceRoutes(app: Express) {
       res.json({
         completedQuests: updated.completedQuests || [],
         completedChallenges: updated.completedChallenges || {},
-        dismissedChallengeModals: updated.dismissedChallengeModals || {},
         currentQuestId: updated.currentQuestId,
         currentChallengeIndex: updated.currentChallengeIndex || 0,
         currentStepIndex: updated.currentStepIndex || 0,

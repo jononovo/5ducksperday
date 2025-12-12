@@ -434,7 +434,6 @@ export type InsertUserGuidanceProgress = {
   userId: number;
   completedQuests?: string[];
   completedChallenges?: Record<string, string[]>;
-  dismissedChallengeModals?: Record<string, boolean>;
   currentQuestId?: string | null;
   currentChallengeIndex?: number;
   currentStepIndex?: number;
