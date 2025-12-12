@@ -39,6 +39,7 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
   const [completedChallengeName, setCompletedChallengeName] = useState("");
   const [completedChallengeMessage, setCompletedChallengeMessage] = useState("");
   const previousLocation = useRef<string | null>(null);
+  const previousStepKey = useRef<string | null>(null);
 
   const { state, currentQuest, currentChallenge, currentStep, getChallengeProgress } = engine;
 
@@ -46,16 +47,28 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
   const isOnAppRoute = location === "/app" || location.startsWith("/app/");
 
   // Handle route-based navigation for steps that require a specific page
+  // Only auto-navigate when STEP changes (advancing through quest), not when user manually navigates
   useEffect(() => {
-    if (!state.isActive || !currentStep?.route) return;
-    
-    const expectedRoute = currentStep.route;
-    const isOnCorrectRoute = location === expectedRoute || location.startsWith(expectedRoute + "/");
-    
-    if (!isOnCorrectRoute) {
-      navigate(expectedRoute);
+    if (!state.isActive || !currentStep?.route) {
+      // Reset ref when guidance becomes inactive so next activation will check route
+      if (!state.isActive) previousStepKey.current = null;
+      return;
     }
-  }, [state.isActive, currentStep, location, navigate]);
+    
+    const stepKey = `${state.currentQuestId}-${state.currentChallengeIndex}-${state.currentStepIndex}`;
+    
+    // Only auto-navigate when step changes, not on every location change
+    if (previousStepKey.current !== stepKey) {
+      previousStepKey.current = stepKey;
+      
+      const expectedRoute = currentStep.route;
+      const isOnCorrectRoute = location === expectedRoute || location.startsWith(expectedRoute + "/");
+      
+      if (!isOnCorrectRoute) {
+        navigate(expectedRoute);
+      }
+    }
+  }, [state.isActive, currentStep, state.currentQuestId, state.currentChallengeIndex, state.currentStepIndex, location, navigate]);
 
   // Track route changes and auto-resume guidance when navigating between enabled routes
   useEffect(() => {
