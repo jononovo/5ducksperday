@@ -158,28 +158,19 @@ export function CertificateFull({ recipientName, completionDate, credentialId }:
           className="flex flex-col items-center mt-2"
         >
           <svg 
-            width="180" 
-            height="55" 
-            viewBox="0 0 180 55" 
+            width="140" 
+            height="40" 
+            viewBox="0 0 140 40" 
             className="mb-1"
             style={{ transform: 'rotate(-2deg) skewX(-12deg)' }}
           >
-            {/* Main signature with real loop at start */}
             <path
-              d="M12 42 C8 38, 6 30, 10 22 C14 14, 22 10, 28 14 C34 18, 32 28, 26 34 C20 40, 16 44, 24 42 C32 40, 38 32, 46 24 C54 16, 64 12, 74 20 C84 28, 78 38, 90 32 C102 26, 112 18, 124 24 C136 30, 130 40, 144 34 C158 28, 168 22, 178 28"
+              d="M8 32 C5 28, 4 22, 8 16 C12 10, 18 8, 22 12 C26 16, 24 24, 18 28 C12 32, 10 34, 16 32 C22 30, 26 24, 30 18 C34 12, 40 10, 44 14 C48 18, 46 26, 40 30 C34 34, 32 36, 38 34 C44 32, 50 26, 58 20 C66 14, 76 12, 86 18 C96 24, 90 32, 102 26 C114 20, 122 16, 134 20"
               fill="none"
               stroke="#D1D5DB"
-              strokeWidth="2"
+              strokeWidth="1.8"
               strokeLinecap="round"
               strokeLinejoin="round"
-            />
-            {/* Strike through line */}
-            <path
-              d="M45 30 C80 28, 120 26, 155 30"
-              fill="none"
-              stroke="#D1D5DB"
-              strokeWidth="1.5"
-              strokeLinecap="round"
             />
           </svg>
           <div className="w-40 h-px bg-gray-600 mb-2" />
