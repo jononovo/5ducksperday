@@ -157,7 +157,7 @@ export function CertificateFull({ recipientName, completionDate, credentialId }:
           transition={{ delay: 0.7 }}
           className="flex flex-col items-center mt-2"
         >
-          <p className="text-xl text-gray-800 mb-1" style={{ fontFamily: 'cursive', fontStyle: 'italic', letterSpacing: '-1px', transform: 'rotate(-2deg)' }}>Jm~rrsn</p>
+          <p className="text-xl text-gray-300 mb-1" style={{ fontFamily: 'cursive', fontStyle: 'italic', letterSpacing: '-1px', transform: 'rotate(-2deg)' }}>Jm~rrsn</p>
           <div className="w-40 h-px bg-gray-600 mb-2" />
           <p className="text-xs text-gray-400 mb-1">Director of GTM Programs</p>
           <p className="text-xs text-gray-500">{completionDate}</p>
