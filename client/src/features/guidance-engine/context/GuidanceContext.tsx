@@ -137,7 +137,9 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
     };
   }, [isOnEnabledRoute, state.isActive, currentStep, engine]);
 
-  const prevCompletedChallengesRef = useRef<Record<string, string[]>>({});
+  const prevCompletedChallengesRef = useRef<Record<string, string[]>>(
+    JSON.parse(JSON.stringify(state.completedChallenges))
+  );
 
   useEffect(() => {
     if (!state.isActive && currentChallenge && currentQuest) {
