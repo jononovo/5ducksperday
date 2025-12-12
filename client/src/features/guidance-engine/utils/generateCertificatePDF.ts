@@ -225,11 +225,11 @@ export async function generateCertificatePDF(
   });
 
   const credentialText = formatCredentialId(userId);
-  const credentialWidth = helvetica.widthOfTextAtSize(credentialText, 8);
+  const credentialWidth = helvetica.widthOfTextAtSize(credentialText, 7);
   page.drawText(credentialText, {
     x: width - 30 - credentialWidth,
     y: 20,
-    size: 8,
+    size: 7,
     font: helvetica,
     color: grayText,
   });

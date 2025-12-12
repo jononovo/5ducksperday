@@ -169,7 +169,7 @@ export function CertificateFull({ recipientName, completionDate, credentialId }:
           className="absolute bottom-3 left-0 right-0 px-8 flex justify-between items-center"
         >
           <span className="text-[9px] text-gray-500">© 5Ducks 2025, 10005 NY, USA</span>
-          <span className="text-[10px] text-gray-600 font-mono">{formatCredentialId(credentialId)}</span>
+          <span className="text-[8px] text-gray-600 font-mono">{formatCredentialId(credentialId)}</span>
         </motion.div>
       </div>
     </div>
