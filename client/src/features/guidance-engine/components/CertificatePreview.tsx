@@ -162,10 +162,10 @@ export function CertificateFull({ recipientName, completionDate, credentialId }:
             height="45" 
             viewBox="0 0 140 45" 
             className="mb-1"
-            style={{ transform: 'rotate(-2deg)' }}
+            style={{ transform: 'rotate(-2deg) skewX(-8deg)' }}
           >
             <path
-              d="M10 35 C10 20, 15 10, 20 15 C25 20, 22 30, 25 35 C28 40, 30 38, 32 30 C34 22, 38 18, 42 22 C46 26, 44 32, 48 28 L52 24 C54 22, 58 20, 62 24 C66 28, 64 34, 68 30 C72 26, 76 22, 80 26 C84 30, 82 36, 88 32 C94 28, 98 24, 104 28 C110 32, 108 38, 115 34 C120 31, 125 28, 132 30"
+              d="M8 38 C12 22, 16 8, 22 14 C28 20, 24 32, 28 38 C32 44, 36 36, 40 28 C44 20, 50 14, 56 20 C62 26, 58 34, 64 28 C70 22, 76 16, 82 22 C88 28, 84 36, 92 30 C100 24, 106 18, 114 24 C122 30, 118 38, 128 32"
               fill="none"
               stroke="#D1D5DB"
               strokeWidth="2"
