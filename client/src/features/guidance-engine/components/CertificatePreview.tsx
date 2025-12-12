@@ -158,26 +158,34 @@ export function CertificateFull({ recipientName, completionDate, credentialId }:
           className="flex flex-col items-center mt-2"
         >
           <svg 
-            width="120" 
-            height="40" 
-            viewBox="0 0 120 40" 
+            width="140" 
+            height="50" 
+            viewBox="0 0 140 50" 
             className="mb-1"
-            style={{ transform: 'rotate(-1deg)' }}
+            style={{ transform: 'rotate(-2deg)' }}
           >
             <path
-              d="M8 28 C12 12, 18 8, 22 20 C24 26, 26 28, 28 24 C30 18, 32 14, 38 16 C42 17, 44 22, 46 20 C48 18, 50 14, 54 16 C58 18, 56 24, 60 22 C64 20, 66 16, 72 18 C76 19, 74 24, 78 22 C82 20, 86 16, 92 18 C96 19, 98 24, 102 20 C106 16, 110 14, 114 18"
+              d="M10 35 C10 20, 15 10, 20 15 C25 20, 22 30, 25 35 C28 40, 30 38, 32 30 C34 22, 38 18, 42 22 C46 26, 44 32, 48 28 L52 24 C54 22, 58 20, 62 24 C66 28, 64 34, 68 30 C72 26, 76 22, 80 26 C84 30, 82 36, 88 32 C94 28, 98 24, 104 28 C110 32, 108 38, 115 34 C120 31, 125 28, 132 30"
               fill="none"
-              stroke="#9CA3AF"
-              strokeWidth="1.5"
+              stroke="#D1D5DB"
+              strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
             <path
-              d="M16 32 C20 30, 24 28, 30 30"
+              d="M15 12 C18 8, 22 6, 25 10 C28 14, 24 18, 20 16"
               fill="none"
-              stroke="#9CA3AF"
+              stroke="#D1D5DB"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+            <path
+              d="M70 42 C90 40, 110 38, 130 42"
+              fill="none"
+              stroke="#D1D5DB"
               strokeWidth="1"
               strokeLinecap="round"
+              opacity="0.6"
             />
           </svg>
           <div className="w-40 h-px bg-gray-600 mb-2" />
