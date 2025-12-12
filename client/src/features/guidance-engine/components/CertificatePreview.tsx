@@ -161,7 +161,7 @@ export function CertificateFull({ recipientName, completionDate, credentialId }:
             width="140" 
             height="40" 
             viewBox="0 0 140 40" 
-            className="mb-1"
+            className="-mb-2"
             style={{ transform: 'rotate(-2deg) skewX(-12deg)' }}
           >
             <path
