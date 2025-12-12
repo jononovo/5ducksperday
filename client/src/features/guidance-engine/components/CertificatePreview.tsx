@@ -167,7 +167,7 @@ export function CertificateFull({ recipientName, completionDate, credentialId }:
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
-          className="absolute bottom-1 left-0 right-0 px-8 flex justify-between items-center"
+          className="absolute bottom-2 left-0 right-0 px-8 flex justify-between items-center"
         >
           <span className="text-[9px] text-gray-500">© 5Ducks 2025, 10005 NY, USA</span>
           <span className="text-[8px] text-gray-600 font-mono">{formatCredentialId(credentialId)}</span>
