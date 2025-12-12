@@ -146,7 +146,7 @@ export function CertificateFull({ recipientName, completionDate, credentialId }:
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          className="text-sm md:text-base text-gray-300 max-w-md mb-6"
+          className="text-xs md:text-sm text-gray-300 max-w-md mb-6"
         >
           has successfully completed all quests and demonstrated proficiency in B2B prospecting and email campaign management
         </motion.p>
@@ -168,7 +168,7 @@ export function CertificateFull({ recipientName, completionDate, credentialId }:
           transition={{ delay: 0.8 }}
           className="absolute bottom-3 left-0 right-0 px-8 flex justify-between items-center"
         >
-          <span className="text-[10px] text-gray-500 tracking-wider">5DUCKS</span>
+          <span className="text-[9px] text-gray-500">© 5Ducks 2025, 10005 NY, USA</span>
           <span className="text-[10px] text-gray-600 font-mono">{formatCredentialId(credentialId)}</span>
         </motion.div>
       </div>

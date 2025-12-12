@@ -164,21 +164,21 @@ export async function generateCertificatePDF(
   });
 
   const descText = "has successfully completed all quests and demonstrated proficiency";
-  const descWidth = helvetica.widthOfTextAtSize(descText, 12);
+  const descWidth = helvetica.widthOfTextAtSize(descText, 10);
   page.drawText(descText, {
     x: (width - descWidth) / 2,
-    y: height - 380,
-    size: 12,
+    y: height - 375,
+    size: 10,
     font: helvetica,
     color: grayText,
   });
 
   const descText2 = "in B2B prospecting and email campaign management";
-  const desc2Width = helvetica.widthOfTextAtSize(descText2, 12);
+  const desc2Width = helvetica.widthOfTextAtSize(descText2, 10);
   page.drawText(descText2, {
     x: (width - desc2Width) / 2,
-    y: height - 400,
-    size: 12,
+    y: height - 392,
+    size: 10,
     font: helvetica,
     color: grayText,
   });
@@ -214,13 +214,13 @@ export async function generateCertificatePDF(
     color: grayText,
   });
 
-  // Footer: 5DUCKS on left, credential ID on right
-  const logoText = "5DUCKS";
-  page.drawText(logoText, {
+  // Footer: copyright on left, credential ID on right
+  const copyrightText = "© 5Ducks 2025, 10005 NY, USA";
+  page.drawText(copyrightText, {
     x: 30,
     y: 20,
-    size: 8,
-    font: helveticaBold,
+    size: 7,
+    font: helvetica,
     color: grayText,
   });
 
