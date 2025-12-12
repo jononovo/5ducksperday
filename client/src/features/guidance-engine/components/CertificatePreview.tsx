@@ -38,15 +38,15 @@ export function CertificatePreview({ recipientName = "Your Name", completionDate
           <Award className={`h-6 w-6 ${isUnlocked ? "text-amber-400" : "text-gray-500"}`} />
         </div>
         
-        <p className={`text-[8px] uppercase tracking-[0.2em] ${isUnlocked ? "text-amber-400/80" : "text-gray-500"} mb-1`}>
-          Certificate of Completion
+        <p className={`text-[6px] uppercase tracking-[0.15em] ${isUnlocked ? "text-amber-400/80" : "text-gray-500"} mb-0.5`}>
+          5Ducks GTM Mastery Program
         </p>
         
-        <h3 className="text-[10px] font-bold text-white mb-1">
-          5Ducks Mastery Program
+        <h3 className="text-[9px] font-bold text-white mb-0.5">
+          Prospecting & Email Campaigns
         </h3>
         
-        <p className="text-[7px] text-gray-400 mb-2">
+        <p className="text-[6px] text-gray-400 mb-1">
           This certifies that
         </p>
         
@@ -108,9 +108,9 @@ export function CertificateFull({ recipientName, completionDate }: CertificateFu
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="text-xs md:text-sm uppercase tracking-[0.3em] text-amber-400/80 mb-2"
+          className="text-xs md:text-sm uppercase tracking-[0.2em] text-amber-400/80 mb-1"
         >
-          Certificate of Completion
+          5Ducks GTM Mastery Program
         </motion.p>
         
         <motion.h2
@@ -119,7 +119,7 @@ export function CertificateFull({ recipientName, completionDate }: CertificateFu
           transition={{ delay: 0.4 }}
           className="text-xl md:text-3xl font-bold text-white mb-4"
         >
-          5Ducks Mastery Program
+          Prospecting & Email Campaigns
         </motion.h2>
         
         <motion.div
@@ -142,7 +142,7 @@ export function CertificateFull({ recipientName, completionDate }: CertificateFu
           transition={{ delay: 0.6 }}
           className="text-sm md:text-base text-gray-300 max-w-md mb-6"
         >
-          has successfully completed all quests and demonstrated proficiency in the 5Ducks B2B prospecting platform
+          has successfully completed all quests and demonstrated proficiency in B2B prospecting and email campaign management
         </motion.p>
         
         <motion.div

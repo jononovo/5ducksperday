@@ -118,22 +118,22 @@ export async function generateCertificatePDF(
     color: amberColor,
   });
 
-  const titleText = "CERTIFICATE OF COMPLETION";
-  const titleWidth = helvetica.widthOfTextAtSize(titleText, 14);
-  page.drawText(titleText, {
-    x: (width - titleWidth) / 2,
-    y: height - 180,
-    size: 14,
+  const programText = "5DUCKS GTM MASTERY PROGRAM";
+  const programWidth = helvetica.widthOfTextAtSize(programText, 12);
+  page.drawText(programText, {
+    x: (width - programWidth) / 2,
+    y: height - 175,
+    size: 12,
     font: helvetica,
     color: amberLight,
   });
 
-  const programText = "5Ducks Mastery Program";
-  const programWidth = helveticaBold.widthOfTextAtSize(programText, 32);
-  page.drawText(programText, {
-    x: (width - programWidth) / 2,
-    y: height - 230,
-    size: 32,
+  const certNameText = "Prospecting & Email Campaigns";
+  const certNameWidth = helveticaBold.widthOfTextAtSize(certNameText, 28);
+  page.drawText(certNameText, {
+    x: (width - certNameWidth) / 2,
+    y: height - 215,
+    size: 28,
     font: helveticaBold,
     color: whiteText,
   });
@@ -157,7 +157,7 @@ export async function generateCertificatePDF(
     color: amberLight,
   });
 
-  const descText = "has successfully completed all quests and demonstrated";
+  const descText = "has successfully completed all quests and demonstrated proficiency";
   const descWidth = helvetica.widthOfTextAtSize(descText, 12);
   page.drawText(descText, {
     x: (width - descWidth) / 2,
@@ -167,7 +167,7 @@ export async function generateCertificatePDF(
     color: grayText,
   });
 
-  const descText2 = "proficiency in the 5Ducks B2B prospecting platform";
+  const descText2 = "in B2B prospecting and email campaign management";
   const desc2Width = helvetica.widthOfTextAtSize(descText2, 12);
   page.drawText(descText2, {
     x: (width - desc2Width) / 2,

@@ -69,7 +69,7 @@ export function CertificateShowcase({
 
             <div className="flex-1 text-center md:text-left">
               <h3 className="text-xl font-bold text-white mb-2">
-                5Ducks Mastery Certificate
+                Prospecting & Email Campaigns Certificate
               </h3>
               
               {isUnlocked ? (
