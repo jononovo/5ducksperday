@@ -123,11 +123,6 @@ function QuestCard({
                 Complete
               </span>
             )}
-            {status === "in-progress" && (
-              <span className="text-xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full flex items-center gap-1">
-                <Sparkles className="h-3 w-3" /> In Progress
-              </span>
-            )}
           </div>
           <h3 className={`text-lg font-semibold ${status === "locked" ? "text-gray-500" : "text-white"}`}>
             {quest.name}
