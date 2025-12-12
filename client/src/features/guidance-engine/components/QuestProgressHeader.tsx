@@ -20,7 +20,7 @@ export function QuestProgressHeader({
           initial={{ height: 0, opacity: 0 }}
           animate={{ height: "auto", opacity: 1 }}
           exit={{ height: 0, opacity: 0 }}
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          transition={{ duration: 0.25, ease: "easeOut" }}
           className="w-full bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-b border-yellow-500/30 shadow-lg overflow-hidden"
           data-testid="quest-progress-header"
         >
