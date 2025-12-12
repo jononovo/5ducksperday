@@ -33,7 +33,6 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
   const [completedChallengeName, setCompletedChallengeName] = useState("");
   const [completedChallengeMessage, setCompletedChallengeMessage] = useState("");
   const wasOnAppRoute = useRef(false);
-  const celebratedChallenges = useRef<Set<string>>(new Set());
 
   const { state, currentQuest, currentChallenge, currentStep, getChallengeProgress } = engine;
 
@@ -104,10 +103,8 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
     if (!state.isActive && currentChallenge && currentQuest) {
       const completedForQuest = state.completedChallenges[currentQuest.id] || [];
       const justCompleted = completedForQuest.includes(currentChallenge.id);
-      const alreadyCelebrated = celebratedChallenges.current.has(currentChallenge.id);
       
-      if (justCompleted && !alreadyCelebrated && !showChallengeComplete) {
-        celebratedChallenges.current.add(currentChallenge.id);
+      if (justCompleted && !showChallengeComplete) {
         setCompletedChallengeName(currentChallenge.name);
         setCompletedChallengeMessage(currentChallenge.completionMessage || "Great job!");
         setShowChallengeComplete(true);
