@@ -46,7 +46,7 @@ export function QuestProgressHeader({
             
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
-                <div className="w-32 h-2 bg-gray-700 rounded-full overflow-hidden">
+                <div className="w-16 sm:w-32 h-2 bg-gray-700 rounded-full overflow-hidden">
                   <motion.div
                     className="h-full bg-gradient-to-r from-yellow-500 to-amber-400 rounded-full"
                     initial={{ width: 0 }}
