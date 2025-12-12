@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createPortal } from "react-dom";
 import { useLocation } from "wouter";
@@ -12,7 +12,18 @@ interface ExtendedFluffyGuideProps extends FluffyGuideProps {
 
 export function FluffyGuide({ onClick, isActive, onCloseGuide }: ExtendedFluffyGuideProps) {
   const [showMenu, setShowMenu] = useState(false);
+  const [shouldWiggle, setShouldWiggle] = useState(false);
   const [, navigate] = useLocation();
+
+  useEffect(() => {
+    const triggerWiggle = () => {
+      setShouldWiggle(true);
+      setTimeout(() => setShouldWiggle(false), 1500);
+    };
+
+    const interval = setInterval(triggerWiggle, 180000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleClick = () => {
     if (isActive) {
@@ -114,8 +125,14 @@ export function FluffyGuide({ onClick, isActive, onCloseGuide }: ExtendedFluffyG
         >
           <motion.div
             className="relative w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center shadow-lg cursor-pointer"
-            animate={{ y: showMenu ? 0 : [0, -3, 0] }}
-            transition={{ duration: 2, repeat: showMenu ? 0 : Infinity, ease: "easeInOut" }}
+            animate={{ 
+              y: shouldWiggle && !showMenu ? [0, -4, 0, -2, 0] : 0,
+              scale: 1
+            }}
+            transition={{ 
+              y: { duration: 1.2, ease: [0.25, 0.1, 0.25, 1] },
+              scale: { duration: 0.2 }
+            }}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
           >
