@@ -19,6 +19,7 @@ export const QUESTS: Quest[] = [
             action: "click",
             instruction: "Click on the search bar to start finding companies and contacts",
             tooltipPosition: "bottom",
+            route: "/app",
           },
           {
             id: "step-2-type-query",
@@ -26,6 +27,7 @@ export const QUESTS: Quest[] = [
             action: "view",
             instruction: "Type a search query like 'marketing agencies in Austin' - describe the type of businesses you want to find",
             tooltipPosition: "bottom",
+            route: "/app",
           },
           {
             id: "step-3-execute-search",
@@ -33,6 +35,7 @@ export const QUESTS: Quest[] = [
             action: "click",
             instruction: "Click the Search button to find companies matching your query!",
             tooltipPosition: "left",
+            route: "/app",
           },
         ],
         completionMessage: "Awesome! You've completed your first search! 🎉",
@@ -49,6 +52,7 @@ export const QUESTS: Quest[] = [
             action: "view",
             instruction: "Here are your search results! Each row shows a company with their key contacts. Click on any company to see more details.",
             tooltipPosition: "top",
+            route: "/app",
           },
         ],
         completionMessage: "Great! You can now explore company and contact details! 🎯",
@@ -65,6 +69,7 @@ export const QUESTS: Quest[] = [
             action: "view",
             instruction: "The 'Find Key Emails' button searches for email addresses of the top contacts at each company. This helps you reach decision-makers directly!",
             tooltipPosition: "bottom",
+            route: "/app",
           },
           {
             id: "step-2-click-email-button",
@@ -72,6 +77,7 @@ export const QUESTS: Quest[] = [
             action: "click",
             instruction: "Click 'Find Key Emails' to discover email addresses for your contacts!",
             tooltipPosition: "bottom",
+            route: "/app",
           },
         ],
         completionMessage: "Excellent! You've discovered how to find contact emails! 📬",
@@ -87,6 +93,7 @@ export const QUESTS: Quest[] = [
             action: "click",
             instruction: "Let's do a complete search! Click on the search bar to start a new search.",
             tooltipPosition: "bottom",
+            route: "/app",
           },
           {
             id: "step-2-enter-query",
@@ -94,6 +101,7 @@ export const QUESTS: Quest[] = [
             action: "view",
             instruction: "Type a search query describing your ideal customers - for example 'tech startups in San Francisco' or 'real estate agents in Miami'",
             tooltipPosition: "bottom",
+            route: "/app",
           },
           {
             id: "step-3-run-search",
@@ -101,6 +109,7 @@ export const QUESTS: Quest[] = [
             action: "click",
             instruction: "Click Search to find companies and their key contacts!",
             tooltipPosition: "left",
+            route: "/app",
           },
           {
             id: "step-4-view-contacts",
@@ -108,6 +117,7 @@ export const QUESTS: Quest[] = [
             action: "view",
             instruction: "Great! You now have a list of companies with their key contacts. Review the results to see decision-makers at each company.",
             tooltipPosition: "top",
+            route: "/app",
           },
           {
             id: "step-5-find-all-emails",
@@ -115,6 +125,7 @@ export const QUESTS: Quest[] = [
             action: "click",
             instruction: "Now click 'Find Key Emails' to discover email addresses for all these contacts at once!",
             tooltipPosition: "bottom",
+            route: "/app",
           },
           {
             id: "step-6-complete",
@@ -122,6 +133,7 @@ export const QUESTS: Quest[] = [
             action: "view",
             instruction: "You've completed a full search! You now have companies, contacts, and their email addresses - everything you need to start reaching out!",
             tooltipPosition: "top",
+            route: "/app",
           },
         ],
         completionMessage: "Congratulations! You've mastered the complete search workflow!",
