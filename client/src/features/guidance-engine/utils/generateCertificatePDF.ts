@@ -218,7 +218,7 @@ export async function generateCertificatePDF(
   const copyrightText = "© 5Ducks 2025, 10005 NY, USA";
   page.drawText(copyrightText, {
     x: 30,
-    y: 20,
+    y: 12,
     size: 7,
     font: helvetica,
     color: grayText,
@@ -228,7 +228,7 @@ export async function generateCertificatePDF(
   const credentialWidth = helvetica.widthOfTextAtSize(credentialText, 7);
   page.drawText(credentialText, {
     x: width - 30 - credentialWidth,
-    y: 20,
+    y: 12,
     size: 7,
     font: helvetica,
     color: grayText,
