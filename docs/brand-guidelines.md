@@ -8,12 +8,22 @@ A comprehensive design system and branding reference for the 5Ducks application.
 
 ### Brand Identity
 - **Name:** 5Ducks
-- **Tagline:** "Sell to 5 new people every day"
+- **Tagline:** "Sales. Gamified." / "Sell to 5 new people every day"
 - **Personality:** Approachable, gamified, professional yet playful
-- **Mascot:** Duckling (🐥) with egg sequence (🥚🥚🥚🥚) representing growth stages
+- **Primary Mascot:** 3D Cute Duckling (yellow, fluffy, expressive eyes)
+- **Secondary Mascots:** Bear (brown, friendly) and Fox (orange, enthusiastic)
+- **Logo Mark:** Duckling emoji with eggs (🐥🥚🥚🥚🥚) representing growth stages
 
 ### Core Concept
 5Ducks simplifies B2B sales prospecting and outreach through gamification. The brand balances professionalism with a sense of fun and achievement, making sales feel like completing quests rather than tedious work.
+
+### Gamification Elements
+- **XP System:** Actions reward experience points (e.g., "+50XP" for Email Sent)
+- **Streaks:** Track consecutive days of activity (e.g., "🔥 12 Days")
+- **Quests:** Step-by-step challenges that guide users through features
+- **Credits:** Earned through completing quests, used for premium features
+- **Secret Codes:** Exclusive unlock mechanism for stealth/beta access
+- **Social Proof:** "1,248 Players Waiting" with avatar stack
 
 ---
 
@@ -74,6 +84,13 @@ background: linear-gradient(to bottom-right, rgba(20, 83, 45, 0.3), rgba(22, 101
 
 /* Dark page background */
 background: linear-gradient(to bottom, #030712, #111827, #030712);
+
+/* Landing page atmospheric accents */
+/* Subtle purple/magenta and cyan light spots in background */
+background-image: 
+  radial-gradient(circle at 30% 20%, rgba(168, 85, 247, 0.15) 0%, transparent 40%),
+  radial-gradient(circle at 70% 60%, rgba(6, 182, 212, 0.1) 0%, transparent 35%),
+  radial-gradient(circle at 85% 30%, rgba(236, 72, 153, 0.08) 0%, transparent 30%);
 
 /* Input focus glow (blue) */
 box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
@@ -413,6 +430,13 @@ colors: ['#fbbf24', '#f59e0b', '#d97706', '#22c55e', '#10b981']
 - Content layered with z-index for depth
 - Dramatic glows and shadows
 
+**Background Imagery:**
+- Abstract 3D illustrations (envelopes, charts, targets)
+- Mix-blend-mode: screen for light integration
+- Opacity: 30-40% with backdrop blur
+- Subtle purple/magenta and cyan light spots for atmosphere
+- Creates depth without distracting from content
+
 ### Standard App Pages
 - Respect user theme preference
 - Clean white/light gray backgrounds (light mode)
@@ -431,15 +455,62 @@ colors: ['#fbbf24', '#f59e0b', '#d97706', '#22c55e', '#10b981']
 
 ## 9. Mascot & Branding Elements
 
-### Duck Mascot Representation
+### 3D Mascot Characters
 
-**Emoji Sequence:**
+**Primary Mascot - Duckling ("Fluffy")**
+- Style: 3D rendered, cute/kawaii aesthetic
+- Color: Warm yellow (#FFD93D body, orange beak/feet)
+- Personality: Curious, helpful, expressive
+- Usage: Hero sections, onboarding, achievements
+- Size: Large prominence on landing page (right side)
+
+**Secondary Mascots - Bear & Fox**
+- Style: 3D rendered, matching cute aesthetic
+- Bear: Brown (#8B5A2B), friendly, celebrates success
+- Fox: Orange (#FF6B35), enthusiastic, points to features
+- Usage: Feature demonstrations, "Meeting Booked" celebrations
+- Shown together holding signs/notifications
+
+**Emoji Representation:**
 - Full: `🐥🥚🥚🥚🥚` (1 hatched + 4 eggs)
 - Growing: Add more 🐥 as user progresses
 - Mobile simplified: `🐥`
 
+### Action Notification Cards
+
+Floating cards that appear around mascots showing real-time activity:
+
+**"Email Sent" Card**
+```css
+.action-card {
+  background: rgba(30, 30, 30, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  backdrop-filter: blur(8px);
+}
+.action-xp {
+  color: #3B82F6; /* blue-500 */
+  font-weight: 600;
+}
+```
+
+**"Prospect Found" Card**
+- Icon: Target/radar with pink accent
+- Label: "NEW LEAD" in small caps
+
+**"Meeting Booked" Card**
+- Larger format, held by mascots
+- Shows time (e.g., "10:00 AM")
+- Confetti celebration around it
+
+**"Streak" Card**
+- Icon: 🔥 flame
+- Display: "12 Days" format
+- Background: Dark with warm glow
+
 ### Logo Placement
-- Top-left on landing pages
+- Top-left on landing pages (duckling + eggs)
 - Navbar on app pages
 - Certificate/achievement modals
 
