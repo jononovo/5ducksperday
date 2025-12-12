@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useGuidance } from "../context/GuidanceContext";
 import { QUESTS } from "../data/quests";
+import { CertificateShowcase } from "./CertificateShowcase";
 import type { Quest, Challenge } from "../types";
 import confetti from "canvas-confetti";
 
@@ -401,6 +402,13 @@ export function QuestsPage() {
             <p className="text-gray-500">Check back soon for new challenges!</p>
           </motion.div>
         )}
+
+        <CertificateShowcase
+          recipientName="Your Name"
+          isUnlocked={completedQuestsCount === totalQuests && totalQuests > 0}
+          questsCompleted={completedQuestsCount}
+          totalQuests={totalQuests}
+        />
       </div>
     </div>
   );
