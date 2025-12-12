@@ -26,7 +26,7 @@ export function QuestProgressHeader({
           data-testid="quest-progress-header"
         >
           <div className="max-w-screen-xl mx-auto px-4 py-2 flex items-center justify-between">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
               <Link href="/quests" className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
                 <Trophy className="h-4 w-4 text-yellow-500" />
                 <span className="text-sm font-medium text-yellow-400 hidden sm:inline">
