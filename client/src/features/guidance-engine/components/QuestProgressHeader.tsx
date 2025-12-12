@@ -36,9 +36,9 @@ export function QuestProgressHeader({
               
               <div className="h-4 w-px bg-gray-600" />
               
-              <div className="flex items-center gap-2">
-                <Target className="h-4 w-4 text-gray-400" />
-                <span className="text-xs text-gray-300">
+              <div className="flex items-center gap-2 min-w-0 max-w-[120px] sm:max-w-[200px]">
+                <Target className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                <span className="text-xs text-gray-300 truncate">
                   {currentChallengeName || "Ready for next challenge"}
                 </span>
               </div>
