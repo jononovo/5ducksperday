@@ -82,7 +82,11 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
     const isNowOnEnabled = isOnEnabledRoute;
 
     // Only auto-resume when user actually NAVIGATES to an enabled route, not when closing guidance
+    // Don't auto-resume when visiting /quests - that's for viewing quests, not doing them
     if (prevLoc !== location && isNowOnEnabled && state.currentQuestId && !state.isActive) {
+      if (location === "/quests" || location.startsWith("/quests/")) {
+        return;
+      }
       const timer = setTimeout(() => {
         engine.resumeGuidance();
       }, 300);
@@ -193,19 +197,26 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
     };
   }, [isOnEnabledRoute, state.isActive, currentStep, engine]);
 
+  const prevCompletedChallengesRef = useRef<Record<string, string[]>>(
+    JSON.parse(JSON.stringify(state.completedChallenges))
+  );
+
   useEffect(() => {
     if (!state.isActive && currentChallenge && currentQuest) {
       const completedForQuest = state.completedChallenges[currentQuest.id] || [];
-      const justCompleted = completedForQuest.includes(currentChallenge.id);
-      const challengeKey = `${currentQuest.id}-${currentChallenge.id}`;
+      const prevCompletedForQuest = prevCompletedChallengesRef.current[currentQuest.id] || [];
       
-      if (justCompleted && !showChallengeComplete && shownChallengeCompletionRef.current !== challengeKey) {
-        shownChallengeCompletionRef.current = challengeKey;
+      const isNewCompletion = completedForQuest.includes(currentChallenge.id) && 
+                             !prevCompletedForQuest.includes(currentChallenge.id);
+      
+      if (isNewCompletion && !showChallengeComplete) {
         setCompletedChallengeName(currentChallenge.name);
         setCompletedChallengeMessage(currentChallenge.completionMessage || "Great job!");
         setShowChallengeComplete(true);
       }
     }
+    
+    prevCompletedChallengesRef.current = JSON.parse(JSON.stringify(state.completedChallenges));
   }, [state.isActive, state.completedChallenges, currentChallenge, currentQuest, showChallengeComplete]);
 
   const handleChallengeCompleteClose = useCallback(() => {
