@@ -125,7 +125,7 @@ export const QUESTS: Quest[] = [
             tooltipPosition: "top",
           },
         ],
-        completionMessage: "Congratulations! You've mastered the complete search workflow! 🎉🚀",
+        completionMessage: "Congratulations! You've mastered the complete search workflow!",
       },
     ],
   },
