@@ -13,6 +13,7 @@ import { RegistrationModalProvider } from "@/hooks/use-registration-modal";
 import { RegistrationModalContainer } from "@/components/registration-modal-container";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/hooks/use-theme";
+import { GuidanceProvider } from "@/features/guidance-engine";
 import "@/lib/firebase";
 import { initGA } from "@/lib/analytics";
 import { useAnalytics } from "@/hooks/use-analytics";
@@ -320,9 +321,11 @@ function App() {
         <AuthProvider>
           <RegistrationModalProvider>
             <StrategyOverlayProvider>
-              <Router />
-              <RegistrationModalContainer />
-              <Toaster />
+              <GuidanceProvider autoStartForNewUsers={true}>
+                <Router />
+                <RegistrationModalContainer />
+                <Toaster />
+              </GuidanceProvider>
             </StrategyOverlayProvider>
           </RegistrationModalProvider>
         </AuthProvider>

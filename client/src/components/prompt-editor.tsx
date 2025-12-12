@@ -1085,6 +1085,7 @@ export default function PromptEditor({
             placeholder="Recently exited startups in Miami "
             rows={2}
             className={`md:rounded-md rounded-md resize-none pb-12 text-base md:text-lg text-gray-700 hover:border-gray-300 md:focus-visible:border-gray-400 ${isFromLandingPage ? 'racing-light-effect' : ''} ${showGradientText ? 'gradient-text-input' : ''}`}
+            data-testid="search-input"
           />
           
           {/* Bottom controls container - positioned inside textarea */}
@@ -1188,6 +1189,7 @@ export default function PromptEditor({
                   }
                 `}
                 aria-label="Search"
+                data-testid="search-button"
               >
                 {(isAnalyzing || quickSearchMutation.isPending) ? (
                   <>
