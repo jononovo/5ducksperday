@@ -155,9 +155,10 @@ export function CertificateFull({ recipientName, completionDate, credentialId }:
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7 }}
-          className="flex flex-col items-center"
+          className="flex flex-col items-center mt-2"
         >
-          <div className="w-32 h-px bg-gray-600 mb-2" />
+          <p className="text-lg italic text-amber-400/80 font-serif mb-1">J. Morrison</p>
+          <div className="w-40 h-px bg-gray-600 mb-2" />
           <p className="text-xs text-gray-400 mb-1">Director of GTM Programs</p>
           <p className="text-xs text-gray-500">{completionDate}</p>
         </motion.div>

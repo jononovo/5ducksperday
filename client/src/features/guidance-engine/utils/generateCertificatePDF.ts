@@ -183,9 +183,20 @@ export async function generateCertificatePDF(
     color: grayText,
   });
 
+  // Signature
+  const signatureName = "J. Morrison";
+  const signatureWidth = timesItalic.widthOfTextAtSize(signatureName, 20);
+  page.drawText(signatureName, {
+    x: (width - signatureWidth) / 2,
+    y: height - 435,
+    size: 20,
+    font: timesItalic,
+    color: amberLight,
+  });
+
   // Signature line
-  const sigLineY = height - 450;
-  const sigLineWidth = 150;
+  const sigLineY = height - 455;
+  const sigLineWidth = 180;
   page.drawLine({
     start: { x: (width - sigLineWidth) / 2, y: sigLineY },
     end: { x: (width + sigLineWidth) / 2, y: sigLineY },
