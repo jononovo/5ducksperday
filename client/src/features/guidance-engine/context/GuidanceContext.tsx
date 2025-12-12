@@ -71,6 +71,12 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
   }, [autoStartForNewUsers, isOnAppRoute, state.currentQuestId, state.completedQuests.length, engine]);
 
   useEffect(() => {
+    if (isOnAppRoute && state.isActive && !state.isHeaderVisible) {
+      engine.pauseGuidance();
+    }
+  }, [isOnAppRoute, state.isActive, state.isHeaderVisible, engine]);
+
+  useEffect(() => {
     if (!isOnAppRoute || !state.isActive || !currentStep) return;
 
     const handleElementClick = (e: MouseEvent) => {
@@ -129,6 +135,11 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
     }
   }, [state.isActive, engine]);
 
+  const handleHeaderClose = useCallback(() => {
+    engine.pauseGuidance();
+    engine.toggleHeader();
+  }, [engine]);
+
   const challengeProgress = getChallengeProgress();
 
   return (
@@ -141,7 +152,7 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
           totalChallenges={challengeProgress.total}
           currentChallengeName={currentChallenge?.name}
           isVisible={state.isHeaderVisible}
-          onClose={engine.toggleHeader}
+          onClose={handleHeaderClose}
         />
       )}
 
@@ -153,7 +164,7 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
           <FluffyGuide
             onClick={handleFluffyClick}
             isActive={state.isActive}
-            hasNewChallenge={!state.isActive && currentQuest !== null}
+            onCloseGuide={engine.pauseGuidance}
           />
 
           {state.isActive && currentStep && (

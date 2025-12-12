@@ -1,13 +1,29 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createPortal } from "react-dom";
 import { useLocation } from "wouter";
 import { Trophy, Play, X } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { FluffyGuideProps } from "../types";
 
-export function FluffyGuide({ onClick, isActive, hasNewChallenge = false }: FluffyGuideProps) {
+interface ExtendedFluffyGuideProps extends FluffyGuideProps {
+  onCloseGuide?: () => void;
+}
+
+export function FluffyGuide({ onClick, isActive, onCloseGuide }: ExtendedFluffyGuideProps) {
   const [showMenu, setShowMenu] = useState(false);
+  const [shouldWiggle, setShouldWiggle] = useState(false);
   const [, navigate] = useLocation();
+
+  useEffect(() => {
+    const triggerWiggle = () => {
+      setShouldWiggle(true);
+      setTimeout(() => setShouldWiggle(false), 1500);
+    };
+
+    const interval = setInterval(triggerWiggle, 180000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleClick = () => {
     if (isActive) {
@@ -27,10 +43,19 @@ export function FluffyGuide({ onClick, isActive, hasNewChallenge = false }: Fluf
     onClick?.();
   };
 
+  const handleCloseGuide = () => {
+    setShowMenu(false);
+    onCloseGuide?.();
+  };
+
+  if (isActive) {
+    return null;
+  }
+
   return createPortal(
     <>
       <AnimatePresence>
-        {showMenu && !isActive && (
+        {showMenu && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -48,7 +73,7 @@ export function FluffyGuide({ onClick, isActive, hasNewChallenge = false }: Fluf
         transition={{ type: "spring", stiffness: 200, damping: 15 }}
       >
         <AnimatePresence>
-          {showMenu && !isActive && (
+          {showMenu && (
             <motion.div
               initial={{ opacity: 0, y: 10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -72,47 +97,46 @@ export function FluffyGuide({ onClick, isActive, hasNewChallenge = false }: Fluf
                 <Trophy className="h-4 w-4 text-amber-400" />
                 <span className="text-sm font-medium">View All Quests</span>
               </button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={handleCloseGuide}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-left text-gray-400 hover:bg-gray-800 hover:text-white transition-colors border-t border-gray-700"
+                      data-testid="fluffy-close-guide"
+                    >
+                      <X className="h-4 w-4" />
+                      <span className="text-sm font-medium">Close Fluffy</span>
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="left" className="bg-gray-800 text-white border-gray-700">
+                    <p>You can open this again from the quest page</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </motion.div>
           )}
         </AnimatePresence>
 
         <button
           onClick={handleClick}
-          className="group"
+          className={`group transition-opacity duration-200 ${showMenu ? 'opacity-100' : 'opacity-50 hover:opacity-100'}`}
           data-testid="fluffy-guide-button"
         >
           <motion.div
-            className="relative w-14 h-14 rounded-full bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center shadow-lg cursor-pointer"
-            animate={{ y: showMenu ? 0 : [0, -5, 0] }}
-            transition={{ duration: 2, repeat: showMenu ? 0 : Infinity, ease: "easeInOut" }}
+            className="relative w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center shadow-lg cursor-pointer"
+            animate={{ 
+              y: shouldWiggle && !showMenu ? [0, -4, 0, -2, 0] : 0,
+              scale: 1
+            }}
+            transition={{ 
+              y: { duration: 1.2, ease: [0.25, 0.1, 0.25, 1] },
+              scale: { duration: 0.2 }
+            }}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
           >
-            <span className="text-3xl">{showMenu ? "😊" : "🐥"}</span>
-            
-            <AnimatePresence>
-              {hasNewChallenge && !isActive && !showMenu && (
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  exit={{ scale: 0 }}
-                  className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold"
-                >
-                  !
-                </motion.div>
-              )}
-            </AnimatePresence>
-            
-            <AnimatePresence>
-              {isActive && (
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: [1, 1.2, 1] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                  className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full"
-                />
-              )}
-            </AnimatePresence>
+            <span className="text-xl">{showMenu ? "😊" : "🐥"}</span>
           </motion.div>
           
           <motion.div
@@ -120,7 +144,7 @@ export function FluffyGuide({ onClick, isActive, hasNewChallenge = false }: Fluf
             whileHover={{ opacity: 1, x: 0 }}
             className="absolute right-full mr-3 top-1/2 -translate-y-1/2 bg-gray-800 text-white px-3 py-2 rounded-lg text-sm whitespace-nowrap shadow-lg pointer-events-none"
           >
-            {isActive ? "Continue Quest" : "Start Quest"}
+            Start Quest
             <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1 border-l-8 border-l-gray-800 border-y-4 border-y-transparent" />
           </motion.div>
         </button>

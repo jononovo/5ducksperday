@@ -52,6 +52,7 @@ export interface GuidanceContextValue {
   resumeGuidance: () => void;
   toggleHeader: () => void;
   resetProgress: () => void;
+  restartChallenge: (questId: string, challengeIndex: number) => void;
   getChallengeProgress: () => { completed: number; total: number };
   getQuestProgress: () => { completed: number; total: number };
 }
@@ -59,7 +60,6 @@ export interface GuidanceContextValue {
 export interface FluffyGuideProps {
   onClick: () => void;
   isActive: boolean;
-  hasNewChallenge?: boolean;
 }
 
 export interface QuestProgressHeaderProps {

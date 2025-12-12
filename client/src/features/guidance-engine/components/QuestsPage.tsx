@@ -10,9 +10,20 @@ import {
   Trophy,
   Target,
   Sparkles,
-  ArrowLeft
+  ArrowLeft,
+  RotateCcw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useGuidance } from "../context/GuidanceContext";
 import { QUESTS } from "../data/quests";
 import { CertificateShowcase } from "./CertificateShowcase";
@@ -59,6 +70,7 @@ interface QuestCardProps {
   currentChallengeIndex: number;
   onStartQuest: (questId: string) => void;
   onContinueChallenge: (questId: string, challengeIndex: number) => void;
+  onRestartChallenge: (questId: string, challengeIndex: number, challengeName: string) => void;
 }
 
 function QuestCard({
@@ -70,6 +82,7 @@ function QuestCard({
   currentChallengeIndex,
   onStartQuest,
   onContinueChallenge,
+  onRestartChallenge,
 }: QuestCardProps) {
   const [isExpanded, setIsExpanded] = useState(status === "in-progress");
   const questChallengesCompleted = (completedChallenges[quest.id] || []).length;
@@ -187,14 +200,22 @@ function QuestCard({
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: challengeIndex * 0.05 }}
+                    onClick={() => {
+                      if (challengeStatus === "completed") {
+                        onRestartChallenge(quest.id, challengeIndex, challenge.name);
+                      } else if (challengeStatus === "in-progress") {
+                        onContinueChallenge(quest.id, challengeIndex);
+                      }
+                    }}
                     className={`
                       flex items-center gap-3 p-3 rounded-lg
                       ${challengeStatus === "completed"
-                        ? "bg-green-500/10"
+                        ? "bg-green-500/10 cursor-pointer hover:bg-green-500/20"
                         : challengeStatus === "in-progress"
-                        ? "bg-amber-500/10"
+                        ? "bg-amber-500/10 cursor-pointer hover:bg-amber-500/20"
                         : "bg-gray-800/50"
                       }
+                      transition-colors
                     `}
                   >
                     <div className={`
@@ -268,7 +289,20 @@ function QuestCard({
 export function QuestsPage() {
   const [, navigate] = useLocation();
   const guidance = useGuidance();
-  const { state, startQuest, resumeGuidance } = guidance;
+  const { state, startQuest, resumeGuidance, restartChallenge } = guidance;
+  const [restartConfirm, setRestartConfirm] = useState<{questId: string; challengeIndex: number; challengeName: string;} | null>(null);
+
+  const handleRestartRequest = (questId: string, challengeIndex: number, challengeName: string) => {
+    setRestartConfirm({ questId, challengeIndex, challengeName });
+  };
+
+  const handleConfirmRestart = () => {
+    if (restartConfirm) {
+      restartChallenge(restartConfirm.questId, restartConfirm.challengeIndex);
+      setRestartConfirm(null);
+      navigate("/app");
+    }
+  };
 
   useEffect(() => {
     const root = document.documentElement;
@@ -386,6 +420,7 @@ export function QuestsPage() {
                 currentChallengeIndex={state.currentChallengeIndex}
                 onStartQuest={handleStartQuest}
                 onContinueChallenge={handleContinueChallenge}
+                onRestartChallenge={handleRestartRequest}
               />
             );
           })}
@@ -410,6 +445,23 @@ export function QuestsPage() {
           totalQuests={totalQuests}
           userId="15"
         />
+
+        <AlertDialog open={!!restartConfirm} onOpenChange={() => setRestartConfirm(null)}>
+          <AlertDialogContent className="bg-gray-900 border-gray-700">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-white">Restart Challenge?</AlertDialogTitle>
+              <AlertDialogDescription className="text-gray-400">
+                Do you want to restart "{restartConfirm?.challengeName}"?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="bg-gray-800 text-white border-gray-700 hover:bg-gray-700">Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleConfirmRestart} className="bg-amber-500 hover:bg-amber-600">
+                Restart
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
