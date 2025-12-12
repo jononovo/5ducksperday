@@ -10,7 +10,7 @@ interface ExtendedFluffyGuideProps extends FluffyGuideProps {
   onCloseGuide?: () => void;
 }
 
-export function FluffyGuide({ onClick, isActive, hasNewChallenge = false, onCloseGuide }: ExtendedFluffyGuideProps) {
+export function FluffyGuide({ onClick, isActive, onCloseGuide }: ExtendedFluffyGuideProps) {
   const [showMenu, setShowMenu] = useState(false);
   const [, navigate] = useLocation();
 
@@ -95,7 +95,7 @@ export function FluffyGuide({ onClick, isActive, hasNewChallenge = false, onClos
                       data-testid="fluffy-close-guide"
                     >
                       <X className="h-4 w-4" />
-                      <span className="text-sm font-medium">Close Guide</span>
+                      <span className="text-sm font-medium">Close Fluffy</span>
                     </button>
                   </TooltipTrigger>
                   <TooltipContent side="left" className="bg-gray-800 text-white border-gray-700">
@@ -120,19 +120,6 @@ export function FluffyGuide({ onClick, isActive, hasNewChallenge = false, onClos
             whileTap={{ scale: 0.95 }}
           >
             <span className="text-xl">{showMenu ? "😊" : "🐥"}</span>
-            
-            <AnimatePresence>
-              {hasNewChallenge && !showMenu && (
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  exit={{ scale: 0 }}
-                  className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-white text-[10px] font-bold"
-                >
-                  !
-                </motion.div>
-              )}
-            </AnimatePresence>
           </motion.div>
           
           <motion.div

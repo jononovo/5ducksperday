@@ -164,7 +164,6 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
           <FluffyGuide
             onClick={handleFluffyClick}
             isActive={state.isActive}
-            hasNewChallenge={!state.isActive && currentQuest !== null}
             onCloseGuide={engine.pauseGuidance}
           />
 

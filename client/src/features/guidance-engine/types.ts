@@ -60,7 +60,6 @@ export interface GuidanceContextValue {
 export interface FluffyGuideProps {
   onClick: () => void;
   isActive: boolean;
-  hasNewChallenge?: boolean;
 }
 
 export interface QuestProgressHeaderProps {
