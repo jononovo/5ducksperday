@@ -11,6 +11,7 @@ const defaultState: GuidanceState = {
   currentStepIndex: 0,
   completedQuests: [],
   completedChallenges: {},
+  dismissedChallengeModals: {},
   isHeaderVisible: false,
 };
 
@@ -54,6 +55,7 @@ async function syncToServer(state: GuidanceState): Promise<void> {
       body: JSON.stringify({
         completedQuests: state.completedQuests,
         completedChallenges: state.completedChallenges,
+        dismissedChallengeModals: state.dismissedChallengeModals,
         currentQuestId: state.currentQuestId,
         currentChallengeIndex: state.currentChallengeIndex,
         currentStepIndex: state.currentStepIndex,
@@ -77,6 +79,7 @@ export function useGuidanceEngine(): GuidanceContextValue {
           ...prev,
           completedQuests: serverProgress.completedQuests || prev.completedQuests,
           completedChallenges: serverProgress.completedChallenges || prev.completedChallenges,
+          dismissedChallengeModals: (serverProgress as any).dismissedChallengeModals || prev.dismissedChallengeModals,
           currentQuestId: serverProgress.currentQuestId ?? prev.currentQuestId,
           currentChallengeIndex: serverProgress.currentChallengeIndex ?? prev.currentChallengeIndex,
           currentStepIndex: serverProgress.currentStepIndex ?? prev.currentStepIndex,
@@ -257,6 +260,8 @@ export function useGuidanceEngine(): GuidanceContextValue {
 
     const completedForQuest = state.completedChallenges[questId] || [];
     const updatedCompleted = completedForQuest.filter(id => id !== challenge.id);
+    const challengeKey = `${questId}-${challenge.id}`;
+    const { [challengeKey]: _, ...remainingDismissed } = state.dismissedChallengeModals;
 
     setState((prev) => ({
       ...prev,
@@ -269,8 +274,20 @@ export function useGuidanceEngine(): GuidanceContextValue {
         ...prev.completedChallenges,
         [questId]: updatedCompleted,
       },
+      dismissedChallengeModals: remainingDismissed,
     }));
-  }, [state.completedChallenges]);
+  }, [state.completedChallenges, state.dismissedChallengeModals]);
+
+  const dismissChallengeModal = useCallback((questId: string, challengeId: string) => {
+    const challengeKey = `${questId}-${challengeId}`;
+    setState((prev) => ({
+      ...prev,
+      dismissedChallengeModals: {
+        ...prev.dismissedChallengeModals,
+        [challengeKey]: true,
+      },
+    }));
+  }, []);
 
   const getChallengeProgress = useCallback((): { completed: number; total: number } => {
     if (!currentQuest) return { completed: 0, total: 0 };
@@ -302,6 +319,7 @@ export function useGuidanceEngine(): GuidanceContextValue {
     toggleHeader,
     resetProgress,
     restartChallenge,
+    dismissChallengeModal,
     getChallengeProgress,
     getQuestProgress,
   };

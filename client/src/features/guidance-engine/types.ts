@@ -37,6 +37,7 @@ export interface GuidanceState {
   currentStepIndex: number;
   completedQuests: string[];
   completedChallenges: Record<string, string[]>;
+  dismissedChallengeModals: Record<string, boolean>;
   isHeaderVisible: boolean;
 }
 
@@ -54,6 +55,7 @@ export interface GuidanceContextValue {
   toggleHeader: () => void;
   resetProgress: () => void;
   restartChallenge: (questId: string, challengeIndex: number) => void;
+  dismissChallengeModal: (questId: string, challengeId: string) => void;
   getChallengeProgress: () => { completed: number; total: number };
   getQuestProgress: () => { completed: number; total: number };
 }

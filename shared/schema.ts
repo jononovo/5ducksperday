@@ -91,6 +91,7 @@ export const userGuidanceProgress = pgTable("user_guidance_progress", {
   userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   completedQuests: text("completed_quests").array().default([]),
   completedChallenges: jsonb("completed_challenges").$type<Record<string, string[]>>().default({}),
+  dismissedChallengeModals: jsonb("dismissed_challenge_modals").$type<Record<string, boolean>>().default({}),
   currentQuestId: text("current_quest_id"),
   currentChallengeIndex: integer("current_challenge_index").default(0),
   currentStepIndex: integer("current_step_index").default(0),
@@ -433,6 +434,7 @@ export type InsertUserGuidanceProgress = {
   userId: number;
   completedQuests?: string[];
   completedChallenges?: Record<string, string[]>;
+  dismissedChallengeModals?: Record<string, boolean>;
   currentQuestId?: string | null;
   currentChallengeIndex?: number;
   currentStepIndex?: number;

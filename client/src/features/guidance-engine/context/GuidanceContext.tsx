@@ -40,7 +40,6 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
   const [completedChallengeMessage, setCompletedChallengeMessage] = useState("");
   const previousLocation = useRef<string | null>(null);
   const previousStepKey = useRef<string | null>(null);
-  const shownChallengeCompletionRef = useRef<string | null>(null);
 
   const { state, currentQuest, currentChallenge, currentStep, getChallengeProgress } = engine;
 
@@ -143,24 +142,30 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
       const completedForQuest = state.completedChallenges[currentQuest.id] || [];
       const justCompleted = completedForQuest.includes(currentChallenge.id);
       const challengeKey = `${currentQuest.id}-${currentChallenge.id}`;
+      const alreadyDismissed = state.dismissedChallengeModals[challengeKey];
       
-      if (justCompleted && !showChallengeComplete && shownChallengeCompletionRef.current !== challengeKey) {
-        shownChallengeCompletionRef.current = challengeKey;
+      if (justCompleted && !showChallengeComplete && !alreadyDismissed) {
         setCompletedChallengeName(currentChallenge.name);
         setCompletedChallengeMessage(currentChallenge.completionMessage || "Great job!");
         setShowChallengeComplete(true);
       }
     }
-  }, [state.isActive, state.completedChallenges, currentChallenge, currentQuest, showChallengeComplete]);
+  }, [state.isActive, state.completedChallenges, state.dismissedChallengeModals, currentChallenge, currentQuest, showChallengeComplete]);
 
   const handleChallengeCompleteClose = useCallback(() => {
+    if (currentQuest && currentChallenge) {
+      engine.dismissChallengeModal(currentQuest.id, currentChallenge.id);
+    }
     setShowChallengeComplete(false);
-  }, []);
+  }, [engine, currentQuest, currentChallenge]);
 
   const handleNextChallenge = useCallback(() => {
+    if (currentQuest && currentChallenge) {
+      engine.dismissChallengeModal(currentQuest.id, currentChallenge.id);
+    }
     setShowChallengeComplete(false);
     engine.startNextChallenge();
-  }, [engine]);
+  }, [engine, currentQuest, currentChallenge]);
 
   const handleFluffyClick = useCallback(() => {
     if (state.isActive) {
