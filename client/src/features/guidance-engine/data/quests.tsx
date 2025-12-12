@@ -80,7 +80,6 @@ export const QUESTS: Quest[] = [
         id: "challenge-4-full-search",
         name: "Do Full Search",
         description: "Complete a full search with contacts and emails in one go",
-        emoji: "🚀",
         steps: [
           {
             id: "step-1-new-search",
