@@ -157,7 +157,29 @@ export function CertificateFull({ recipientName, completionDate, credentialId }:
           transition={{ delay: 0.7 }}
           className="flex flex-col items-center mt-2"
         >
-          <p className="text-xl text-gray-300 mb-1" style={{ fontFamily: 'cursive', fontStyle: 'italic', letterSpacing: '-1px', transform: 'rotate(-2deg)' }}>Jm~rrsn</p>
+          <svg 
+            width="120" 
+            height="40" 
+            viewBox="0 0 120 40" 
+            className="mb-1"
+            style={{ transform: 'rotate(-1deg)' }}
+          >
+            <path
+              d="M8 28 C12 12, 18 8, 22 20 C24 26, 26 28, 28 24 C30 18, 32 14, 38 16 C42 17, 44 22, 46 20 C48 18, 50 14, 54 16 C58 18, 56 24, 60 22 C64 20, 66 16, 72 18 C76 19, 74 24, 78 22 C82 20, 86 16, 92 18 C96 19, 98 24, 102 20 C106 16, 110 14, 114 18"
+              fill="none"
+              stroke="#9CA3AF"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M16 32 C20 30, 24 28, 30 30"
+              fill="none"
+              stroke="#9CA3AF"
+              strokeWidth="1"
+              strokeLinecap="round"
+            />
+          </svg>
           <div className="w-40 h-px bg-gray-600 mb-2" />
           <p className="text-xs text-gray-400 mb-1">Director of GTM Programs</p>
           <p className="text-xs text-gray-500">{completionDate}</p>
