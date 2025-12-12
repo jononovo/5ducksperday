@@ -47,14 +47,14 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
     // User just navigated TO /app
     if (isOnAppRoute && !previouslyOnApp) {
       // If there's an active quest with progress, auto-resume after a short delay
-      if (state.currentQuestId && state.currentChallengeId && !state.isActive) {
+      if (state.currentQuestId && state.currentChallengeIndex >= 0 && !state.isActive) {
         const timer = setTimeout(() => {
           engine.resumeGuidance();
         }, 500);
         return () => clearTimeout(timer);
       }
     }
-  }, [isOnAppRoute, state.currentQuestId, state.currentChallengeId, state.isActive, engine]);
+  }, [isOnAppRoute, state.currentQuestId, state.currentChallengeIndex, state.isActive, engine]);
 
   useEffect(() => {
     // Auto-start guidance for new users when they reach /app

@@ -13,7 +13,7 @@ import { RegistrationModalProvider } from "@/hooks/use-registration-modal";
 import { RegistrationModalContainer } from "@/components/registration-modal-container";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/hooks/use-theme";
-import { GuidanceProvider } from "@/features/guidance-engine";
+import { GuidanceProvider, QuestsPage } from "@/features/guidance-engine";
 import "@/lib/firebase";
 import { initGA } from "@/lib/analytics";
 import { useAnalytics } from "@/hooks/use-analytics";
@@ -164,6 +164,12 @@ function Router() {
               </Suspense>
             </div>
           </Layout>
+        </Route>
+
+        <Route path="/quests">
+          <Suspense fallback={<LoadingScreen />}>
+            <QuestsPage />
+          </Suspense>
         </Route>
 
         {/* App pages with mini footer */}

@@ -1,60 +1,131 @@
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createPortal } from "react-dom";
+import { useLocation } from "wouter";
+import { Trophy, Play, X } from "lucide-react";
 import type { FluffyGuideProps } from "../types";
 
 export function FluffyGuide({ onClick, isActive, hasNewChallenge = false }: FluffyGuideProps) {
+  const [showMenu, setShowMenu] = useState(false);
+  const [, navigate] = useLocation();
+
+  const handleClick = () => {
+    if (isActive) {
+      onClick?.();
+    } else {
+      setShowMenu(!showMenu);
+    }
+  };
+
+  const handleViewQuests = () => {
+    setShowMenu(false);
+    navigate("/quests");
+  };
+
+  const handleStartQuest = () => {
+    setShowMenu(false);
+    onClick?.();
+  };
+
   return createPortal(
-    <motion.button
-      onClick={onClick}
-      className="fixed bottom-6 right-6 z-[9990] group"
-      initial={{ scale: 0 }}
-      animate={{ scale: 1 }}
-      transition={{ type: "spring", stiffness: 200, damping: 15 }}
-      data-testid="fluffy-guide-button"
-    >
+    <>
+      <AnimatePresence>
+        {showMenu && !isActive && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[9980]"
+            onClick={() => setShowMenu(false)}
+          />
+        )}
+      </AnimatePresence>
+
       <motion.div
-        className="relative w-14 h-14 rounded-full bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center shadow-lg cursor-pointer"
-        animate={{ y: [0, -5, 0] }}
-        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.95 }}
+        className="fixed bottom-6 right-6 z-[9990]"
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ type: "spring", stiffness: 200, damping: 15 }}
       >
-        <span className="text-3xl">🐥</span>
-        
         <AnimatePresence>
-          {hasNewChallenge && !isActive && (
+          {showMenu && !isActive && (
             <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0 }}
-              className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold"
+              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.95 }}
+              transition={{ duration: 0.15 }}
+              className="absolute bottom-full mb-3 right-0 bg-gray-900 rounded-xl shadow-2xl border border-gray-700 overflow-hidden min-w-[180px]"
             >
-              !
+              <button
+                onClick={handleStartQuest}
+                className="w-full flex items-center gap-3 px-4 py-3 text-left text-white hover:bg-gray-800 transition-colors"
+                data-testid="fluffy-start-quest"
+              >
+                <Play className="h-4 w-4 text-amber-400" />
+                <span className="text-sm font-medium">Start Quest</span>
+              </button>
+              <button
+                onClick={handleViewQuests}
+                className="w-full flex items-center gap-3 px-4 py-3 text-left text-white hover:bg-gray-800 transition-colors border-t border-gray-700"
+                data-testid="fluffy-view-quests"
+              >
+                <Trophy className="h-4 w-4 text-amber-400" />
+                <span className="text-sm font-medium">View All Quests</span>
+              </button>
             </motion.div>
           )}
         </AnimatePresence>
-        
-        <AnimatePresence>
-          {isActive && (
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-              className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full"
-            />
-          )}
-        </AnimatePresence>
+
+        <button
+          onClick={handleClick}
+          className="group"
+          data-testid="fluffy-guide-button"
+        >
+          <motion.div
+            className="relative w-14 h-14 rounded-full bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center shadow-lg cursor-pointer"
+            animate={{ y: showMenu ? 0 : [0, -5, 0] }}
+            transition={{ duration: 2, repeat: showMenu ? 0 : Infinity, ease: "easeInOut" }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <span className="text-3xl">{showMenu ? "😊" : "🐥"}</span>
+            
+            <AnimatePresence>
+              {hasNewChallenge && !isActive && !showMenu && (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  exit={{ scale: 0 }}
+                  className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                >
+                  !
+                </motion.div>
+              )}
+            </AnimatePresence>
+            
+            <AnimatePresence>
+              {isActive && (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                  className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full"
+                />
+              )}
+            </AnimatePresence>
+          </motion.div>
+          
+          <motion.div
+            initial={{ opacity: 0, x: 10 }}
+            whileHover={{ opacity: 1, x: 0 }}
+            className="absolute right-full mr-3 top-1/2 -translate-y-1/2 bg-gray-800 text-white px-3 py-2 rounded-lg text-sm whitespace-nowrap shadow-lg pointer-events-none"
+          >
+            {isActive ? "Continue Quest" : "Start Quest"}
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1 border-l-8 border-l-gray-800 border-y-4 border-y-transparent" />
+          </motion.div>
+        </button>
       </motion.div>
-      
-      <motion.div
-        initial={{ opacity: 0, x: 10 }}
-        whileHover={{ opacity: 1, x: 0 }}
-        className="absolute right-full mr-3 top-1/2 -translate-y-1/2 bg-gray-800 text-white px-3 py-2 rounded-lg text-sm whitespace-nowrap shadow-lg pointer-events-none"
-      >
-        {isActive ? "Continue Quest" : "Start Quest"}
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1 border-l-8 border-l-gray-800 border-y-4 border-y-transparent" />
-      </motion.div>
-    </motion.button>,
+    </>,
     document.body
   );
 }
