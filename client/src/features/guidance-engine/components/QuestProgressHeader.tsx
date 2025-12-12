@@ -29,7 +29,7 @@ export function QuestProgressHeader({
             <div className="flex items-center gap-4">
               <Link href="/quests" className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
                 <Trophy className="h-4 w-4 text-yellow-500" />
-                <span className="text-sm font-medium text-yellow-400">
+                <span className="text-sm font-medium text-yellow-400 hidden sm:inline">
                   {questName}
                 </span>
               </Link>
