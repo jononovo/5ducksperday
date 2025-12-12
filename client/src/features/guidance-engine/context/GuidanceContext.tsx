@@ -40,6 +40,7 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
   const [completedChallengeMessage, setCompletedChallengeMessage] = useState("");
   const previousLocation = useRef<string | null>(null);
   const previousStepKey = useRef<string | null>(null);
+  const advanceDelayTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const { state, currentQuest, currentChallenge, currentStep, getChallengeProgress } = engine;
 
@@ -128,14 +129,45 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
   useEffect(() => {
     if (!isOnEnabledRoute || !state.isActive || !currentStep) return;
 
+    // Clear any existing timer when step changes
+    if (advanceDelayTimerRef.current) {
+      clearTimeout(advanceDelayTimerRef.current);
+      advanceDelayTimerRef.current = null;
+    }
+
+    const advanceWithDelay = () => {
+      const delay = currentStep.advanceDelay ?? 0;
+      if (delay > 0) {
+        advanceDelayTimerRef.current = setTimeout(() => {
+          engine.advanceStep();
+        }, delay);
+      } else {
+        engine.advanceStep();
+      }
+    };
+
+    let hasAdvancedForType = false;
+
     const handleElementClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       const stepElement = document.querySelector(currentStep.selector);
       
       if (stepElement && (stepElement === target || stepElement.contains(target))) {
         if (currentStep.action === "click") {
-          engine.advanceStep();
+          advanceWithDelay();
         }
+      }
+    };
+
+    const handleInput = (e: Event) => {
+      if (currentStep.action !== "type" || hasAdvancedForType) return;
+      
+      const target = e.target as HTMLElement;
+      const stepElement = document.querySelector(currentStep.selector);
+      
+      if (stepElement && (stepElement === target || stepElement.contains(target))) {
+        hasAdvancedForType = true;
+        advanceWithDelay();
       }
     };
 
@@ -147,10 +179,16 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
 
     document.addEventListener("click", handleElementClick, true);
     document.addEventListener("keydown", handleKeyPress);
+    document.addEventListener("input", handleInput, true);
 
     return () => {
       document.removeEventListener("click", handleElementClick, true);
       document.removeEventListener("keydown", handleKeyPress);
+      document.removeEventListener("input", handleInput, true);
+      if (advanceDelayTimerRef.current) {
+        clearTimeout(advanceDelayTimerRef.current);
+        advanceDelayTimerRef.current = null;
+      }
     };
   }, [isOnEnabledRoute, state.isActive, currentStep, engine]);
 
