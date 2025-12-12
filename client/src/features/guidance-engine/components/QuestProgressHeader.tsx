@@ -17,11 +17,11 @@ export function QuestProgressHeader({
     <AnimatePresence>
       {isVisible && (
         <motion.div
-          initial={{ height: 0, opacity: 0 }}
-          animate={{ height: "auto", opacity: 1 }}
-          exit={{ height: 0, opacity: 0 }}
+          initial={{ y: -100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: -100, opacity: 0 }}
           transition={{ duration: 0.25, ease: "easeOut" }}
-          className="w-full bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-b border-yellow-500/30 shadow-lg overflow-hidden"
+          className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-b border-yellow-500/30 shadow-lg"
           data-testid="quest-progress-header"
         >
           <div className="max-w-screen-xl mx-auto px-4 py-2 flex items-center justify-between">
