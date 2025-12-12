@@ -77,11 +77,10 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
 
     if (!prevLoc) return;
 
-    const wasOnEnabled = isGuidanceEnabledRoute(prevLoc);
     const isNowOnEnabled = isOnEnabledRoute;
 
-    // User navigated to an enabled route
-    if (isNowOnEnabled && state.currentQuestId && !state.isActive) {
+    // Only auto-resume when user actually NAVIGATES to an enabled route, not when closing guidance
+    if (prevLoc !== location && isNowOnEnabled && state.currentQuestId && !state.isActive) {
       const timer = setTimeout(() => {
         engine.resumeGuidance();
       }, 300);
