@@ -43,7 +43,7 @@ export const QUESTS: Quest[] = [
       {
         id: "challenge-2-view-results",
         name: "Explore Results",
-        description: "Learn to navigate your search results",
+        description: "Learn to navigate your search results and manage contacts",
         emoji: "📊",
         steps: [
           {
@@ -54,8 +54,24 @@ export const QUESTS: Quest[] = [
             tooltipPosition: "top",
             route: "/app",
           },
+          {
+            id: "step-2-contacts-page",
+            selector: '[data-testid="text-all-contacts-count"]',
+            action: "view",
+            instruction: "This is your Contacts page! Here you can see all your saved contacts organized into lists. The 'All Contacts' card shows your total contact count.",
+            tooltipPosition: "bottom",
+            route: "/contacts",
+          },
+          {
+            id: "step-3-back-to-search",
+            selector: '[data-testid="search-input"]',
+            action: "view",
+            instruction: "You're back at the search page! You can now search for more companies or continue with your existing results.",
+            tooltipPosition: "bottom",
+            route: "/app",
+          },
         ],
-        completionMessage: "Great! You can now explore company and contact details! 🎯",
+        completionMessage: "Great! You've learned how to navigate between search results and your contacts! 🎯",
       },
       {
         id: "challenge-3-find-email",
