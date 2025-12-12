@@ -183,15 +183,16 @@ export async function generateCertificatePDF(
     color: grayText,
   });
 
-  // Signature
-  const signatureName = "J. Morrison";
-  const signatureWidth = timesItalic.widthOfTextAtSize(signatureName, 20);
+  // Signature (scrawled style)
+  const darkInk = rgb(0.15, 0.15, 0.15);
+  const signatureName = "Jm~rrsn";
+  const signatureWidth = timesItalic.widthOfTextAtSize(signatureName, 24);
   page.drawText(signatureName, {
     x: (width - signatureWidth) / 2,
     y: height - 435,
-    size: 20,
+    size: 24,
     font: timesItalic,
-    color: amberLight,
+    color: darkInk,
   });
 
   // Signature line
