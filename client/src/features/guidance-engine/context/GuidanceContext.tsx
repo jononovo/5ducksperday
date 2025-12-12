@@ -40,6 +40,7 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
   const [completedChallengeMessage, setCompletedChallengeMessage] = useState("");
   const previousLocation = useRef<string | null>(null);
   const previousStepKey = useRef<string | null>(null);
+  const advanceDelayTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const { state, currentQuest, currentChallenge, currentStep, getChallengeProgress } = engine;
 
@@ -102,6 +103,23 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
     }
   }, [autoStartForNewUsers, isOnAppRoute, state.currentQuestId, state.completedQuests.length, engine]);
 
+  // Dispatch setupEvent when starting a challenge that requires it
+  useEffect(() => {
+    if (
+      state.isActive &&
+      state.currentStepIndex === 0 &&
+      currentChallenge?.setupEvent &&
+      currentStep?.route &&
+      location === currentStep.route
+    ) {
+      // Delay to ensure target page is mounted and event listeners are attached
+      const timer = setTimeout(() => {
+        window.dispatchEvent(new CustomEvent(currentChallenge.setupEvent!));
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [state.isActive, state.currentStepIndex, currentChallenge, currentStep, location]);
+
   useEffect(() => {
     if (isOnEnabledRoute && state.isActive && !state.isHeaderVisible) {
       engine.pauseGuidance();
@@ -111,14 +129,45 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
   useEffect(() => {
     if (!isOnEnabledRoute || !state.isActive || !currentStep) return;
 
+    // Clear any existing timer when step changes
+    if (advanceDelayTimerRef.current) {
+      clearTimeout(advanceDelayTimerRef.current);
+      advanceDelayTimerRef.current = null;
+    }
+
+    const advanceWithDelay = () => {
+      const delay = currentStep.advanceDelay ?? 0;
+      if (delay > 0) {
+        advanceDelayTimerRef.current = setTimeout(() => {
+          engine.advanceStep();
+        }, delay);
+      } else {
+        engine.advanceStep();
+      }
+    };
+
+    let hasAdvancedForType = false;
+
     const handleElementClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       const stepElement = document.querySelector(currentStep.selector);
       
       if (stepElement && (stepElement === target || stepElement.contains(target))) {
         if (currentStep.action === "click") {
-          engine.advanceStep();
+          advanceWithDelay();
         }
+      }
+    };
+
+    const handleInput = (e: Event) => {
+      if (currentStep.action !== "type" || hasAdvancedForType) return;
+      
+      const target = e.target as HTMLElement;
+      const stepElement = document.querySelector(currentStep.selector);
+      
+      if (stepElement && (stepElement === target || stepElement.contains(target))) {
+        hasAdvancedForType = true;
+        advanceWithDelay();
       }
     };
 
@@ -130,10 +179,16 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
 
     document.addEventListener("click", handleElementClick, true);
     document.addEventListener("keydown", handleKeyPress);
+    document.addEventListener("input", handleInput, true);
 
     return () => {
       document.removeEventListener("click", handleElementClick, true);
       document.removeEventListener("keydown", handleKeyPress);
+      document.removeEventListener("input", handleInput, true);
+      if (advanceDelayTimerRef.current) {
+        clearTimeout(advanceDelayTimerRef.current);
+        advanceDelayTimerRef.current = null;
+      }
     };
   }, [isOnEnabledRoute, state.isActive, currentStep, engine]);
 
