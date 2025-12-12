@@ -12,6 +12,7 @@ export const QUESTS: Quest[] = [
         name: "Basic Search",
         description: "Perform your first company and contacts search",
         emoji: "🎯",
+        setupEvent: "startNewSearch",
         steps: [
           {
             id: "step-1-search-input",

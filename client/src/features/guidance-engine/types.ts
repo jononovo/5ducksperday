@@ -19,6 +19,7 @@ export interface Challenge {
   emoji?: string;
   steps: GuidanceStep[];
   completionMessage?: string;
+  setupEvent?: string;
 }
 
 export interface Quest {
