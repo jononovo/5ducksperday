@@ -1,5 +1,4 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { createPortal } from "react-dom";
 import { Link } from "wouter";
 import { X, Trophy, Target } from "lucide-react";
 import type { QuestProgressHeaderProps } from "../types";
@@ -14,15 +13,15 @@ export function QuestProgressHeader({
 }: QuestProgressHeaderProps) {
   const progressPercentage = (challengesCompleted / totalChallenges) * 100;
 
-  return createPortal(
+  return (
     <AnimatePresence>
       {isVisible && (
         <motion.div
-          initial={{ y: -60, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: -60, opacity: 0 }}
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: "auto", opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="fixed top-0 left-0 right-0 z-[9995] bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-b border-yellow-500/30 shadow-lg"
+          className="w-full bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-b border-yellow-500/30 shadow-lg overflow-hidden"
           data-testid="quest-progress-header"
         >
           <div className="max-w-screen-xl mx-auto px-4 py-2 flex items-center justify-between">
@@ -70,7 +69,6 @@ export function QuestProgressHeader({
           </div>
         </motion.div>
       )}
-    </AnimatePresence>,
-    document.body
+    </AnimatePresence>
   );
 }

@@ -133,24 +133,27 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
 
   return (
     <GuidanceContext.Provider value={engine}>
+      {/* Quest progress header renders before children to push content down */}
+      {isOnAppRoute && (
+        <QuestProgressHeader
+          questName={currentQuest?.name || "Quest"}
+          challengesCompleted={challengeProgress.completed}
+          totalChallenges={challengeProgress.total}
+          currentChallengeName={currentChallenge?.name}
+          isVisible={state.isHeaderVisible}
+          onClose={engine.toggleHeader}
+        />
+      )}
+
       {children}
 
-      {/* Only show guidance UI elements when on /app routes */}
+      {/* Other guidance UI elements render after children (overlays) */}
       {isOnAppRoute && (
         <>
           <FluffyGuide
             onClick={handleFluffyClick}
             isActive={state.isActive}
             hasNewChallenge={!state.isActive && currentQuest !== null}
-          />
-
-          <QuestProgressHeader
-            questName={currentQuest?.name || "Quest"}
-            challengesCompleted={challengeProgress.completed}
-            totalChallenges={challengeProgress.total}
-            currentChallengeName={currentChallenge?.name}
-            isVisible={state.isHeaderVisible}
-            onClose={engine.toggleHeader}
           />
 
           {state.isActive && currentStep && (
