@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import type { GuidanceState, GuidanceContextValue, Quest, Challenge, GuidanceStep } from "../types";
 import { QUESTS, getQuestById, getFirstIncompleteQuest } from "../data/quests";
 
@@ -34,12 +34,77 @@ function saveProgress(state: GuidanceState) {
   }
 }
 
+async function fetchServerProgress(): Promise<Partial<GuidanceState> | null> {
+  try {
+    const res = await fetch("/api/guidance/progress", { credentials: "include" });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) {
+    console.error("Failed to fetch server guidance progress:", e);
+    return null;
+  }
+}
+
+async function syncToServer(state: GuidanceState): Promise<void> {
+  try {
+    await fetch("/api/guidance/progress", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        completedQuests: state.completedQuests,
+        completedChallenges: state.completedChallenges,
+        currentQuestId: state.currentQuestId,
+        currentChallengeIndex: state.currentChallengeIndex,
+        currentStepIndex: state.currentStepIndex,
+      }),
+    });
+  } catch (e) {
+    console.error("Failed to sync guidance progress to server:", e);
+  }
+}
+
 export function useGuidanceEngine(): GuidanceContextValue {
   const [state, setState] = useState<GuidanceState>(loadProgress);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    async function initFromServer() {
+      const serverProgress = await fetchServerProgress();
+      if (serverProgress) {
+        setState((prev) => ({
+          ...prev,
+          completedQuests: serverProgress.completedQuests || prev.completedQuests,
+          completedChallenges: serverProgress.completedChallenges || prev.completedChallenges,
+          currentQuestId: serverProgress.currentQuestId ?? prev.currentQuestId,
+          currentChallengeIndex: serverProgress.currentChallengeIndex ?? prev.currentChallengeIndex,
+          currentStepIndex: serverProgress.currentStepIndex ?? prev.currentStepIndex,
+        }));
+      }
+      setIsInitialized(true);
+    }
+    initFromServer();
+  }, []);
 
   useEffect(() => {
     saveProgress(state);
-  }, [state]);
+    
+    if (!isInitialized) return;
+    
+    if (syncTimeoutRef.current) {
+      clearTimeout(syncTimeoutRef.current);
+    }
+    syncTimeoutRef.current = setTimeout(() => {
+      syncToServer(state);
+    }, 1000);
+
+    return () => {
+      if (syncTimeoutRef.current) {
+        clearTimeout(syncTimeoutRef.current);
+      }
+    };
+  }, [state, isInitialized]);
 
   const currentQuest: Quest | null = useMemo(() => {
     if (!state.currentQuestId) return null;
@@ -180,6 +245,7 @@ export function useGuidanceEngine(): GuidanceContextValue {
   const resetProgress = useCallback(() => {
     setState(defaultState);
     localStorage.removeItem(STORAGE_KEY);
+    syncToServer(defaultState);
   }, []);
 
   const restartChallenge = useCallback((questId: string, challengeIndex: number) => {
