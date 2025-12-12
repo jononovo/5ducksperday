@@ -5,3 +5,6 @@ export { FluffyGuide } from "./FluffyGuide";
 export { QuestProgressHeader } from "./QuestProgressHeader";
 export { ChallengeComplete } from "./ChallengeComplete";
 export { QuestsPage } from "./QuestsPage";
+export { CertificateShowcase } from "./CertificateShowcase";
+export { CertificateModal } from "./CertificateModal";
+export { CertificatePreview, CertificateFull } from "./CertificatePreview";

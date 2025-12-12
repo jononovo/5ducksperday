@@ -10,7 +10,7 @@ import admin from "firebase-admin";
 import { TokenService } from "./features/billing/tokens/service";
 import { UserTokens } from "./features/billing/tokens/types";
 import connectPgSimple from "connect-pg-simple";
-import { Pool } from "pg";
+import { pool } from "./db";
 
 // Extend the session type to include gmailToken
 declare module 'express-session' {
@@ -129,23 +129,15 @@ function requireAuth(req: Request, res: Response, next: NextFunction) {
 }
 
 export function setupAuth(app: Express) {
-  // Create PostgreSQL session store
+  // Create PostgreSQL session store using the Neon serverless pool
   const PgSession = connectPgSimple(session);
-  
-  // Create a new connection pool for sessions
-  const pgPool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    max: 20, // Maximum number of clients in the pool
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 2000,
-  });
 
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || 'temporary-secret-key',
     resave: false,
     saveUninitialized: false,
     store: new PgSession({
-      pool: pgPool,
+      pool: pool,
       tableName: 'user_sessions',
       createTableIfMissing: true, // Automatically create the session table
       ttl: 7 * 24 * 60 * 60, // 7 days TTL (in seconds for pg-simple)
