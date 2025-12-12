@@ -14,8 +14,6 @@ import { SearchSessionManager } from "@/lib/search-session-manager";
 
 import { useAuth } from "@/hooks/use-auth";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
-import { useNotifications } from "@/features/user-account-settings";
-import { LandingPageTooltip } from "@/components/ui/landing-page-tooltip";
 import ContactSearchChips, { ContactSearchConfig } from "./contact-search-chips";
 import SearchTypeSelector, { SearchType } from "./search-type-selector";
 import IndividualSearchModal, { IndividualSearchFormData } from "./individual-search-modal";
@@ -92,38 +90,6 @@ export default function PromptEditor({
   // Add auth hooks for semi-protected functionality
   const { user } = useAuth();
   const { openForProtectedRoute } = useRegistrationModal();
-  
-  // Notification system for persistent tooltip tracking
-  const { triggerNotification } = useNotifications();
-  
-  // Track if search tooltip has been shown for authenticated users
-  const [hasShownSearchTooltip, setHasShownSearchTooltip] = useState(false);
-
-  // Check if user has already seen search tooltip
-  useEffect(() => {
-    const checkSearchTooltipStatus = async () => {
-      if (user) {
-        try {
-          const response = await fetch('/api/notifications/status', {
-            headers: {
-              ...(localStorage.getItem('authToken') && { 
-                'Authorization': `Bearer ${localStorage.getItem('authToken')}` 
-              })
-            },
-            credentials: 'include'
-          });
-          const data = await response.json();
-          if (data.notifications && data.notifications[2] === 1) {
-            setHasShownSearchTooltip(true);
-          }
-        } catch (error) {
-          console.error('Failed to check search tooltip status:', error);
-        }
-      }
-    };
-    
-    checkSearchTooltipStatus();
-  }, [user]);
   
   // Track if input has changed from last executed query
   const [inputHasChanged, setInputHasChanged] = useState(false);
@@ -552,39 +518,6 @@ export default function PromptEditor({
       return () => clearTimeout(timer);
     }
   }, [isFromLandingPage]);
-
-  // Handle tooltip dismissal
-  useEffect(() => {
-    const handleTooltipDismiss = async () => {
-      if (onDismissLandingHint) {
-        onDismissLandingHint();
-      }
-      
-      // Mark search tooltip as shown for authenticated users
-      if (user && !hasShownSearchTooltip) {
-        setHasShownSearchTooltip(true);
-        try {
-          await fetch('/api/notifications/mark-shown', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              ...(localStorage.getItem('authToken') && { 
-                'Authorization': `Bearer ${localStorage.getItem('authToken')}` 
-              })
-            },
-            credentials: 'include',
-            body: JSON.stringify({ notificationId: 2 })
-          });
-        } catch (error) {
-          console.error('Failed to mark search tooltip as shown:', error);
-        }
-      }
-    };
-
-    window.addEventListener('dismissTooltip', handleTooltipDismiss);
-    return () => window.removeEventListener('dismissTooltip', handleTooltipDismiss);
-  }, [onDismissLandingHint, user, hasShownSearchTooltip]);
-
 
   // Use our search strategy context
   
@@ -1062,15 +995,6 @@ export default function PromptEditor({
     <div className="pl-0 pr-1 pt-1 pb-1 shadow-none"> {/* Container with no padding */}
       <div className="flex flex-col gap-0 md:gap-2">
         <div className="relative">
-          {/* Component tooltip version for comparison */}
-          <LandingPageTooltip
-            message="If you are happy with this prompt, click search."
-            visible={isFromLandingPage && (!user || !hasShownSearchTooltip) && !(isAnalyzing || quickSearchMutation.isPending)}
-            position="custom"
-            offsetX={0}
-            offsetY={-20}
-          />
-          
           <Textarea
             value={value}
             onChange={(e) => {

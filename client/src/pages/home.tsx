@@ -4,7 +4,6 @@ import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SearchProgressIndicator, type SearchProgressState } from "@/features/search-progress";
-import { LandingPageTooltip } from "@/components/ui/landing-page-tooltip";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
 
 // Lazy load heavy components
@@ -120,8 +119,6 @@ export default function Home() {
   const [highlightEmailButton, setHighlightEmailButton] = useState(false);
   // Track current session ID for email search persistence
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
-  const [showEmailTooltip, setShowEmailTooltip] = useState(false);
-  const [hasShownEmailTooltip, setHasShownEmailTooltip] = useState(false);
   // Tour modal has been removed
   const [pendingHunterIds, setPendingHunterIds] = useState<Set<number>>(new Set());
   const [pendingApolloIds, setPendingApolloIds] = useState<Set<number>>(new Set());
@@ -245,66 +242,6 @@ export default function Home() {
     }
   });
 
-  // Check if user has already seen email tooltip
-  useEffect(() => {
-    const checkEmailTooltipStatus = async () => {
-      if (auth?.user) {
-        try {
-          const response = await fetch('/api/notifications/status', {
-            headers: {
-              ...(localStorage.getItem('authToken') && { 
-                'Authorization': `Bearer ${localStorage.getItem('authToken')}` 
-              })
-            },
-            credentials: 'include'
-          });
-          const data = await response.json();
-          if (data.notifications && data.notifications[3] === 1) {
-            setHasShownEmailTooltip(true);
-          }
-        } catch (error) {
-          console.error('Failed to check email tooltip status:', error);
-        }
-      }
-    };
-    
-    checkEmailTooltipStatus();
-  }, [auth?.user]);
-
-
-  // Handle tooltip dismissal when clicked
-  useEffect(() => {
-    const handleTooltipDismiss = async () => {
-      // Dismiss email discovery tooltip
-      if (showEmailTooltip) {
-        setShowEmailTooltip(false);
-        setHasShownEmailTooltip(true); // Mark as shown
-        
-        // Mark email tooltip as shown for authenticated users
-        if (auth?.user) {
-          try {
-            await fetch('/api/notifications/mark-shown', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                ...(localStorage.getItem('authToken') && { 
-                  'Authorization': `Bearer ${localStorage.getItem('authToken')}` 
-                })
-              },
-              credentials: 'include',
-              body: JSON.stringify({ notificationId: 3 })
-            });
-          } catch (error) {
-            console.error('Failed to mark email tooltip as shown:', error);
-          }
-        }
-      }
-    };
-
-    window.addEventListener('dismissTooltip', handleTooltipDismiss);
-    return () => window.removeEventListener('dismissTooltip', handleTooltipDismiss);
-  }, [showEmailTooltip, auth?.user, hasShownEmailTooltip]);
-  
   // Initialize search state management hook
   const searchState = useSearchState(setCurrentResults);
   const { 
@@ -1661,42 +1598,6 @@ export default function Home() {
   });
   
 
-  // Email tooltip timing effect
-  useEffect(() => {
-    // Show email tooltip 5 seconds after first search completes (only once per session)
-    if (currentResults && currentResults.length > 0 && !isAnalyzing && !hasShownEmailTooltip) {
-      const timer = setTimeout(async () => {
-        setShowEmailTooltip(true);
-        setHasShownEmailTooltip(true); // Mark as shown
-        
-        // Mark email tooltip as shown for authenticated users
-        if (auth?.user) {
-          try {
-            await fetch('/api/notifications/mark-shown', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                ...(localStorage.getItem('authToken') && { 
-                  'Authorization': `Bearer ${localStorage.getItem('authToken')}` 
-                })
-              },
-              credentials: 'include',
-              body: JSON.stringify({ notificationId: 3 })
-            });
-          } catch (error) {
-            console.error('Failed to mark email tooltip as shown:', error);
-          }
-        }
-        
-        setTimeout(() => {
-          setShowEmailTooltip(false);
-        }, 5000);
-      }, 5000);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [currentResults, isAnalyzing, hasShownEmailTooltip, auth?.user]);
-
   // Helper to get a contact by ID from current results
   const getCurrentContact = (contactId: number) => {
     if (!currentResults) return null;
@@ -2340,13 +2241,6 @@ export default function Home() {
                         <Mail className={`h-4 w-4 ${emailOrchestration.isSearching ? "animate-spin" : ""}`} />
                         <span>{emailOrchestration.isSearching ? "Searching..." : "Find Key Emails"}</span>
                       </Button>
-                      
-                      <LandingPageTooltip
-                        message="Click here to find Egg-cellent emails of wonderful people."
-                        visible={showEmailTooltip && !(isAnalyzing || emailOrchestration.isSearching)}
-                        position="custom"
-                        offsetX={-10}
-                      />
                     </div>
                     
                     <ExtendSearchButton
