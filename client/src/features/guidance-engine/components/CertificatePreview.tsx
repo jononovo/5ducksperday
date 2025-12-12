@@ -158,8 +158,8 @@ export function CertificateFull({ recipientName, completionDate, credentialId }:
           className="flex flex-col items-center mt-2"
         >
           <svg 
-            width="140" 
-            height="40" 
+            width="120" 
+            height="35" 
             viewBox="0 0 140 40" 
             className="-mb-2"
             style={{ transform: 'rotate(-2deg) skewX(-12deg)' }}
