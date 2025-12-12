@@ -40,6 +40,7 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
   const [completedChallengeMessage, setCompletedChallengeMessage] = useState("");
   const previousLocation = useRef<string | null>(null);
   const previousStepKey = useRef<string | null>(null);
+  const shownChallengeCompletionRef = useRef<string | null>(null);
 
   const { state, currentQuest, currentChallenge, currentStep, getChallengeProgress } = engine;
 
@@ -141,8 +142,10 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
     if (!state.isActive && currentChallenge && currentQuest) {
       const completedForQuest = state.completedChallenges[currentQuest.id] || [];
       const justCompleted = completedForQuest.includes(currentChallenge.id);
+      const challengeKey = `${currentQuest.id}-${currentChallenge.id}`;
       
-      if (justCompleted && !showChallengeComplete) {
+      if (justCompleted && !showChallengeComplete && shownChallengeCompletionRef.current !== challengeKey) {
+        shownChallengeCompletionRef.current = challengeKey;
         setCompletedChallengeName(currentChallenge.name);
         setCompletedChallengeMessage(currentChallenge.completionMessage || "Great job!");
         setShowChallengeComplete(true);
