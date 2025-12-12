@@ -102,6 +102,23 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
     }
   }, [autoStartForNewUsers, isOnAppRoute, state.currentQuestId, state.completedQuests.length, engine]);
 
+  // Dispatch setupEvent when starting a challenge that requires it
+  useEffect(() => {
+    if (
+      state.isActive &&
+      state.currentStepIndex === 0 &&
+      currentChallenge?.setupEvent &&
+      currentStep?.route &&
+      location === currentStep.route
+    ) {
+      // Delay to ensure target page is mounted and event listeners are attached
+      const timer = setTimeout(() => {
+        window.dispatchEvent(new CustomEvent(currentChallenge.setupEvent!));
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [state.isActive, state.currentStepIndex, currentChallenge, currentStep, location]);
+
   useEffect(() => {
     if (isOnEnabledRoute && state.isActive && !state.isHeaderVisible) {
       engine.pauseGuidance();
