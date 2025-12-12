@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { createPortal } from "react-dom";
+import { Link } from "wouter";
 import { X, Trophy, Target } from "lucide-react";
 import type { QuestProgressHeaderProps } from "../types";
 
@@ -26,12 +27,12 @@ export function QuestProgressHeader({
         >
           <div className="max-w-screen-xl mx-auto px-4 py-2 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
+              <Link href="/quests" className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
                 <Trophy className="h-4 w-4 text-yellow-500" />
                 <span className="text-sm font-medium text-yellow-400">
                   {questName}
                 </span>
-              </div>
+              </Link>
               
               <div className="h-4 w-px bg-gray-600" />
               
@@ -53,8 +54,8 @@ export function QuestProgressHeader({
                     transition={{ duration: 0.5, ease: "easeOut" }}
                   />
                 </div>
-                <span className="text-xs text-gray-400 min-w-[60px]">
-                  {challengesCompleted}/{totalChallenges} done
+                <span className="text-xs text-gray-400">
+                  {challengesCompleted}/{totalChallenges}
                 </span>
               </div>
               
