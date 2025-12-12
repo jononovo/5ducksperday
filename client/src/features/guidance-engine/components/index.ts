@@ -4,3 +4,4 @@ export { GuidanceTooltip } from "./GuidanceTooltip";
 export { FluffyGuide } from "./FluffyGuide";
 export { QuestProgressHeader } from "./QuestProgressHeader";
 export { ChallengeComplete } from "./ChallengeComplete";
+export { QuestsPage } from "./QuestsPage";
