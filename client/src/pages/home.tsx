@@ -1317,6 +1317,9 @@ export default function Home() {
 
   // Handle starting a new search - resets to clean state
   const handleNewSearch = () => {
+    // Close email drawer first (updates React state immediately)
+    emailDrawer.closeDrawer();
+    
     // Clear all search state
     setCurrentQuery("");
     setCurrentResults(null);
@@ -1331,8 +1334,10 @@ export default function Home() {
     // Expand the search section
     setSearchSectionCollapsed(false);
     
-    // Clear localStorage saved state
+    // Clear localStorage and sessionStorage saved state
     localStorage.removeItem('searchState');
+    sessionStorage.removeItem('searchState');
+    localStorage.removeItem('emailComposerState');
   };
 
   //New function added here
