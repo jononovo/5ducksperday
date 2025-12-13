@@ -32,6 +32,7 @@ export interface UseEmailDrawerReturn {
   drawerWidth: number;
   isResizing: boolean;
   openDrawer: (contact: Contact, company: Company, companyContacts: Contact[]) => void;
+  openCompose: () => void;
   closeDrawer: () => void;
   setMode: (mode: DrawerMode) => void;
   setSelectedContact: (contact: Contact | null) => void;

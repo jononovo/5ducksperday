@@ -59,6 +59,14 @@ export function useEmailDrawer(options: UseEmailDrawerOptions = {}): UseEmailDra
     options.onClose?.();
   }, [options]);
 
+  const openCompose = useCallback(() => {
+    setMode('compose');
+    setSelectedContact(null);
+    setSelectedCompany(null);
+    setSelectedCompanyContacts([]);
+    setIsOpen(true);
+  }, []);
+
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     setIsResizing(true);
@@ -73,6 +81,7 @@ export function useEmailDrawer(options: UseEmailDrawerOptions = {}): UseEmailDra
     drawerWidth,
     isResizing,
     openDrawer,
+    openCompose,
     closeDrawer,
     setMode,
     setSelectedContact,
