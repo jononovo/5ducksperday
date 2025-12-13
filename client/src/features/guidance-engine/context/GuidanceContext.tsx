@@ -42,6 +42,10 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
   const previousStepKey = useRef<string | null>(null);
   const shownChallengeCompletionRef = useRef<string | null>(null);
   const advanceDelayTimerRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Stable ref for startQuest to avoid effect re-runs when engine object changes
+  const startQuestRef = useRef(engine.startQuest);
+  startQuestRef.current = engine.startQuest;
 
   const { state, currentQuest, currentChallenge, currentStep, getChallengeProgress } = engine;
 
@@ -100,13 +104,13 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
       const hasStarted = localStorage.getItem("fluffy-guidance-started");
       if (!hasStarted && !state.currentQuestId && state.completedQuests.length === 0) {
         const timer = setTimeout(() => {
-          engine.startQuest("quest-1-finding-customers");
+          startQuestRef.current("quest-1-finding-customers");
           localStorage.setItem("fluffy-guidance-started", "true");
         }, 2000);
         return () => clearTimeout(timer);
       }
     }
-  }, [autoStartForNewUsers, isOnAppRoute, state.currentQuestId, state.completedQuests.length, engine]);
+  }, [autoStartForNewUsers, isOnAppRoute, state.currentQuestId, state.completedQuests.length]);
 
   // Dispatch setupEvent when starting a challenge that requires it
   useEffect(() => {
