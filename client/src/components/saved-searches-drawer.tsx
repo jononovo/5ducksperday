@@ -16,7 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { PanelLeft, Plus, Users, Send, Zap } from "lucide-react";
+import { PanelLeft, Plus, Users, Send, Zap, Pencil } from "lucide-react";
 import type { SearchList } from "@shared/schema";
 import { generateListPromptOnly } from "@/lib/list-utils";
 import {
@@ -31,9 +31,10 @@ interface SavedSearchesDrawerProps {
   onOpenChange: (open: boolean) => void;
   onLoadSearch: (list: SearchList) => void;
   onNewSearch: () => void;
+  onOpenCompose?: () => void;
 }
 
-export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch, onNewSearch }: SavedSearchesDrawerProps) {
+export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch, onNewSearch, onOpenCompose }: SavedSearchesDrawerProps) {
   const { data: lists = [] } = useQuery<SearchList[]>({
     queryKey: ["/api/lists"],
   });
@@ -71,6 +72,23 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch, onNewSea
               <span className="text-sm font-medium text-gray-700">New Search</span>
             </button>
           </div>
+          
+          {/* Compose Button */}
+          {onOpenCompose && (
+            <div className="px-3 pb-1">
+              <button
+                data-testid="button-compose"
+                onClick={() => {
+                  onOpenCompose();
+                  onOpenChange(false);
+                }}
+                className="w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg hover:shadow-md hover:-translate-y-0.5 hover:bg-purple-50 transition-all duration-200 group"
+              >
+                <Pencil className="h-5 w-5 text-purple-500 group-hover:text-purple-600" />
+                <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">Compose</span>
+              </button>
+            </div>
+          )}
           
           {/* Streak Link */}
           <div className="px-3 pb-1">

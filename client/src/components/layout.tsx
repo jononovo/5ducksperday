@@ -69,6 +69,20 @@ export function AppLayout({ children }: LayoutProps) {
     setSavedSearchesDrawerOpen(false);
   };
   
+  // Handle open compose action - dispatch event for the app page to open email drawer
+  const handleOpenCompose = () => {
+    if (location !== '/app') {
+      // Navigate to /app first
+      setLocation('/app');
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('openEmailCompose'));
+      }, 100);
+    } else {
+      window.dispatchEvent(new CustomEvent('openEmailCompose'));
+    }
+    setSavedSearchesDrawerOpen(false);
+  };
+  
   return (
     <div className="min-h-screen flex flex-col">
       <div className="flex-1">
@@ -82,6 +96,7 @@ export function AppLayout({ children }: LayoutProps) {
         onOpenChange={setSavedSearchesDrawerOpen}
         onLoadSearch={handleLoadSearch}
         onNewSearch={handleNewSearch}
+        onOpenCompose={handleOpenCompose}
       />
     </div>
   );
