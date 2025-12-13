@@ -52,6 +52,7 @@ import { registerContactListRoutes } from "./features/contact-lists/routes";
 import { registerOnboardingRoutes } from "./features/onboarding/routes";
 import { registerSearchQueueRoutes } from "./features/search-queues/routes";
 import { registerGuidanceRoutes } from "./features/guidance/routes";
+import { registerAccessApplicationsRoutes } from "./features/access-applications/routes";
 
 
 // Import centralized auth utilities
@@ -309,6 +310,9 @@ Respond in this exact JSON format:
 
   // Register all billing-related routes (credits, Stripe, gamification)
   registerBillingRoutes(app);
+  
+  // Register access applications routes (stealth landing page)
+  registerAccessApplicationsRoutes(app);
 
   const httpServer = createServer(app);
   return httpServer;
