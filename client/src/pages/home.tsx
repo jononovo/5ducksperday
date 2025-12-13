@@ -1331,8 +1331,9 @@ export default function Home() {
     // Expand the search section
     setSearchSectionCollapsed(false);
     
-    // Clear localStorage saved state
+    // Clear localStorage and sessionStorage saved state
     localStorage.removeItem('searchState');
+    sessionStorage.removeItem('searchState');
   };
 
   //New function added here
