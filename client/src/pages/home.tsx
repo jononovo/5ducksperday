@@ -501,15 +501,21 @@ export default function Home() {
     const handleNewSearchEvent = () => {
       handleNewSearch();
     };
+    
+    const handleOpenComposeEvent = () => {
+      emailDrawer.openCompose();
+    };
 
     window.addEventListener('loadSavedSearch', handleLoadSearchEvent as EventListener);
     window.addEventListener('startNewSearch', handleNewSearchEvent);
+    window.addEventListener('openEmailCompose', handleOpenComposeEvent);
     
     return () => {
       window.removeEventListener('loadSavedSearch', handleLoadSearchEvent as EventListener);
       window.removeEventListener('startNewSearch', handleNewSearchEvent);
+      window.removeEventListener('openEmailCompose', handleOpenComposeEvent);
     };
-  }, []);
+  }, [emailDrawer.openCompose]);
 
   // Save state to localStorage whenever it changes (but prevent corruption during unmount)
   useEffect(() => {
