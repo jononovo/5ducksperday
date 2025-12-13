@@ -100,14 +100,29 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
 
   useEffect(() => {
     // Auto-start guidance for new users when they reach /app
+    const hasStarted = localStorage.getItem("fluffy-guidance-started");
+    
+    console.log('[Guidance Auto-Start] Checking conditions:', {
+      autoStartForNewUsers,
+      isOnAppRoute,
+      hasStarted: !!hasStarted,
+      currentQuestId: state.currentQuestId,
+      completedQuestsLength: state.completedQuests.length,
+      allConditionsMet: autoStartForNewUsers && isOnAppRoute && !hasStarted && !state.currentQuestId && state.completedQuests.length === 0
+    });
+    
     if (autoStartForNewUsers && isOnAppRoute) {
-      const hasStarted = localStorage.getItem("fluffy-guidance-started");
       if (!hasStarted && !state.currentQuestId && state.completedQuests.length === 0) {
+        console.log('[Guidance Auto-Start] All conditions met, scheduling quest start in 2s');
         const timer = setTimeout(() => {
+          console.log('[Guidance Auto-Start] Timer fired, starting quest-1-finding-customers');
           startQuestRef.current("quest-1-finding-customers");
           localStorage.setItem("fluffy-guidance-started", "true");
         }, 2000);
-        return () => clearTimeout(timer);
+        return () => {
+          console.log('[Guidance Auto-Start] Timer cleanup - effect re-ran before 2s');
+          clearTimeout(timer);
+        };
       }
     }
   }, [autoStartForNewUsers, isOnAppRoute, state.currentQuestId, state.completedQuests.length]);
