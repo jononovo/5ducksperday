@@ -256,14 +256,13 @@ export function RegistrationModal() {
             <div className="w-full max-w-md mx-auto">
               <div className="text-center text-white mb-8">
                 <h2 className="text-3xl font-bold mb-3">
-                  {isOpenedFromProtectedRoute ? "Join to Continue" : "Join 5Ducks"}
+                  {isOpenedFromProtectedRoute ? "Join to Continue" : "Register"}
                 </h2>
-                <p className="text-gray-200 text-lg">
-                  {isOpenedFromProtectedRoute 
-                    ? "Sign up or log in to access this feature" 
-                    : "Start prospecting with AI-powered sales tools"
-                  }
-                </p>
+                {isOpenedFromProtectedRoute && (
+                  <p className="text-gray-200 text-lg">
+                    Sign up or log in to access this feature
+                  </p>
+                )}
               </div>
 
               <div className="space-y-4 max-w-sm mx-auto px-2 sm:px-4">
@@ -359,7 +358,7 @@ export function RegistrationModal() {
                       onClick={handleLoginClick}
                       className="text-blue-300 hover:text-blue-200 transition-colors font-medium"
                     >
-                      Sign In
+                      Login
                     </button>
                   </p>
                 </div>
