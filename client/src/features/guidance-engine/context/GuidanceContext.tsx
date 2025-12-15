@@ -118,10 +118,34 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
   }, [location, isOnEnabledRoute, state.currentQuestId, state.isActive, engine]);
 
   useEffect(() => {
-    if (!autoStartForNewUsers) return;
-    if (authLoading) return;
-    if (state.isActive) return;
-    if (state.currentQuestId) return;
+    console.log('[Guidance Debug] Trigger effect entered:', {
+      autoStartForNewUsers,
+      authLoading,
+      isActive: state.isActive,
+      currentQuestId: state.currentQuestId,
+      completedQuests: state.completedQuests,
+      user: user ? user.email : null,
+      location,
+    });
+
+    if (!autoStartForNewUsers) {
+      console.log('[Guidance Debug] Early exit: autoStartForNewUsers is false');
+      return;
+    }
+    if (authLoading) {
+      console.log('[Guidance Debug] Early exit: authLoading is true');
+      return;
+    }
+    if (state.isActive) {
+      console.log('[Guidance Debug] Early exit: state.isActive is true');
+      return;
+    }
+    if (state.currentQuestId) {
+      console.log('[Guidance Debug] Early exit: state.currentQuestId is set:', state.currentQuestId);
+      return;
+    }
+
+    console.log('[Guidance Debug] Passed all early exits, evaluating quests...');
 
     const evaluateTrigger = (questId: string, trigger: QuestTrigger): boolean => {
       const requiresAuth = trigger.requiresAuth !== false;
