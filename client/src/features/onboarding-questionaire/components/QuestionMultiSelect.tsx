@@ -104,10 +104,6 @@ export function QuestionMultiSelect<T extends Record<string, string>>({
           );
         })}
       </div>
-
-      <p className="text-center text-sm text-gray-500">
-        Select all that apply, then tap Continue
-      </p>
     </div>
   );
 }
