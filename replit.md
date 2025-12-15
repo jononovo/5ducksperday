@@ -25,7 +25,7 @@ The platform is built with a React SPA frontend (TypeScript, Vite, Tailwind, sha
 - **Email Campaign System**: Provides comprehensive outreach management with custom email creation, merge fields, quick templates, and AI-powered generation. It supports both **Human Review Mode** (default, requiring approval before sending) and **Auto-Send Mode** (template-based automatic sending). An `Autopilot Modal` enables automated scheduling with intelligent spacing and rate limiting.
 - **Individual Search**: Implemented via a structured modal input, leveraging Perplexity Search API and Claude for precise extraction and scoring of candidates.
 - **OAuth Token Storage**: Gmail OAuth tokens are stored exclusively in an encrypted `oauth_tokens` table in PostgreSQL using AES-256-CBC.
-- **Drip Email Engine**: Centralized system email scheduler at `server/email/` for template-based transactional emails (access confirmations, welcome sequences). Features 5-minute polling, working-day calculations, and sequence enrollment. Uses SendGrid for delivery.
+- **Drip Email Engine**: Centralized system email scheduler at `server/email/` for template-based transactional emails (access confirmations, welcome sequences, registration welcome emails). Features 5-minute polling, working-day calculations, and sequence enrollment. Uses SendGrid for delivery. Includes `sendImmediate()` method for non-blocking immediate email sends (used for registration welcome emails).
 
 **Email System Architecture (Two Separate Systems):**
 - **Drip Engine** (`server/email/`): System-to-user transactional emails via SendGrid. Template-based, scheduled sequences (e.g., access code drip campaigns). Tables: `email_sequences`, `email_sequence_events`, `email_sends`.

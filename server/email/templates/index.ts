@@ -243,10 +243,81 @@ P.S. Questions? Just reply to this email — I read every one! 💬`;
   };
 };
 
+export const welcomeRegistrationTemplate: TemplateBuilder = (vars) => {
+  const firstName = vars.name?.split(' ')[0] || 'there';
+  const appUrl = vars.appUrl || APP_URL;
+  
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { color: #333; margin-bottom: 20px; }
+        .emoji { font-size: 48px; text-align: center; margin: 30px 0; }
+        .footer { color: #666; font-size: 14px; margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; }
+        .highlight { background: #FEF3C7; padding: 16px 20px; border-radius: 8px; margin: 20px 0; }
+        .cta-button { display: inline-block; background: #FCD34D; color: #1F2937; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 20px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="emoji">🦆</div>
+        
+        <h2 class="header">Welcome to 5Ducks, ${firstName}!</h2>
+        
+        <p>You're in! Your account is ready and waiting for you.</p>
+        
+        <div class="highlight">
+          <p style="margin: 0;"><strong>What can you do with 5Ducks?</strong></p>
+          <p style="margin: 10px 0 0 0;">Find verified B2B contacts, generate personalized outreach, and scale your prospecting — all powered by AI.</p>
+        </div>
+        
+        <p>Ready to find your next best customers?</p>
+        
+        <p style="text-align: center;">
+          <a href="${appUrl}/app" class="cta-button">Start Prospecting</a>
+        </p>
+        
+        <p class="footer">
+          Welcome aboard,<br>
+          <strong>Jon @ 5Ducks</strong><br>
+          <span style="color: #999;">P.S. Questions? Just reply to this email — I read every one! 💬</span>
+        </p>
+      </div>
+    </body>
+    </html>
+  `;
+  
+  const text = `Welcome to 5Ducks, ${firstName}!
+
+You're in! Your account is ready and waiting for you.
+
+What can you do with 5Ducks?
+Find verified B2B contacts, generate personalized outreach, and scale your prospecting — all powered by AI.
+
+Ready to find your next best customers? Head to ${appUrl}/app to start prospecting!
+
+Welcome aboard,
+Jon @ 5Ducks
+
+P.S. Questions? Just reply to this email — I read every one!`;
+  
+  return {
+    subject: "Welcome to 5Ducks! 🦆",
+    html,
+    text
+  };
+};
+
 export const templateRegistry: Record<string, TemplateBuilder> = {
   'access_confirmation': accessConfirmationTemplate,
   'fast_track': fastTrackTemplate,
-  'welcome_code': welcomeCodeTemplate
+  'welcome_code': welcomeCodeTemplate,
+  'welcome_registration': welcomeRegistrationTemplate
 };
 
 export function getTemplate(key: string): TemplateBuilder | undefined {
