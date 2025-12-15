@@ -147,14 +147,13 @@ export function GuidanceTooltip({
       <style>
         {`
           @keyframes mascot-wiggle {
-            0%, 70% { transform: translateX(0) rotate(0deg); }
-            72% { transform: translateX(2px) rotate(3deg); }
-            76% { transform: translateX(-1px) rotate(-2deg); }
-            80% { transform: translateX(1px) rotate(1deg); }
-            84%, 100% { transform: translateX(0) rotate(0deg); }
+            0%, 85% { transform: translateY(0); }
+            90% { transform: translateY(-3px); }
+            95% { transform: translateY(0); }
+            100% { transform: translateY(0); }
           }
           .mascot-wiggle {
-            animation: mascot-wiggle 3s ease-in-out infinite;
+            animation: mascot-wiggle 4s ease-in-out infinite;
           }
         `}
       </style>
