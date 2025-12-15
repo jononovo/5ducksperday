@@ -64,7 +64,7 @@ const SECTION_CREDITS = {
   A: 50,
   B: 75,
   C: 100,
-  D: 75,
+  D: 120,
 };
 
 export const STEALTH_QUESTIONS: Question<StealthOnboardingData>[] = [
