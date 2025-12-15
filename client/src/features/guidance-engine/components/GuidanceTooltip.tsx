@@ -174,7 +174,7 @@ export function GuidanceTooltip({
               {instruction}
             </p>
             
-            <div className="flex justify-end items-center gap-1">
+            <div className="flex justify-end items-center">
               {stepNumber && stepNumber > 1 && onBack && (
                 <Button
                   size="sm"
@@ -187,7 +187,7 @@ export function GuidanceTooltip({
                 </Button>
               )}
               {stepNumber && totalSteps && (
-                <span className="text-xs text-yellow-400 font-medium px-1">
+                <span className="text-xs text-yellow-400 font-medium">
                   {stepNumber} / {totalSteps}
                 </span>
               )}
