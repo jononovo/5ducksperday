@@ -36,7 +36,7 @@ const LOADING_MESSAGES = [
 export default function LandingStealth() {
   const [code, setCode] = useState("");
   const { toast } = useToast();
-  const { openModal, openModalForLogin, setRegistrationSuccessCallback } = useRegistrationModal();
+  const { openModal, openModalForLogin, setRegistrationSuccessCallback, isOpen: isRegistrationModalOpen } = useRegistrationModal();
   const [isHoveringDuck, setIsHoveringDuck] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentTestimonialIndex, setCurrentTestimonialIndex] = useState(0);
@@ -191,10 +191,12 @@ export default function LandingStealth() {
   ];
 
   useEffect(() => {
-    // Pause cycling when overlay is open and user is typing
-    if (currentIndex === 5 && code.length > 0) {
-      return;
-    }
+    // Pause cycling during registration/onboarding flows
+    if (currentIndex === 5 && code.length > 0) return;
+    if (showAccessGranted) return;
+    if (showQuestionnaire) return;
+    if (isRegistrationModalOpen) return;
+    if (showApplyForm) return;
     
     const item = content[currentIndex];
     const duration = (item as any).duration || 6000;
@@ -211,7 +213,7 @@ export default function LandingStealth() {
       clearTimeout(timeout);
       clearInterval(testimonialInterval);
     };
-  }, [currentIndex, code]);
+  }, [currentIndex, code, showAccessGranted, showQuestionnaire, isRegistrationModalOpen, showApplyForm]);
 
   const handleQuack = () => {
     const validCodes = ["quack", "charlie"];
