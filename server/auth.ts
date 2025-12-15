@@ -543,7 +543,7 @@ export function setupAuth(app: Express) {
   // Add to the Google auth route
   app.post("/api/google-auth", async (req, res, next) => {
     try {
-      const { email, username, firebaseUid, selectedPlan, planSource, joinWaitlist } = req.body;
+      const { email, username, firebaseUid, selectedPlan, planSource, joinWaitlist, accessCode } = req.body;
 
       console.log('Google auth endpoint received request:', { 
         hasEmail: !!email, 
@@ -552,6 +552,7 @@ export function setupAuth(app: Express) {
         selectedPlan,
         planSource,
         joinWaitlist,
+        accessCode,
         timestamp: new Date().toISOString()
       });
 
@@ -618,6 +619,23 @@ export function setupAuth(app: Express) {
             userId: user.id
           });
           // Don't fail the authentication if mapping storage fails - this is optional
+        }
+      }
+
+      // Save access code to user preferences if provided
+      if (accessCode) {
+        console.log(`[/api/google-auth] Saving access code for user ${user.id}: ${accessCode}`);
+        try {
+          await storage.updateUserPreferences(user.id, { 
+            settings: { accessCode } 
+          });
+          console.log(`[/api/google-auth] Successfully saved access code to user preferences`);
+        } catch (accessCodeError) {
+          console.error('[/api/google-auth] Failed to save access code (non-critical):', {
+            error: accessCodeError instanceof Error ? accessCodeError.message : accessCodeError,
+            userId: user.id
+          });
+          // Don't fail authentication if access code saving fails
         }
       }
 
