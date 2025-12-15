@@ -154,6 +154,35 @@ class DripEmailEngine {
     }
   }
 
+  async sendImmediate(
+    to: string,
+    content: { subject: string; html: string; text?: string },
+    fromName?: string
+  ): Promise<boolean> {
+    try {
+      const result = await sendEmail({
+        to,
+        content: {
+          subject: content.subject,
+          html: content.html,
+          text: content.text || ''
+        },
+        fromName
+      });
+      
+      if (result) {
+        console.log(`[DripEngine] Immediate email sent to ${to}: ${content.subject}`);
+      } else {
+        console.warn(`[DripEngine] Email send returned false for ${to} (SendGrid may not be configured)`);
+      }
+      
+      return result;
+    } catch (error: any) {
+      console.error(`[DripEngine] Failed to send immediate email to ${to}:`, error);
+      return false;
+    }
+  }
+
   async enrollInSequence(
     sequenceName: string,
     recipientEmail: string,

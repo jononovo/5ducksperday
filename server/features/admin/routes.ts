@@ -5,7 +5,8 @@ import { users, companies, contacts, dailyOutreachBatches, dailyOutreachJobs, us
 import { eq, desc, and, gte, lte, sql, count } from 'drizzle-orm';
 import { startOfDay, endOfDay, subDays, startOfWeek, endOfWeek } from 'date-fns';
 import { HealthMonitoringTestRunner } from '../health-monitoring/test-runner';
-import { sendGridService } from '../daily-outreach/services/sendgrid-service';
+import { dripEmailEngine } from '../../email/drip-engine';
+import { buildContactsReadyEmail } from '../daily-outreach/email-templates/contacts-ready';
 
 const router = Router();
 
@@ -265,8 +266,10 @@ router.post('/outreach/trigger/:userId', requireAdmin, async (req: Request, res:
       .where(eq(users.id, userId));
 
     if (user) {
-      // Send notification email
-      await sendGridService.sendDailyNudgeEmail(user as any, batch);
+      // Send notification email via drip engine
+      const appUrl = process.env.APP_URL || 'https://5ducks.ai';
+      const emailContent = buildContactsReadyEmail(batch, appUrl);
+      await dripEmailEngine.sendImmediate(user.email, emailContent, '5Ducks Daily');
     }
 
     res.json({
@@ -370,9 +373,6 @@ router.post('/test/email', requireAdmin, async (req: Request, res: Response) => 
         message: 'toEmail, subject, and content are required'
       });
     }
-
-    // Send test email using SendGrid service
-    const sg = (sendGridService as any).sg;
     
     if (!process.env.SENDGRID_API_KEY) {
       return res.status(400).json({
@@ -381,21 +381,24 @@ router.post('/test/email', requireAdmin, async (req: Request, res: Response) => 
       });
     }
 
-    await sg.send({
-      to: toEmail,
-      from: {
-        email: process.env.SENDGRID_FROM_EMAIL || 'quack@5ducks.ai',
-        name: 'Admin Test'
-      },
+    // Send test email using drip engine
+    const sent = await dripEmailEngine.sendImmediate(toEmail, {
       subject: subject,
-      text: content,
-      html: `<p>${content.replace(/\n/g, '<br>')}</p>`
-    });
+      html: `<p>${content.replace(/\n/g, '<br>')}</p>`,
+      text: content
+    }, 'Admin Test');
 
-    res.json({
-      success: true,
-      message: `Test email sent to ${toEmail}`
-    });
+    if (sent) {
+      res.json({
+        success: true,
+        message: `Test email sent to ${toEmail}`
+      });
+    } else {
+      res.status(500).json({
+        error: 'Failed to send test email',
+        message: 'Email sending returned false'
+      });
+    }
   } catch (error: any) {
     console.error('Test email error:', error);
     res.status(500).json({

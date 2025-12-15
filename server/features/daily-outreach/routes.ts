@@ -14,7 +14,7 @@ import { eq, and, lte, gte, lt, sql, not, desc } from 'drizzle-orm';
 import { startOfDay, endOfDay } from 'date-fns';
 import { persistentScheduler as outreachScheduler } from './services/persistent-scheduler';
 import { batchGenerator } from './services/batch-generator';
-import { sendGridService } from './services/sendgrid-service';
+import { dripEmailEngine } from '../../email/drip-engine';
 import { buildContactsReadyEmail } from './email-templates/contacts-ready';
 import { mockContactsForTesting } from './email-templates/mock-contacts-for-testing';
 import type { Request, Response } from 'express';
@@ -250,8 +250,10 @@ router.post('/trigger', requireAuth, async (req: Request, res: Response) => {
       });
     }
     
-    // Send email
-    const sent = await sendGridService.sendDailyNudgeEmail(user, batch);
+    // Send email via drip engine
+    const appUrl = process.env.APP_URL || 'https://5ducks.ai';
+    const emailContent = buildContactsReadyEmail(batch, appUrl);
+    const sent = await dripEmailEngine.sendImmediate(user.email, emailContent, '5Ducks Daily');
     
     if (sent) {
       // Update last nudge sent
@@ -321,8 +323,10 @@ router.post('/send-test-email', requireAuth, async (req: Request, res: Response)
     // Create a modified user object with the target email if provided
     const testUser = targetEmail ? { ...user, email: targetEmail } : user;
     
-    // Send test email
-    const sent = await sendGridService.sendDailyNudgeEmail(testUser, testBatch);
+    // Send test email via drip engine
+    const appUrl = process.env.APP_URL || 'https://5ducks.ai';
+    const emailContent = buildContactsReadyEmail(testBatch, appUrl);
+    const sent = await dripEmailEngine.sendImmediate(testUser.email, emailContent, '5Ducks Daily');
     
     res.json({ 
       success: sent, 

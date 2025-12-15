@@ -13,7 +13,9 @@ import {
 } from '@shared/schema';
 import { eq, and, lte, isNull, sql, inArray, not } from 'drizzle-orm';
 import { batchGenerator } from './batch-generator';
-import { sendGridService } from './sendgrid-service';
+import { dripEmailEngine } from '../../../email/drip-engine';
+import { buildContactsReadyEmail } from '../email-templates/contacts-ready';
+import { buildNeedMoreContactsEmail } from '../email-templates/need-more-contacts';
 import { differenceInMinutes, addDays, startOfDay, format } from 'date-fns';
 import { fromZonedTime, toZonedTime, formatInTimeZone } from 'date-fns-tz';
 // REMOVED: autoSendCampaignService import - Campaign emails are handled by EmailQueueProcessor only
@@ -522,9 +524,11 @@ export class PersistentDailyOutreachScheduler {
         await this.updateJobStatus(userId, statusUpdates.join(' | '));
         console.log(`User ${userId} has insufficient contacts (${availableCount})`);
         
-        // Send "need more contacts" email
+        // Send "need more contacts" email via drip engine
         statusUpdates.push('Step 5: Sending nudge email for more contacts');
-        await sendGridService.sendDailyNudgeEmail(user, null);
+        const appUrl = process.env.APP_URL || 'https://5ducks.ai';
+        const emailContent = buildNeedMoreContactsEmail(user, appUrl);
+        await dripEmailEngine.sendImmediate(user.email, emailContent, '5Ducks Daily');
         
         // Update last nudge sent
         await db
@@ -543,9 +547,11 @@ export class PersistentDailyOutreachScheduler {
       if (batch) {
         statusUpdates.push(`Step 5 ✓: Generated batch with ${batch.items.length} emails`);
         
-        // Send notification email with batch details
+        // Send notification email with batch details via drip engine
         statusUpdates.push('Step 6: Sending notification email');
-        await sendGridService.sendDailyNudgeEmail(user, batch);
+        const appUrl = process.env.APP_URL || 'https://5ducks.ai';
+        const emailContent = buildContactsReadyEmail(batch, appUrl);
+        await dripEmailEngine.sendImmediate(user.email, emailContent, '5Ducks Daily');
         statusUpdates.push('Step 6 ✓: Notification sent successfully');
         
         // Update last nudge sent
