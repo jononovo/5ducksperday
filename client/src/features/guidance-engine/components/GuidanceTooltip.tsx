@@ -143,9 +143,24 @@ export function GuidanceTooltip({
   };
 
   return createPortal(
-    <AnimatePresence>
-      {isVisible && (
-        <motion.div
+    <>
+      <style>
+        {`
+          @keyframes mascot-wiggle {
+            0%, 70% { transform: translateX(0) rotate(0deg); }
+            72% { transform: translateX(2px) rotate(3deg); }
+            76% { transform: translateX(-1px) rotate(-2deg); }
+            80% { transform: translateX(1px) rotate(1deg); }
+            84%, 100% { transform: translateX(0) rotate(0deg); }
+          }
+          .mascot-wiggle {
+            animation: mascot-wiggle 3s ease-in-out infinite;
+          }
+        `}
+      </style>
+      <AnimatePresence>
+        {isVisible && (
+          <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.9 }}
@@ -156,7 +171,7 @@ export function GuidanceTooltip({
         >
           <div style={arrowStyles[coords.arrowPosition]} />
           
-          <span className="absolute -left-10 top-2 text-2xl animate-bounce" style={{ animationDuration: '1s' }}>🐥</span>
+          <span className="absolute -left-10 top-2 text-2xl mascot-wiggle">🐥</span>
           
           <div className="p-3">
             <div className="flex items-start gap-2">
@@ -197,9 +212,10 @@ export function GuidanceTooltip({
               )}
             </div>
           </div>
-        </motion.div>
-      )}
-    </AnimatePresence>,
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>,
     document.body
   );
 }
