@@ -165,7 +165,7 @@ export function GuidanceTooltip({
                 <span className="inline-flex items-center align-middle ml-1">
                   {stepNumber && stepNumber > 1 && onBack && (
                     <button
-                      className="text-yellow-400 hover:text-yellow-300 h-5 w-5 p-0 inline-flex items-center justify-center"
+                      className="text-gray-400 hover:text-yellow-400 h-5 w-5 p-0 inline-flex items-center justify-center transition-colors"
                       onClick={onBack}
                       data-testid="tooltip-back"
                     >
@@ -173,12 +173,12 @@ export function GuidanceTooltip({
                     </button>
                   )}
                   {stepNumber && totalSteps && (
-                    <span className="text-xs text-yellow-400 font-medium">
+                    <span className="text-xs text-gray-400 font-medium">
                       {stepNumber} / {totalSteps}
                     </span>
                   )}
                   <button
-                    className="text-yellow-400 hover:text-yellow-300 h-5 w-5 p-0 inline-flex items-center justify-center"
+                    className="text-gray-400 hover:text-yellow-400 h-5 w-5 p-0 inline-flex items-center justify-center transition-colors"
                     onClick={onDismiss}
                     data-testid="tooltip-next"
                   >
