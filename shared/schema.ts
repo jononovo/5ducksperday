@@ -242,6 +242,7 @@ export const userPreferences = pgTable("user_preferences", {
 // Type for user settings stored in JSONB column
 export interface UserSettings {
   themePreference?: 'light' | 'dark' | 'system';
+  accessCode?: string; // The access code used during registration (e.g., 'quack', 'charlie')
   // Future settings can be added here without migrations
 }
 
