@@ -25,6 +25,12 @@ The platform is built with a React SPA frontend (TypeScript, Vite, Tailwind, sha
 - **Email Campaign System**: Provides comprehensive outreach management with custom email creation, merge fields, quick templates, and AI-powered generation. It supports both **Human Review Mode** (default, requiring approval before sending) and **Auto-Send Mode** (template-based automatic sending). An `Autopilot Modal` enables automated scheduling with intelligent spacing and rate limiting.
 - **Individual Search**: Implemented via a structured modal input, leveraging Perplexity Search API and Claude for precise extraction and scoring of candidates.
 - **OAuth Token Storage**: Gmail OAuth tokens are stored exclusively in an encrypted `oauth_tokens` table in PostgreSQL using AES-256-CBC.
+- **Drip Email Engine**: Centralized system email scheduler at `server/email/` for template-based transactional emails (access confirmations, welcome sequences). Features 5-minute polling, working-day calculations, and sequence enrollment. Uses SendGrid for delivery.
+
+**Email System Architecture (Two Separate Systems):**
+- **Drip Engine** (`server/email/`): System-to-user transactional emails via SendGrid. Template-based, scheduled sequences (e.g., access code drip campaigns). Tables: `email_sequences`, `email_sequence_events`, `email_sends`.
+- **Daily Outreach** (`server/features/daily-outreach/`): User-to-prospect prospecting emails via Gmail OAuth. AI-generated personalized content, per-user scheduling, autopilot windows. Tables: `daily_outreach_jobs`, `daily_outreach_batches`, `daily_outreach_items`.
+- These systems are intentionally separate due to different delivery channels (SendGrid vs Gmail), content generation (templates vs AI), and compliance requirements (system notifications vs marketing outreach).
 
 **System Design Choices:**
 - **Data Architecture**: PostgreSQL serves as the primary database for core entities (users, companies, contacts, campaigns) and analytics. Replit KV stores credits, tokens, subscriptions, and rate limiting data. A database-persistent job queue with retry logic manages background tasks.

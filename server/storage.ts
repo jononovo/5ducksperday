@@ -5,6 +5,7 @@ import {
   contactLists, contactListMembers, oauthTokens,
   userCredits, creditTransactions, subscriptions, userNotifications,
   campaignRecipients, userGuidanceProgress, accessApplications,
+  emailSequences, emailSequenceEvents, emailSends,
   type UserPreferences, type InsertUserPreferences,
   type UserEmailPreferences, type InsertUserEmailPreferences,
   type SearchList, type InsertSearchList,
@@ -21,7 +22,10 @@ import {
   type ContactListMember, type InsertContactListMember,
   type CampaignRecipient, type InsertCampaignRecipient,
   type UserGuidanceProgress, type InsertUserGuidanceProgress,
-  type AccessApplication, type InsertAccessApplication
+  type AccessApplication, type InsertAccessApplication,
+  type EmailSequence, type InsertEmailSequence,
+  type EmailSequenceEvent, type InsertEmailSequenceEvent,
+  type EmailSend, type InsertEmailSend
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, sql, desc, lt, inArray, isNull, ne } from "drizzle-orm";
@@ -180,6 +184,15 @@ export interface IStorage {
   createAccessApplication(data: InsertAccessApplication): Promise<AccessApplication>;
   getAccessApplicationByEmail(email: string): Promise<AccessApplication | undefined>;
   listAccessApplications(): Promise<AccessApplication[]>;
+
+  // Drip Email Engine
+  getEmailSequenceByName(name: string): Promise<EmailSequence | undefined>;
+  getEmailSequenceEvents(sequenceId: number): Promise<EmailSequenceEvent[]>;
+  createEmailSend(data: InsertEmailSend): Promise<EmailSend>;
+  getEmailSendsByRecipient(email: string): Promise<EmailSend[]>;
+  getPendingEmailSends(limit?: number): Promise<EmailSend[]>;
+  updateEmailSendStatus(id: number, status: string, errorMessage?: string): Promise<EmailSend | undefined>;
+  markEmailSendAsSent(id: number): Promise<EmailSend | undefined>;
 }
 
 class DatabaseStorage implements IStorage {
@@ -1580,6 +1593,84 @@ class DatabaseStorage implements IStorage {
     return db.select()
       .from(accessApplications)
       .orderBy(desc(accessApplications.createdAt));
+  }
+
+  // Drip Email Engine Implementation
+  async getEmailSequenceByName(name: string): Promise<EmailSequence | undefined> {
+    const [sequence] = await db.select()
+      .from(emailSequences)
+      .where(eq(emailSequences.name, name));
+    return sequence;
+  }
+
+  async getEmailSequenceEvents(sequenceId: number): Promise<EmailSequenceEvent[]> {
+    return db.select()
+      .from(emailSequenceEvents)
+      .where(and(
+        eq(emailSequenceEvents.sequenceId, sequenceId),
+        eq(emailSequenceEvents.isActive, true)
+      ))
+      .orderBy(emailSequenceEvents.eventOrder);
+  }
+
+  async createEmailSend(data: InsertEmailSend): Promise<EmailSend> {
+    const [send] = await db.insert(emailSends)
+      .values({
+        recipientEmail: data.recipientEmail,
+        recipientName: data.recipientName,
+        sequenceId: data.sequenceId,
+        eventId: data.eventId,
+        templateKey: data.templateKey,
+        status: data.status || 'pending',
+        scheduledFor: data.scheduledFor,
+        metadata: data.metadata || {}
+      })
+      .returning();
+    return send;
+  }
+
+  async getEmailSendsByRecipient(email: string): Promise<EmailSend[]> {
+    return db.select()
+      .from(emailSends)
+      .where(eq(emailSends.recipientEmail, email.toLowerCase()))
+      .orderBy(desc(emailSends.createdAt));
+  }
+
+  async getPendingEmailSends(limit: number = 50): Promise<EmailSend[]> {
+    const now = new Date();
+    return db.select()
+      .from(emailSends)
+      .where(and(
+        eq(emailSends.status, 'scheduled'),
+        lt(emailSends.scheduledFor, now)
+      ))
+      .orderBy(emailSends.scheduledFor)
+      .limit(limit);
+  }
+
+  async updateEmailSendStatus(id: number, status: string, errorMessage?: string): Promise<EmailSend | undefined> {
+    const [updated] = await db.update(emailSends)
+      .set({
+        status,
+        errorMessage: errorMessage || null,
+        retryCount: status === 'failed' ? sql`${emailSends.retryCount} + 1` : emailSends.retryCount,
+        updatedAt: new Date()
+      })
+      .where(eq(emailSends.id, id))
+      .returning();
+    return updated;
+  }
+
+  async markEmailSendAsSent(id: number): Promise<EmailSend | undefined> {
+    const [updated] = await db.update(emailSends)
+      .set({
+        status: 'sent',
+        sentAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(emailSends.id, id))
+      .returning();
+    return updated;
   }
 }
 

@@ -1,19 +1,9 @@
 import { Router, Request, Response } from "express";
 import { storage } from "../../storage";
 import { insertAccessApplicationSchema } from "@shared/schema";
-import { MailService } from "@sendgrid/mail";
-import { buildApplicationConfirmationEmail } from "./email-template";
+import { dripEmailEngine } from "../../email/drip-engine";
 
 const router = Router();
-
-const sendGridService = new MailService();
-if (process.env.SENDGRID_API_KEY) {
-  sendGridService.setApiKey(process.env.SENDGRID_API_KEY);
-}
-
-const FROM_EMAIL = process.env.SENDGRID_FROM_EMAIL || 'quack@5ducks.ai';
-const FROM_NAME = 'Jon @ 5Ducks';
-const APP_URL = process.env.APP_URL || 'https://5ducks.ai';
 
 router.post("/", async (req: Request, res: Response) => {
   try {
@@ -41,34 +31,16 @@ router.post("/", async (req: Request, res: Response) => {
       email: normalizedEmail
     });
     
-    if (process.env.SENDGRID_API_KEY) {
-      try {
-        const emailContent = buildApplicationConfirmationEmail(name, APP_URL);
-        
-        await sendGridService.send({
-          to: normalizedEmail,
-          from: {
-            email: FROM_EMAIL,
-            name: FROM_NAME
-          },
-          subject: emailContent.subject,
-          html: emailContent.html,
-          text: emailContent.text,
-          trackingSettings: {
-            clickTracking: { enable: true },
-            openTracking: { enable: true }
-          }
-        });
-        
-        console.log(`Application confirmation email sent to ${normalizedEmail}`);
-      } catch (emailError: any) {
-        console.error('SendGrid email error:', emailError);
-        if (emailError.response?.body) {
-          console.error('SendGrid error details:', JSON.stringify(emailError.response.body, null, 2));
-        }
-      }
-    } else {
-      console.warn('SENDGRID_API_KEY not configured, skipping confirmation email');
+    try {
+      await dripEmailEngine.enrollInSequence(
+        'Access Application Sequence',
+        normalizedEmail,
+        name.trim(),
+        { applicationId: application.id }
+      );
+      console.log(`Enrolled ${normalizedEmail} in Access Application Sequence`);
+    } catch (enrollError: any) {
+      console.error('Drip sequence enrollment error:', enrollError);
     }
     
     return res.status(201).json({ 
