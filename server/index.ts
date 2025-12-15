@@ -6,6 +6,7 @@ import { storage } from "./storage";
 import { outreachScheduler } from "./features/daily-outreach";
 import { CampaignScheduler } from "./features/campaigns/services/campaign-scheduler";
 import { emailQueueProcessor } from "./features/campaigns/email-queue-processor";
+import { dripEmailEngine } from "./email/drip-engine";
 import { sql } from "drizzle-orm";
 import dotenv from "dotenv";
 
@@ -199,6 +200,14 @@ app.get('/api/health', async (_req, res) => {
       console.log('Email queue processor initialized');
     } catch (emailQueueError) {
       console.warn('Email queue processor initialization failed (non-critical):', emailQueueError);
+    }
+
+    // Initialize drip email engine
+    try {
+      await dripEmailEngine.initialize();
+      console.log('Drip email engine initialized');
+    } catch (dripError) {
+      console.warn('Drip email engine initialization failed (non-critical):', dripError);
     }
 
     const server = registerRoutes(app);
