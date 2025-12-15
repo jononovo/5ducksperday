@@ -235,6 +235,8 @@ export default function LandingStealth() {
         setTimeout(() => {
           setShowAccessGranted(false);
           setCurrentIndex(0);
+          // Store access code in localStorage for backend sync
+          localStorage.setItem('accessCode', code.toLowerCase());
           setCode("");
           // Set callback to show questionnaire after registration
           setRegistrationSuccessCallback(() => {
