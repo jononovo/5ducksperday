@@ -147,13 +147,22 @@ export function GuidanceTooltip({
       <style>
         {`
           @keyframes mascot-wiggle {
-            0%, 85% { transform: translateY(0); }
-            90% { transform: translateY(-3px); }
-            95% { transform: translateY(0); }
-            100% { transform: translateY(0); }
+            0% { transform: translateY(0) rotate(0deg); }
+            3% { transform: translateY(-4px) rotate(0deg); }
+            6% { transform: translateY(0) rotate(0deg); }
+            6%, 30% { transform: translateY(0) rotate(0deg); }
+            32% { transform: rotate(5deg); }
+            34% { transform: rotate(-5deg); }
+            36% { transform: rotate(0deg); }
+            36%, 65% { transform: translateY(0) rotate(0deg); }
+            68% { transform: translateY(-2px) rotate(2deg); }
+            72% { transform: translateY(-3px) rotate(-1deg); }
+            76% { transform: translateY(-1px) rotate(1deg); }
+            80% { transform: translateY(0) rotate(0deg); }
+            80%, 100% { transform: translateY(0) rotate(0deg); }
           }
           .mascot-wiggle {
-            animation: mascot-wiggle 4s ease-in-out infinite;
+            animation: mascot-wiggle 8s ease-in-out infinite;
           }
         `}
       </style>
