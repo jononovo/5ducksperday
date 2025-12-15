@@ -6,38 +6,41 @@ export function registerGuidanceRoutes(app: Express) {
   app.get("/api/guidance/progress", async (req, res) => {
     try {
       const userId = getUserId(req);
-      const progress = await storage.getUserGuidanceProgress(userId);
       
-      console.log('[Guidance Server] GET /api/guidance/progress:', {
-        userId,
-        hasProgress: !!progress,
-        currentQuestId: progress?.currentQuestId || null,
-        completedQuests: progress?.completedQuests || [],
-      });
-      
-      if (!progress) {
-        const defaultResponse = {
+      // Demo user (id 1) is the fallback for unauthenticated requests
+      // Return empty progress to ensure new users get fresh state
+      if (userId === 1) {
+        return res.json({
           completedQuests: [],
           completedChallenges: {},
           currentQuestId: null,
           currentChallengeIndex: 0,
           currentStepIndex: 0,
           settings: {}
-        };
-        console.log('[Guidance Server] Returning default (no progress):', defaultResponse);
-        return res.json(defaultResponse);
+        });
       }
       
-      const response = {
+      const progress = await storage.getUserGuidanceProgress(userId);
+      
+      if (!progress) {
+        return res.json({
+          completedQuests: [],
+          completedChallenges: {},
+          currentQuestId: null,
+          currentChallengeIndex: 0,
+          currentStepIndex: 0,
+          settings: {}
+        });
+      }
+      
+      res.json({
         completedQuests: progress.completedQuests || [],
         completedChallenges: progress.completedChallenges || {},
         currentQuestId: progress.currentQuestId,
         currentChallengeIndex: progress.currentChallengeIndex || 0,
         currentStepIndex: progress.currentStepIndex || 0,
         settings: progress.settings || {}
-      };
-      console.log('[Guidance Server] Returning saved progress:', response);
-      res.json(response);
+      });
     } catch (error) {
       console.error("Error fetching guidance progress:", error);
       res.status(500).json({ message: "Failed to fetch guidance progress" });
@@ -47,6 +50,12 @@ export function registerGuidanceRoutes(app: Express) {
   app.patch("/api/guidance/progress", async (req, res) => {
     try {
       const userId = getUserId(req);
+      
+      // Don't save progress for demo user (unauthenticated fallback)
+      if (userId === 1) {
+        return res.json({ success: true });
+      }
+      
       const { completedQuests, completedChallenges, currentQuestId, currentChallengeIndex, currentStepIndex, settings } = req.body;
       
       const updated = await storage.updateUserGuidanceProgress(userId, {

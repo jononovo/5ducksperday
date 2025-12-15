@@ -17,19 +17,12 @@ const defaultState: GuidanceState = {
 function loadProgress(): GuidanceState {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    console.log('[Guidance Client] loadProgress from localStorage:', {
-      hasSaved: !!saved,
-      parsed: saved ? JSON.parse(saved) : null,
-    });
     if (saved) {
-      const merged = { ...defaultState, ...JSON.parse(saved) };
-      console.log('[Guidance Client] Merged state:', merged);
-      return merged;
+      return { ...defaultState, ...JSON.parse(saved) };
     }
   } catch (e) {
     console.error("Failed to load guidance progress:", e);
   }
-  console.log('[Guidance Client] Returning defaultState (no localStorage)');
   return defaultState;
 }
 
@@ -44,13 +37,8 @@ function saveProgress(state: GuidanceState) {
 async function fetchServerProgress(): Promise<Partial<GuidanceState> | null> {
   try {
     const res = await fetch("/api/guidance/progress", { credentials: "include" });
-    if (!res.ok) {
-      console.log('[Guidance Client] Server fetch failed, status:', res.status);
-      return null;
-    }
-    const data = await res.json();
-    console.log('[Guidance Client] Server response:', data);
-    return data;
+    if (!res.ok) return null;
+    return await res.json();
   } catch (e) {
     console.error("Failed to fetch server guidance progress:", e);
     return null;
@@ -83,27 +71,16 @@ export function useGuidanceEngine(): GuidanceContextValue {
 
   useEffect(() => {
     async function initFromServer() {
-      console.log('[Guidance Client] initFromServer starting, current state:', state);
       const serverProgress = await fetchServerProgress();
-      console.log('[Guidance Client] Server progress received:', serverProgress);
       if (serverProgress) {
-        setState((prev) => {
-          const newState = {
-            ...prev,
-            completedQuests: serverProgress.completedQuests || prev.completedQuests,
-            completedChallenges: serverProgress.completedChallenges || prev.completedChallenges,
-            currentQuestId: serverProgress.currentQuestId ?? prev.currentQuestId,
-            currentChallengeIndex: serverProgress.currentChallengeIndex ?? prev.currentChallengeIndex,
-            currentStepIndex: serverProgress.currentStepIndex ?? prev.currentStepIndex,
-          };
-          console.log('[Guidance Client] Merging state:', {
-            prev,
-            serverProgress,
-            newState,
-            note: 'currentQuestId uses ?? so null from server keeps prev value'
-          });
-          return newState;
-        });
+        setState((prev) => ({
+          ...prev,
+          completedQuests: serverProgress.completedQuests || prev.completedQuests,
+          completedChallenges: serverProgress.completedChallenges || prev.completedChallenges,
+          currentQuestId: serverProgress.currentQuestId ?? prev.currentQuestId,
+          currentChallengeIndex: serverProgress.currentChallengeIndex ?? prev.currentChallengeIndex,
+          currentStepIndex: serverProgress.currentStepIndex ?? prev.currentStepIndex,
+        }));
       }
       setIsInitialized(true);
     }
