@@ -366,6 +366,7 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
                 position={currentStep.tooltipPosition || "auto"}
                 isVisible={state.isActive}
                 onDismiss={() => engine.advanceStep()}
+                onBack={() => engine.previousStep()}
                 stepNumber={state.currentStepIndex + 1}
                 totalSteps={currentChallenge?.steps.length}
               />

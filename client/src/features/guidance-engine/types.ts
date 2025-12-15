@@ -58,6 +58,7 @@ export interface GuidanceContextValue {
   startQuest: (questId: string) => void;
   startNextChallenge: () => void;
   advanceStep: () => void;
+  previousStep: () => void;
   completeChallenge: () => void;
   pauseGuidance: () => void;
   resumeGuidance: () => void;
@@ -93,6 +94,7 @@ export interface GuidanceTooltipProps {
   position: "top" | "bottom" | "left" | "right" | "auto";
   isVisible: boolean;
   onDismiss?: () => void;
+  onBack?: () => void;
   stepNumber?: number;
   totalSteps?: number;
 }
