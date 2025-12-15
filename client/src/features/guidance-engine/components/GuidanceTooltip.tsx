@@ -156,7 +156,7 @@ export function GuidanceTooltip({
         >
           <div style={arrowStyles[coords.arrowPosition]} />
           
-          <span className="absolute -left-10 top-2 text-xl bg-gray-800 border-2 border-gray-600 rounded-full w-8 h-8 flex items-center justify-center shadow-md">🐥</span>
+          <span className="absolute -left-10 top-2 text-2xl animate-bounce" style={{ animationDuration: '1s' }}>🐥</span>
           
           <div className="p-3">
             <div className="flex items-start gap-2">
