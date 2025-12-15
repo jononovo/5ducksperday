@@ -329,13 +329,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const selectedPlan = localStorage.getItem('selectedPlan');
         const planSource = localStorage.getItem('planSource');
         const joinWaitlist = localStorage.getItem('joinWaitlist');
+        const accessCode = localStorage.getItem('accessCode');
 
         console.log('Making backend sync request', {
           endpoint: '/api/google-auth',
           domain: window.location.hostname,
           selectedPlan,
           planSource,
-          joinWaitlist
+          joinWaitlist,
+          accessCode
         });
 
         const createRes = await fetch("/api/google-auth", {
@@ -351,7 +353,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             firebaseUid: firebaseUser.uid,
             selectedPlan,
             planSource,
-            joinWaitlist: joinWaitlist === 'true'
+            joinWaitlist: joinWaitlist === 'true',
+            accessCode
           })
         });
 
@@ -383,6 +386,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             localStorage.removeItem('planSource');
             localStorage.removeItem('joinWaitlist');
             console.log('Cleaned up plan selection from localStorage');
+          }
+          if (accessCode) {
+            localStorage.removeItem('accessCode');
+            console.log('Cleaned up access code from localStorage');
           }
         } catch (parseError) {
           console.error('Error parsing user data from sync response:', parseError);
