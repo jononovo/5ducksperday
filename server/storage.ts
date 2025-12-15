@@ -1354,21 +1354,7 @@ class DatabaseStorage implements IStorage {
       .where(eq(userCredits.userId, userId));
     
     if (!credit) {
-      // Initialize credits for new user
-      const [newCredit] = await db.insert(userCredits)
-        .values({ 
-          userId,
-          balance: 0,
-          totalPurchased: 0,
-          totalUsed: 0
-        })
-        .returning();
-      return {
-        balance: newCredit.balance,
-        totalPurchased: newCredit.totalPurchased,
-        totalUsed: newCredit.totalUsed,
-        lastUpdated: newCredit.lastUpdated || undefined
-      };
+      return null;
     }
     
     return {
