@@ -6,6 +6,12 @@ export const QUESTS: Quest[] = [
     name: "Finding Customers",
     description: "Learn how to discover and find potential customers using our powerful search tools.",
     emoji: "🔍",
+    trigger: {
+      type: "newUser",
+      route: "/app",
+      requiresAuth: true,
+      once: true,
+    },
     challenges: [
       {
         id: "challenge-1-basic-search",
