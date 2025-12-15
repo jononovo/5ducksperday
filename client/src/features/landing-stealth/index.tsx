@@ -818,7 +818,15 @@ export default function LandingStealth() {
               <p className="font-heading"><span className="text-white font-bold">1,248</span> Players Waiting</p>
             </div>
 
-            <Button variant="link" className="text-muted-foreground hover:text-gray-400 transition-colors font-heading cursor-pointer" data-testid="link-apply">
+            <Button 
+              variant="link" 
+              className="text-muted-foreground hover:text-gray-400 transition-colors font-heading cursor-pointer" 
+              data-testid="link-apply"
+              onClick={() => {
+                setCurrentIndex(5);
+                setShowApplyForm(true);
+              }}
+            >
               Apply for a code <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
