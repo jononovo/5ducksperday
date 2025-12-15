@@ -214,7 +214,8 @@ export default function LandingStealth() {
   }, [currentIndex, code]);
 
   const handleQuack = () => {
-    if (code.toLowerCase() === "quack") {
+    const validCodes = ["quack", "charlie"];
+    if (validCodes.includes(code.toLowerCase())) {
       // Start unlock animation sequence
       setIsUnlocking(true);
       
