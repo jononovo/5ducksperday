@@ -670,16 +670,13 @@ export default function LandingStealth() {
                           <div className="relative">
                             <div className="absolute inset-0 bg-gradient-to-b from-blue-500/10 via-cyan-500/5 to-transparent blur-2xl rounded-lg" />
                             
-                            <div className="relative space-y-4 p-6 bg-black/40 backdrop-blur-md rounded-lg border border-white/10 text-left">
+                            <div className="relative space-y-4 p-6 bg-gray-900/60 backdrop-blur-md rounded-lg border border-white/15 text-left">
                               <p className="text-sm text-gray-400 text-center mb-4">
                                 Request early access to 5Ducks
                               </p>
                               
                               {/* Name Input */}
                               <div>
-                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                                  Your Name
-                                </label>
                                 <div className="relative">
                                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                                   <Input
@@ -695,9 +692,6 @@ export default function LandingStealth() {
 
                               {/* Email Input */}
                               <div>
-                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                                  Email Address
-                                </label>
                                 <div className="relative">
                                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                                   <Input
@@ -818,7 +812,15 @@ export default function LandingStealth() {
               <p className="font-heading"><span className="text-white font-bold">1,248</span> Players Waiting</p>
             </div>
 
-            <Button variant="link" className="text-muted-foreground hover:text-gray-400 transition-colors font-heading cursor-pointer" data-testid="link-apply">
+            <Button 
+              variant="link" 
+              className="text-muted-foreground hover:text-gray-400 transition-colors font-heading cursor-pointer" 
+              data-testid="link-apply"
+              onClick={() => {
+                setCurrentIndex(5);
+                setShowApplyForm(true);
+              }}
+            >
               Apply for a code <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
