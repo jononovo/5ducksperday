@@ -152,28 +152,13 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
       if (quest.trigger.type === "userEvent") continue;
       
       const shouldTrigger = evaluateTrigger(quest.id, quest.trigger);
-      
-      console.log('[Guidance Trigger] Evaluating quest:', {
-        questId: quest.id,
-        triggerType: quest.trigger.type,
-        route: quest.trigger.route,
-        currentLocation: location,
-        isAuthenticated: !!user,
-        authLoading,
-        shouldTrigger,
-      });
 
       if (shouldTrigger) {
-        console.log('[Guidance Trigger] Quest matched, scheduling start in 2s:', quest.id);
         const timer = setTimeout(() => {
-          console.log('[Guidance Trigger] Timer fired, starting quest:', quest.id);
           startQuestRef.current(quest.id);
           markQuestAsTriggered(quest.id);
         }, 2000);
-        return () => {
-          console.log('[Guidance Trigger] Timer cleanup - effect re-ran before 2s');
-          clearTimeout(timer);
-        };
+        return () => clearTimeout(timer);
       }
     }
   }, [autoStartForNewUsers, authLoading, user, location, state.isActive, state.currentQuestId, state.completedQuests]);
@@ -199,7 +184,6 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
         if (state.completedQuests.includes(quest.id)) continue;
         if (state.isActive || state.currentQuestId) continue;
 
-        console.log('[Guidance Trigger] userEvent matched:', quest.id, eventName);
         startQuestRef.current(quest.id);
         markQuestAsTriggered(quest.id);
         break;

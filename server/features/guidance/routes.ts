@@ -6,6 +6,20 @@ export function registerGuidanceRoutes(app: Express) {
   app.get("/api/guidance/progress", async (req, res) => {
     try {
       const userId = getUserId(req);
+      
+      // Demo user (id 1) is the fallback for unauthenticated requests
+      // Return empty progress to ensure new users get fresh state
+      if (userId === 1) {
+        return res.json({
+          completedQuests: [],
+          completedChallenges: {},
+          currentQuestId: null,
+          currentChallengeIndex: 0,
+          currentStepIndex: 0,
+          settings: {}
+        });
+      }
+      
       const progress = await storage.getUserGuidanceProgress(userId);
       
       if (!progress) {
@@ -36,6 +50,12 @@ export function registerGuidanceRoutes(app: Express) {
   app.patch("/api/guidance/progress", async (req, res) => {
     try {
       const userId = getUserId(req);
+      
+      // Don't save progress for demo user (unauthenticated fallback)
+      if (userId === 1) {
+        return res.json({ success: true });
+      }
+      
       const { completedQuests, completedChallenges, currentQuestId, currentChallengeIndex, currentStepIndex, settings } = req.body;
       
       const updated = await storage.updateUserGuidanceProgress(userId, {
