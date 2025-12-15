@@ -1320,6 +1320,98 @@ export const insertAccessApplicationSchema = z.object({
 export type AccessApplication = typeof accessApplications.$inferSelect;
 export type InsertAccessApplication = z.infer<typeof insertAccessApplicationSchema>;
 
+// ==========================================
+// DRIP EMAIL ENGINE
+// ==========================================
+
+// Email Sequences - Define drip campaigns
+export const emailSequences = pgTable("email_sequences", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(), // e.g., "Access Application Sequence"
+  description: text("description"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow()
+}, (table) => [
+  index('idx_email_sequences_active').on(table.isActive)
+]);
+
+// Email Sequence Events - Individual emails in a sequence
+export const emailSequenceEvents = pgTable("email_sequence_events", {
+  id: serial("id").primaryKey(),
+  sequenceId: integer("sequence_id").notNull().references(() => emailSequences.id, { onDelete: 'cascade' }),
+  templateKey: text("template_key").notNull(), // e.g., "access_confirmation", "fast_track", "welcome_code"
+  eventOrder: integer("event_order").notNull(), // Order in sequence (1, 2, 3...)
+  delayHours: integer("delay_hours").notNull().default(0), // Hours after previous event (0 = immediate)
+  delayType: text("delay_type").notNull().default('hours'), // 'hours', 'working_days'
+  isActive: boolean("is_active").notNull().default(true),
+  metadata: jsonb("metadata").default({}), // Additional config like subject line overrides
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow()
+}, (table) => [
+  index('idx_email_sequence_events_sequence').on(table.sequenceId),
+  index('idx_email_sequence_events_template').on(table.templateKey),
+  index('idx_email_sequence_events_order').on(table.sequenceId, table.eventOrder)
+]);
+
+// Email Sends - Track all emails sent (ledger)
+export const emailSends = pgTable("email_sends", {
+  id: serial("id").primaryKey(),
+  recipientEmail: text("recipient_email").notNull(),
+  recipientName: text("recipient_name"),
+  sequenceId: integer("sequence_id").references(() => emailSequences.id),
+  eventId: integer("event_id").references(() => emailSequenceEvents.id),
+  templateKey: text("template_key").notNull(),
+  status: text("status").notNull().default('pending'), // 'pending', 'scheduled', 'sent', 'failed', 'cancelled'
+  scheduledFor: timestamp("scheduled_for", { withTimezone: true }), // When to send
+  sentAt: timestamp("sent_at", { withTimezone: true }),
+  errorMessage: text("error_message"),
+  retryCount: integer("retry_count").notNull().default(0),
+  metadata: jsonb("metadata").default({}), // Template variables, tracking info, etc.
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow()
+}, (table) => [
+  index('idx_email_sends_recipient').on(table.recipientEmail),
+  index('idx_email_sends_status').on(table.status),
+  index('idx_email_sends_scheduled').on(table.scheduledFor),
+  index('idx_email_sends_sequence').on(table.sequenceId),
+  index('idx_email_sends_pending').on(table.status, table.scheduledFor)
+]);
+
+// Drip email schemas and types
+export const insertEmailSequenceSchema = z.object({
+  name: z.string().min(1, "Sequence name is required"),
+  description: z.string().optional(),
+  isActive: z.boolean().default(true)
+});
+
+export const insertEmailSequenceEventSchema = z.object({
+  sequenceId: z.number(),
+  templateKey: z.string().min(1, "Template key is required"),
+  eventOrder: z.number().min(1),
+  delayHours: z.number().min(0).default(0),
+  delayType: z.enum(['hours', 'working_days']).default('hours'),
+  isActive: z.boolean().default(true),
+  metadata: z.record(z.unknown()).optional()
+});
+
+export const insertEmailSendSchema = z.object({
+  recipientEmail: z.string().email(),
+  recipientName: z.string().optional(),
+  sequenceId: z.number().optional(),
+  eventId: z.number().optional(),
+  templateKey: z.string(),
+  status: z.enum(['pending', 'scheduled', 'sent', 'failed', 'cancelled']).default('pending'),
+  scheduledFor: z.date().optional(),
+  metadata: z.record(z.unknown()).optional()
+});
+
+export type EmailSequence = typeof emailSequences.$inferSelect;
+export type InsertEmailSequence = z.infer<typeof insertEmailSequenceSchema>;
+export type EmailSequenceEvent = typeof emailSequenceEvents.$inferSelect;
+export type InsertEmailSequenceEvent = z.infer<typeof insertEmailSequenceEventSchema>;
+export type EmailSend = typeof emailSends.$inferSelect;
+export type InsertEmailSend = z.infer<typeof insertEmailSendSchema>;
+
 // Backward compatibility exports
 export const targetCustomerProfiles = customerProfiles;
 
