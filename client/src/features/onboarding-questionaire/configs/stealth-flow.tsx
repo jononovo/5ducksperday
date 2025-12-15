@@ -106,19 +106,6 @@ export const STEALTH_QUESTIONS: Question<StealthOnboardingData>[] = [
     ],
   },
   {
-    id: "goal",
-    type: "multi-select",
-    section: "A",
-    title: "What are your goals?",
-    subtitle: "Select all that apply",
-    options: [
-      { id: "meetings", label: "Book more meetings", icon: <Briefcase className="w-5 h-5" /> },
-      { id: "pipeline", label: "Build my pipeline", icon: <TrendingUp className="w-5 h-5" /> },
-      { id: "time", label: "Save time on outreach", icon: <Zap className="w-5 h-5" /> },
-      { id: "learn", label: "Learn sales strategies", icon: <Target className="w-5 h-5" /> },
-    ],
-  },
-  {
     id: "section-a-complete",
     type: "section-complete",
     section: "A",
