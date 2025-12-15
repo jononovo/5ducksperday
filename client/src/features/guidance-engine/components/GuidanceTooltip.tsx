@@ -150,16 +150,17 @@ export function GuidanceTooltip({
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.9 }}
           transition={{ duration: 0.2 }}
-          className="fixed z-[9999] w-[260px] bg-gray-800 text-white rounded-lg shadow-2xl border border-yellow-500/30 overflow-hidden"
+          className="fixed z-[9999] w-[260px] bg-gray-800 text-white rounded-lg shadow-2xl border border-yellow-500/30"
           style={{ top: coords.top, left: coords.left }}
           data-testid="guidance-tooltip"
         >
           <div style={arrowStyles[coords.arrowPosition]} />
           
+          <span className="absolute -left-10 top-2 text-xl bg-yellow-100 border-2 border-yellow-300 rounded-full w-8 h-8 flex items-center justify-center shadow-md">🐥</span>
+          
           <div className="p-3">
             <div className="flex items-start gap-2 mb-2">
-              <span className="text-base bg-yellow-100 border border-yellow-300 rounded-full w-7 h-7 flex items-center justify-center flex-shrink-0">🐥</span>
-              <p className="text-sm text-gray-200 leading-snug flex-1 pt-0.5">
+              <p className="text-sm text-gray-200 leading-snug flex-1">
                 {instruction}
               </p>
               {onDismiss && (
