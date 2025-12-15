@@ -692,9 +692,6 @@ export default function LandingStealth() {
 
                               {/* Email Input */}
                               <div>
-                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                                  Email Address
-                                </label>
                                 <div className="relative">
                                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                                   <Input
