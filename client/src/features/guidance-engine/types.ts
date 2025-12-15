@@ -23,13 +23,21 @@ export interface Challenge {
   setupEvent?: string;
 }
 
+export interface QuestTrigger {
+  type: "newUser" | "firstVisit" | "route" | "userEvent";
+  route?: string;           // Required for route/firstVisit/newUser types
+  eventName?: string;       // Required for userEvent type
+  requiresAuth?: boolean;   // Default true - must be logged in to trigger
+  once?: boolean;           // Default true - only trigger once per user
+}
+
 export interface Quest {
   id: string;
   name: string;
   description: string;
   emoji?: string;
   challenges: Challenge[];
-  unlockCondition?: string;
+  trigger?: QuestTrigger;   // Defines when/how this quest auto-starts
 }
 
 export interface GuidanceState {

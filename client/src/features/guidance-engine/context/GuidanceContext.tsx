@@ -1,7 +1,9 @@
 import { createContext, useContext, useState, useCallback, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
-import type { GuidanceContextValue } from "../types";
+import type { GuidanceContextValue, QuestTrigger } from "../types";
 import { useGuidanceEngine } from "../hooks/useGuidanceEngine";
+import { QUESTS } from "../data/quests";
+import { useAuth } from "@/hooks/use-auth";
 import {
   ElementHighlight,
   SpotlightOverlay,
@@ -32,9 +34,26 @@ function isGuidanceEnabledRoute(location: string): boolean {
   return GUIDANCE_ENABLED_ROUTES.some(route => location === route || location.startsWith(route + "/"));
 }
 
+function getTriggerStorageKey(questId: string): string {
+  return `fluffy-quest-triggered-${questId}`;
+}
+
+function hasQuestBeenTriggered(questId: string): boolean {
+  return localStorage.getItem(getTriggerStorageKey(questId)) === "true";
+}
+
+function markQuestAsTriggered(questId: string): void {
+  localStorage.setItem(getTriggerStorageKey(questId), "true");
+}
+
+function isRouteMatch(currentLocation: string, triggerRoute: string): boolean {
+  return currentLocation === triggerRoute || currentLocation.startsWith(triggerRoute + "/");
+}
+
 export function GuidanceProvider({ children, autoStartForNewUsers = true }: GuidanceProviderProps) {
   const [location, navigate] = useLocation();
   const engine = useGuidanceEngine();
+  const { user, isLoading: authLoading } = useAuth();
   const [showChallengeComplete, setShowChallengeComplete] = useState(false);
   const [completedChallengeName, setCompletedChallengeName] = useState("");
   const [completedChallengeMessage, setCompletedChallengeMessage] = useState("");
@@ -99,18 +118,101 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
   }, [location, isOnEnabledRoute, state.currentQuestId, state.isActive, engine]);
 
   useEffect(() => {
-    // Auto-start guidance for new users when they reach /app
-    if (autoStartForNewUsers && isOnAppRoute) {
-      const hasStarted = localStorage.getItem("fluffy-guidance-started");
-      if (!hasStarted && !state.currentQuestId && state.completedQuests.length === 0) {
+    if (!autoStartForNewUsers) return;
+    if (authLoading) return;
+    if (state.isActive) return;
+    if (state.currentQuestId) return;
+
+    const evaluateTrigger = (questId: string, trigger: QuestTrigger): boolean => {
+      const requiresAuth = trigger.requiresAuth !== false;
+      const once = trigger.once !== false;
+
+      if (requiresAuth && !user) return false;
+      if (once && hasQuestBeenTriggered(questId)) return false;
+      if (state.completedQuests.includes(questId)) return false;
+
+      if (trigger.route && !isRouteMatch(location, trigger.route)) return false;
+
+      switch (trigger.type) {
+        case "newUser":
+          return state.completedQuests.length === 0;
+        case "firstVisit":
+          return true;
+        case "route":
+          return true;
+        case "userEvent":
+          return false;
+        default:
+          return false;
+      }
+    };
+
+    for (const quest of QUESTS) {
+      if (!quest.trigger) continue;
+      if (quest.trigger.type === "userEvent") continue;
+      
+      const shouldTrigger = evaluateTrigger(quest.id, quest.trigger);
+      
+      console.log('[Guidance Trigger] Evaluating quest:', {
+        questId: quest.id,
+        triggerType: quest.trigger.type,
+        route: quest.trigger.route,
+        currentLocation: location,
+        isAuthenticated: !!user,
+        authLoading,
+        shouldTrigger,
+      });
+
+      if (shouldTrigger) {
+        console.log('[Guidance Trigger] Quest matched, scheduling start in 2s:', quest.id);
         const timer = setTimeout(() => {
-          startQuestRef.current("quest-1-finding-customers");
-          localStorage.setItem("fluffy-guidance-started", "true");
+          console.log('[Guidance Trigger] Timer fired, starting quest:', quest.id);
+          startQuestRef.current(quest.id);
+          markQuestAsTriggered(quest.id);
         }, 2000);
-        return () => clearTimeout(timer);
+        return () => {
+          console.log('[Guidance Trigger] Timer cleanup - effect re-ran before 2s');
+          clearTimeout(timer);
+        };
       }
     }
-  }, [autoStartForNewUsers, isOnAppRoute, state.currentQuestId, state.completedQuests.length]);
+  }, [autoStartForNewUsers, authLoading, user, location, state.isActive, state.currentQuestId, state.completedQuests]);
+
+  useEffect(() => {
+    if (!autoStartForNewUsers) return;
+    if (authLoading) return;
+
+    const eventQuests = QUESTS.filter(q => q.trigger?.type === "userEvent" && q.trigger.eventName);
+    if (eventQuests.length === 0) return;
+
+    const handleUserEvent = (e: Event) => {
+      const eventName = (e as CustomEvent).type;
+      
+      for (const quest of eventQuests) {
+        if (quest.trigger?.eventName !== eventName) continue;
+        
+        const requiresAuth = quest.trigger.requiresAuth !== false;
+        const once = quest.trigger.once !== false;
+
+        if (requiresAuth && !user) continue;
+        if (once && hasQuestBeenTriggered(quest.id)) continue;
+        if (state.completedQuests.includes(quest.id)) continue;
+        if (state.isActive || state.currentQuestId) continue;
+
+        console.log('[Guidance Trigger] userEvent matched:', quest.id, eventName);
+        startQuestRef.current(quest.id);
+        markQuestAsTriggered(quest.id);
+        break;
+      }
+    };
+
+    const eventNames = [...new Set(eventQuests.map(q => q.trigger!.eventName!))];
+    eventNames.forEach(name => window.addEventListener(name, handleUserEvent));
+
+    return () => {
+      eventNames.forEach(name => window.removeEventListener(name, handleUserEvent));
+    };
+  }, [autoStartForNewUsers, authLoading, user, state.isActive, state.currentQuestId, state.completedQuests]);
 
   // Dispatch setupEvent when starting a challenge that requires it
   useEffect(() => {
