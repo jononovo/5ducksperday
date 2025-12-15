@@ -162,34 +162,30 @@ export function GuidanceTooltip({
             <div className="flex items-start gap-2">
               <p className="text-sm text-gray-200 leading-snug flex-1">
                 {instruction}
-              </p>
-              <div className="flex items-center flex-shrink-0">
-                {stepNumber && stepNumber > 1 && onBack && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/10 h-6 w-6 p-0"
-                    onClick={onBack}
-                    data-testid="tooltip-back"
+                <span className="inline-flex items-center align-middle ml-1">
+                  {stepNumber && stepNumber > 1 && onBack && (
+                    <button
+                      className="text-yellow-400 hover:text-yellow-300 h-5 w-5 p-0 inline-flex items-center justify-center"
+                      onClick={onBack}
+                      data-testid="tooltip-back"
+                    >
+                      <ChevronLeft className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                  {stepNumber && totalSteps && (
+                    <span className="text-xs text-yellow-400 font-medium">
+                      {stepNumber} / {totalSteps}
+                    </span>
+                  )}
+                  <button
+                    className="text-yellow-400 hover:text-yellow-300 h-5 w-5 p-0 inline-flex items-center justify-center"
+                    onClick={onDismiss}
+                    data-testid="tooltip-next"
                   >
-                    <ChevronLeft className="h-3.5 w-3.5" />
-                  </Button>
-                )}
-                {stepNumber && totalSteps && (
-                  <span className="text-xs text-yellow-400 font-medium">
-                    {stepNumber} / {totalSteps}
-                  </span>
-                )}
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/10 h-6 w-6 p-0"
-                  onClick={onDismiss}
-                  data-testid="tooltip-next"
-                >
-                  <ChevronRight className="h-3.5 w-3.5" />
-                </Button>
-              </div>
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </button>
+                </span>
+              </p>
               {onDismiss && (
                 <button
                   onClick={onDismiss}
