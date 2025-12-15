@@ -256,14 +256,13 @@ export function RegistrationModal() {
             <div className="w-full max-w-md mx-auto">
               <div className="text-center text-white mb-8">
                 <h2 className="text-3xl font-bold mb-3">
-                  {isOpenedFromProtectedRoute ? "Join to Continue" : "Join 5Ducks"}
+                  {isOpenedFromProtectedRoute ? "Join to Continue" : "Register"}
                 </h2>
-                <p className="text-gray-200 text-lg">
-                  {isOpenedFromProtectedRoute 
-                    ? "Sign up or log in to access this feature" 
-                    : "Start prospecting with AI-powered sales tools"
-                  }
-                </p>
+                {isOpenedFromProtectedRoute && (
+                  <p className="text-gray-200 text-lg">
+                    Sign up or log in to access this feature
+                  </p>
+                )}
               </div>
 
               <div className="space-y-4 max-w-sm mx-auto px-2 sm:px-4">
@@ -359,7 +358,7 @@ export function RegistrationModal() {
                       onClick={handleLoginClick}
                       className="text-blue-300 hover:text-blue-200 transition-colors font-medium"
                     >
-                      Sign In
+                      Login
                     </button>
                   </p>
                 </div>
@@ -369,14 +368,14 @@ export function RegistrationModal() {
 
           {currentPage === "login" && (
             <div className="w-full max-w-md mx-auto">
-              {/* Back button above title */}
+              {/* Register button above title */}
               <div className="flex justify-start mb-4 sm:mb-6 px-2 sm:px-4">
                 <button 
                   onClick={handleReturnToMain}
                   className="text-sm text-white hover:text-blue-300 transition-colors flex items-center gap-1 p-2"
                 >
                   <ArrowLeft className="h-4 w-4" />
-                  Back
+                  Register
                 </button>
               </div>
               
