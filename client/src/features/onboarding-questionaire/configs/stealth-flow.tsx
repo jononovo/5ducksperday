@@ -20,7 +20,6 @@ import type { Question, FlowConfig } from "../types";
 export interface StealthOnboardingData {
   [key: string]: string;
   purpose: string;
-  role: string;
   goal: string;
   hasWebsite: string;
   website: string;
@@ -42,7 +41,6 @@ export interface StealthOnboardingData {
 
 export const STEALTH_INITIAL_DATA: StealthOnboardingData = {
   purpose: "",
-  role: "",
   goal: "",
   hasWebsite: "",
   website: "",
@@ -90,19 +88,6 @@ export const STEALTH_QUESTIONS: Question<StealthOnboardingData>[] = [
       { id: "outreach", label: "Automate my outreach", icon: <Mail className="w-5 h-5" /> },
       { id: "leads", label: "Find new leads", icon: <Search className="w-5 h-5" /> },
       { id: "curious", label: "Just exploring", icon: <Sparkles className="w-5 h-5" /> },
-    ],
-  },
-  {
-    id: "role",
-    type: "single-select",
-    section: "A",
-    title: "What's your role?",
-    subtitle: "This helps us tailor the experience",
-    options: [
-      { id: "founder", label: "Founder / CEO", icon: <Zap className="w-5 h-5" /> },
-      { id: "sales", label: "Sales / BD", icon: <Target className="w-5 h-5" /> },
-      { id: "marketing", label: "Marketing", icon: <MessageSquare className="w-5 h-5" /> },
-      { id: "other", label: "Something else", icon: <Users className="w-5 h-5" /> },
     ],
   },
   {
