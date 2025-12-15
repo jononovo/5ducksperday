@@ -157,22 +157,21 @@ export function GuidanceTooltip({
           <div style={arrowStyles[coords.arrowPosition]} />
           
           <div className="p-3">
-            <div className="flex items-start justify-between gap-2 mb-1">
-              <span className="text-lg">🐥</span>
+            <div className="flex items-start gap-2 mb-2">
+              <span className="text-base bg-yellow-100 border border-yellow-300 rounded-full w-7 h-7 flex items-center justify-center flex-shrink-0">🐥</span>
+              <p className="text-sm text-gray-200 leading-snug flex-1 pt-0.5">
+                {instruction}
+              </p>
               {onDismiss && (
                 <button
                   onClick={onDismiss}
-                  className="text-gray-400 hover:text-white transition-colors"
+                  className="text-gray-400 hover:text-white transition-colors flex-shrink-0"
                   data-testid="tooltip-close"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
               )}
             </div>
-            
-            <p className="text-sm text-gray-200 leading-snug mb-2">
-              {instruction}
-            </p>
             
             <div className="flex justify-end items-center">
               {stepNumber && stepNumber > 1 && onBack && (
