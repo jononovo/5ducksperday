@@ -346,7 +346,12 @@ export default function LandingStealth() {
         <div className="absolute top-4 right-6 md:top-6 md:right-10 z-30">
           <button 
             type="button"
-            onClick={() => openModalForLogin()}
+            onClick={() => {
+              setRegistrationSuccessCallback(() => {
+                window.location.href = "/app";
+              });
+              openModalForLogin();
+            }}
             className="text-sm text-white/10 hover:text-white/30 transition-colors font-bold uppercase tracking-widest bg-transparent border-none cursor-pointer" 
             data-testid="link-login"
           >
