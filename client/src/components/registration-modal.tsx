@@ -368,14 +368,14 @@ export function RegistrationModal() {
 
           {currentPage === "login" && (
             <div className="w-full max-w-md mx-auto">
-              {/* Back button above title */}
+              {/* Register button above title */}
               <div className="flex justify-start mb-4 sm:mb-6 px-2 sm:px-4">
                 <button 
                   onClick={handleReturnToMain}
                   className="text-sm text-white hover:text-blue-300 transition-colors flex items-center gap-1 p-2"
                 >
                   <ArrowLeft className="h-4 w-4" />
-                  Back
+                  Register
                 </button>
               </div>
               
