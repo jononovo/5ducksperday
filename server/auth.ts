@@ -11,6 +11,8 @@ import { TokenService } from "./features/billing/tokens/service";
 import { UserTokens } from "./features/billing/tokens/types";
 import connectPgSimple from "connect-pg-simple";
 import { pool } from "./db";
+import { dripEmailEngine } from "./email/drip-engine";
+import { welcomeRegistrationTemplate } from "./email/templates/index";
 
 // Extend the session type to include gmailToken
 declare module 'express-session' {
@@ -38,6 +40,20 @@ async function comparePasswords(supplied: string, stored: string) {
   const hashedBuf = Buffer.from(hashed, "hex");
   const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
   return timingSafeEqual(hashedBuf, suppliedBuf);
+}
+
+// Send welcome email to newly registered users (fire-and-forget, non-blocking)
+function sendWelcomeEmail(email: string, name?: string): void {
+  const emailContent = welcomeRegistrationTemplate({ name: name || email.split('@')[0] });
+  dripEmailEngine.sendImmediate(email, emailContent)
+    .then(sent => {
+      if (sent) {
+        console.log(`[Auth] Welcome email sent to ${email.split('@')[0]}@...`);
+      }
+    })
+    .catch(err => {
+      console.error(`[Auth] Failed to send welcome email to ${email.split('@')[0]}@...:`, err);
+    });
 }
 
 // Firebase token verification middleware
@@ -107,6 +123,9 @@ async function verifyFirebaseToken(req: Request): Promise<SelectUser | null> {
         username: decodedToken.name || decodedToken.email.split('@')[0],
         password: '',  // Not used for Firebase auth
       });
+      
+      // Send welcome email to new user (non-blocking)
+      sendWelcomeEmail(decodedToken.email, decodedToken.name);
     }
 
     return user;
@@ -367,6 +386,9 @@ export function setupAuth(app: Express) {
           timestamp: new Date().toISOString()
         });
 
+        // Send welcome email to new user (non-blocking)
+        sendWelcomeEmail(email, user.username);
+
         // Login the user
         req.login(user, (err) => {
           if (err) {
@@ -592,6 +614,9 @@ export function setupAuth(app: Express) {
             password: '',  // Not used for Google auth
           });
           console.log(`[/api/google-auth] Successfully created new user: id=${user.id}`);
+          
+          // Send welcome email to new user (non-blocking)
+          sendWelcomeEmail(email, username);
         } catch (createError) {
           console.error('[/api/google-auth] Failed to create user:', {
             error: createError instanceof Error ? createError.message : createError,
