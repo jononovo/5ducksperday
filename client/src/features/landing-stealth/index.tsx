@@ -265,22 +265,57 @@ export default function LandingStealth() {
     setShowQuestionnaire(false);
   };
   
-  const handleApplySubmit = () => {
-    if (applyFormData.name && applyFormData.email) {
-      toast({
-        title: "Application Received! 🎉",
-        description: "We'll send you a code when you're approved.",
-        className: "bg-primary text-primary-foreground border-none font-heading font-bold",
-      });
-      setShowApplyForm(false);
-      setApplyFormData({ name: "", email: "" });
-      setCurrentIndex(0);
-    } else {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const handleApplySubmit = async () => {
+    if (!applyFormData.name || !applyFormData.email) {
       toast({
         title: "Please fill in your details",
         description: "We need your name and email to continue.",
         variant: "destructive",
       });
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      const response = await fetch('/api/access-applications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: applyFormData.name,
+          email: applyFormData.email
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        toast({
+          title: "Oops!",
+          description: data.error || "Something went wrong. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      toast({
+        title: "Application Received! 🎉",
+        description: "Check your email for confirmation. We'll send your code soon!",
+        className: "bg-primary text-primary-foreground border-none font-heading font-bold",
+      });
+      setShowApplyForm(false);
+      setApplyFormData({ name: "", email: "" });
+      setCurrentIndex(0);
+    } catch (error) {
+      toast({
+        title: "Connection Error",
+        description: "Please check your internet and try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -680,11 +715,21 @@ export default function LandingStealth() {
                               <div className="pt-2">
                                 <Button
                                   onClick={handleApplySubmit}
-                                  className="w-full h-12 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-bold text-lg shadow-[0_0_20px_rgba(59,130,246,0.3)] hover:shadow-[0_0_30px_rgba(59,130,246,0.5)] transition-all"
+                                  disabled={isSubmitting}
+                                  className="w-full h-12 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-bold text-lg shadow-[0_0_20px_rgba(59,130,246,0.3)] hover:shadow-[0_0_30px_rgba(59,130,246,0.5)] transition-all disabled:opacity-50"
                                   data-testid="button-submit-application"
                                 >
-                                  Request Access
-                                  <ArrowRight className="w-5 h-5 ml-2" />
+                                  {isSubmitting ? (
+                                    <>
+                                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                      Submitting...
+                                    </>
+                                  ) : (
+                                    <>
+                                      Request Access
+                                      <ArrowRight className="w-5 h-5 ml-2" />
+                                    </>
+                                  )}
                                 </Button>
                               </div>
                             </div>

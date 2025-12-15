@@ -4,7 +4,7 @@ import {
   senderProfiles, customerProfiles, campaigns, searchJobs,
   contactLists, contactListMembers, oauthTokens,
   userCredits, creditTransactions, subscriptions, userNotifications,
-  campaignRecipients, userGuidanceProgress,
+  campaignRecipients, userGuidanceProgress, accessApplications,
   type UserPreferences, type InsertUserPreferences,
   type UserEmailPreferences, type InsertUserEmailPreferences,
   type SearchList, type InsertSearchList,
@@ -20,7 +20,8 @@ import {
   type ContactList, type InsertContactList,
   type ContactListMember, type InsertContactListMember,
   type CampaignRecipient, type InsertCampaignRecipient,
-  type UserGuidanceProgress, type InsertUserGuidanceProgress
+  type UserGuidanceProgress, type InsertUserGuidanceProgress,
+  type AccessApplication, type InsertAccessApplication
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, sql, desc, lt, inArray, isNull, ne } from "drizzle-orm";
@@ -174,6 +175,11 @@ export interface IStorage {
   // User Guidance Progress
   getUserGuidanceProgress(userId: number): Promise<UserGuidanceProgress | null>;
   updateUserGuidanceProgress(userId: number, data: Partial<InsertUserGuidanceProgress>): Promise<UserGuidanceProgress>;
+
+  // Access Applications (for stealth landing page)
+  createAccessApplication(data: InsertAccessApplication): Promise<AccessApplication>;
+  getAccessApplicationByEmail(email: string): Promise<AccessApplication | undefined>;
+  listAccessApplications(): Promise<AccessApplication[]>;
 }
 
 class DatabaseStorage implements IStorage {
@@ -1549,6 +1555,31 @@ class DatabaseStorage implements IStorage {
       })
       .returning();
     return created;
+  }
+
+  // Access Applications Implementation
+  async createAccessApplication(data: InsertAccessApplication): Promise<AccessApplication> {
+    const [application] = await db.insert(accessApplications)
+      .values({
+        name: data.name,
+        email: data.email,
+        status: 'pending'
+      })
+      .returning();
+    return application;
+  }
+
+  async getAccessApplicationByEmail(email: string): Promise<AccessApplication | undefined> {
+    const [application] = await db.select()
+      .from(accessApplications)
+      .where(eq(accessApplications.email, email.toLowerCase()));
+    return application;
+  }
+
+  async listAccessApplications(): Promise<AccessApplication[]> {
+    return db.select()
+      .from(accessApplications)
+      .orderBy(desc(accessApplications.createdAt));
   }
 }
 

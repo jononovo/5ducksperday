@@ -1300,6 +1300,26 @@ export const insertOAuthTokenSchema = z.object({
 export type OAuthToken = typeof oauthTokens.$inferSelect;
 export type InsertOAuthToken = z.infer<typeof insertOAuthTokenSchema>;
 
+// Access Applications - for stealth landing page code requests (NOT linked to users)
+export const accessApplications = pgTable("access_applications", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  status: text("status").notNull().default('pending'), // 'pending', 'approved', 'rejected'
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+}, (table) => [
+  index('idx_access_applications_email').on(table.email),
+  index('idx_access_applications_status').on(table.status),
+]);
+
+export const insertAccessApplicationSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Valid email is required"),
+});
+
+export type AccessApplication = typeof accessApplications.$inferSelect;
+export type InsertAccessApplication = z.infer<typeof insertAccessApplicationSchema>;
+
 // Backward compatibility exports
 export const targetCustomerProfiles = customerProfiles;
 
