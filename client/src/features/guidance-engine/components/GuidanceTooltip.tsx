@@ -158,14 +158,7 @@ export function GuidanceTooltip({
           
           <div className="p-3">
             <div className="flex items-start justify-between gap-2 mb-1">
-              <div className="flex items-center gap-1.5">
-                <span className="text-lg">🐥</span>
-                {stepNumber && totalSteps && (
-                  <span className="text-xs text-yellow-400 font-medium">
-                    Step {stepNumber} of {totalSteps}
-                  </span>
-                )}
-              </div>
+              <span className="text-lg">🐥</span>
               {onDismiss && (
                 <button
                   onClick={onDismiss}
@@ -181,7 +174,7 @@ export function GuidanceTooltip({
               {instruction}
             </p>
             
-            <div className="flex justify-end gap-1">
+            <div className="flex justify-end items-center gap-1">
               {stepNumber && stepNumber > 1 && onBack && (
                 <Button
                   size="sm"
@@ -192,6 +185,11 @@ export function GuidanceTooltip({
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
+              )}
+              {stepNumber && totalSteps && (
+                <span className="text-xs text-yellow-400 font-medium px-1">
+                  {stepNumber} / {totalSteps}
+                </span>
               )}
               <Button
                 size="sm"
