@@ -8,25 +8,36 @@ export function registerGuidanceRoutes(app: Express) {
       const userId = getUserId(req);
       const progress = await storage.getUserGuidanceProgress(userId);
       
+      console.log('[Guidance Server] GET /api/guidance/progress:', {
+        userId,
+        hasProgress: !!progress,
+        currentQuestId: progress?.currentQuestId || null,
+        completedQuests: progress?.completedQuests || [],
+      });
+      
       if (!progress) {
-        return res.json({
+        const defaultResponse = {
           completedQuests: [],
           completedChallenges: {},
           currentQuestId: null,
           currentChallengeIndex: 0,
           currentStepIndex: 0,
           settings: {}
-        });
+        };
+        console.log('[Guidance Server] Returning default (no progress):', defaultResponse);
+        return res.json(defaultResponse);
       }
       
-      res.json({
+      const response = {
         completedQuests: progress.completedQuests || [],
         completedChallenges: progress.completedChallenges || {},
         currentQuestId: progress.currentQuestId,
         currentChallengeIndex: progress.currentChallengeIndex || 0,
         currentStepIndex: progress.currentStepIndex || 0,
         settings: progress.settings || {}
-      });
+      };
+      console.log('[Guidance Server] Returning saved progress:', response);
+      res.json(response);
     } catch (error) {
       console.error("Error fetching guidance progress:", error);
       res.status(500).json({ message: "Failed to fetch guidance progress" });
