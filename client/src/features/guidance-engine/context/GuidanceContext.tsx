@@ -6,7 +6,6 @@ import { QUESTS } from "../data/quests";
 import { useAuth } from "@/hooks/use-auth";
 import {
   ElementHighlight,
-  SpotlightOverlay,
   GuidanceTooltip,
   FluffyGuide,
   QuestProgressHeader,
@@ -357,10 +356,6 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
 
           {state.isActive && currentStep && (
             <>
-              <SpotlightOverlay
-                targetSelector={currentStep.selector}
-                isVisible={state.isActive}
-              />
               <ElementHighlight
                 targetSelector={currentStep.selector}
                 isVisible={state.isActive}
