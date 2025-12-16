@@ -56,15 +56,18 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
   const [showChallengeComplete, setShowChallengeComplete] = useState(false);
   const [completedChallengeName, setCompletedChallengeName] = useState("");
   const [completedChallengeMessage, setCompletedChallengeMessage] = useState("");
-  const [isTooltipHidden, setIsTooltipHidden] = useState(false);
   const previousLocation = useRef<string | null>(null);
   const previousStepKey = useRef<string | null>(null);
   const shownChallengeCompletionRef = useRef<string | null>(null);
   const advanceDelayTimerRef = useRef<NodeJS.Timeout | null>(null);
   
-  // Stable ref for startQuest to avoid effect re-runs when engine object changes
+  // Stable refs for engine functions to avoid effect re-runs when engine object changes
   const startQuestRef = useRef(engine.startQuest);
   startQuestRef.current = engine.startQuest;
+  const advanceStepRef = useRef(engine.advanceStep);
+  advanceStepRef.current = engine.advanceStep;
+  const pauseGuidanceRef = useRef(engine.pauseGuidance);
+  pauseGuidanceRef.current = engine.pauseGuidance;
 
   const { state, currentQuest, currentChallenge, currentStep, getChallengeProgress } = engine;
 
@@ -190,7 +193,7 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
       }
     };
 
-    const eventNames = [...new Set(eventQuests.map(q => q.trigger!.eventName!))];
+    const eventNames = Array.from(new Set(eventQuests.map(q => q.trigger!.eventName!)));
     eventNames.forEach(name => window.addEventListener(name, handleUserEvent));
 
     return () => {
@@ -230,14 +233,11 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
       advanceDelayTimerRef.current = null;
     }
 
+    // Simple delay before advancing - uses ref to avoid dependency on engine object
     const advanceWithDelay = () => {
-      // Hide tooltip immediately when user completes action
-      setIsTooltipHidden(true);
-      // Default 2 second delay between steps so users notice completion before next prompt
-      const delay = currentStep.advanceDelay ?? 2000;
+      const delay = currentStep.advanceDelay ?? 1200;
       advanceDelayTimerRef.current = setTimeout(() => {
-        engine.advanceStep();
-        setIsTooltipHidden(false);
+        advanceStepRef.current();
       }, delay);
     };
 
@@ -268,7 +268,7 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
 
     const handleKeyPress = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        engine.pauseGuidance();
+        pauseGuidanceRef.current();
       }
     };
 
@@ -285,7 +285,7 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
         advanceDelayTimerRef.current = null;
       }
     };
-  }, [isOnEnabledRoute, state.isActive, currentStep, engine]);
+  }, [isOnEnabledRoute, state.isActive, currentStep]);
 
   const prevCompletedChallengesRef = useRef<Record<string, string[]>>(
     JSON.parse(JSON.stringify(state.completedChallenges))
@@ -362,13 +362,13 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
             <>
               <ElementHighlight
                 targetSelector={currentStep.selector}
-                isVisible={state.isActive && !isTooltipHidden}
+                isVisible={state.isActive}
               />
               <GuidanceTooltip
                 targetSelector={currentStep.selector}
                 instruction={currentStep.instruction}
                 position={currentStep.tooltipPosition || "auto"}
-                isVisible={state.isActive && !isTooltipHidden}
+                isVisible={state.isActive}
                 onDismiss={() => engine.advanceStep()}
                 onBack={() => engine.previousStep()}
                 stepNumber={state.currentStepIndex + 1}
