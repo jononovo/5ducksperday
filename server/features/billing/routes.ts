@@ -6,7 +6,7 @@ import { registerGamificationRoutes } from './gamification/routes';
 /**
  * Register all billing-related routes
  */
-export function registerBillingRoutes(app: express.Express): void {
+export function registerBillingRoutes(app: express.Express, requireAuth?: express.RequestHandler): void {
   // Register credit management routes
   registerCreditRoutes(app);
   
@@ -14,5 +14,5 @@ export function registerBillingRoutes(app: express.Express): void {
   registerStripeRoutes(app);
   
   // Register gamification routes (notifications, badges, easter eggs)
-  registerGamificationRoutes(app);
+  registerGamificationRoutes(app, requireAuth);
 }

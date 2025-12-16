@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 import { GamificationService } from "./service";
 
-function requireAuth(req: Request, res: Response, next: express.NextFunction) {
+function defaultRequireAuth(req: Request, res: Response, next: express.NextFunction) {
   if (!req.isAuthenticated() || !req.user) {
     return res.status(401).json({ message: "Authentication required" });
   }
@@ -12,9 +12,11 @@ function getUserId(req: Request): number {
   return (req.user as any).id;
 }
 
-export function registerGamificationRoutes(app: express.Express) {
+export function registerGamificationRoutes(app: express.Express, requireAuth?: express.RequestHandler) {
+  const authMiddleware = requireAuth || defaultRequireAuth;
+  
   // Easter egg claim endpoint
-  app.post('/api/credits/easter-egg', requireAuth, async (req, res) => {
+  app.post('/api/credits/easter-egg', authMiddleware, async (req, res) => {
     try {
       const userId = getUserId(req);
       const { query } = req.body;
@@ -32,7 +34,7 @@ export function registerGamificationRoutes(app: express.Express) {
   });
 
   // Trigger notification endpoint
-  app.post('/api/notifications/trigger', requireAuth, async (req, res) => {
+  app.post('/api/notifications/trigger', authMiddleware, async (req, res) => {
     try {
       const userId = getUserId(req);
       const { trigger } = req.body;
@@ -50,7 +52,7 @@ export function registerGamificationRoutes(app: express.Express) {
   });
 
   // Mark notification/badge as shown
-  app.post('/api/notifications/mark-shown', requireAuth, async (req, res) => {
+  app.post('/api/notifications/mark-shown', authMiddleware, async (req, res) => {
     try {
       const userId = getUserId(req);
       const { notificationId, badgeId } = req.body;
@@ -72,7 +74,7 @@ export function registerGamificationRoutes(app: express.Express) {
   });
 
   // Get notification/badge status
-  app.get('/api/notifications/status', requireAuth, async (req, res) => {
+  app.get('/api/notifications/status', authMiddleware, async (req, res) => {
     try {
       const userId = getUserId(req);
       

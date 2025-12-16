@@ -1,5 +1,4 @@
-import { UserCredits, CreditTransaction, SearchType, CreditDeductionResult, CREDIT_COSTS, MONTHLY_CREDIT_ALLOWANCE, EasterEgg, EASTER_EGGS, NotificationConfig, NOTIFICATIONS, BadgeConfig, BADGES, STRIPE_CONFIG } from "./types";
-import { GamificationService } from '../gamification/service';
+import { UserCredits, CreditTransaction, SearchType, CreditDeductionResult, CREDIT_COSTS, MONTHLY_CREDIT_ALLOWANCE, STRIPE_CONFIG } from "./types";
 import { storage } from '../../../storage';
 
 export class CreditService {
@@ -242,38 +241,6 @@ export class CreditService {
   }
 
   /**
-   * Claim Easter Egg bonus credits
-   * @deprecated Use GamificationService.claimEasterEgg instead
-   * Proxy method maintained for backward compatibility
-   */
-  static async claimEasterEgg(userId: number, query: string): Promise<{
-    success: boolean; 
-    message: string; 
-    newBalance?: number;
-    easterEgg?: EasterEgg;
-  }> {
-    return GamificationService.claimEasterEgg(userId, query);
-  }
-
-  /**
-   * Check if badge has been earned by user
-   * @deprecated Use GamificationService.hasEarnedBadge instead
-   * Proxy method maintained for backward compatibility
-   */
-  static async hasEarnedBadge(userId: number, badgeId: number): Promise<boolean> {
-    return GamificationService.hasEarnedBadge(userId, badgeId);
-  }
-
-  /**
-   * Award badge to user
-   * @deprecated Use GamificationService.awardBadge instead
-   * Proxy method maintained for backward compatibility
-   */
-  static async awardBadge(userId: number, badgeId: number): Promise<void> {
-    return GamificationService.awardBadge(userId, badgeId);
-  }
-
-  /**
    * Update user subscription status
    */
   static async updateUserSubscription(
@@ -290,39 +257,6 @@ export class CreditService {
     });
     
     console.log(`[CreditService] Updated subscription for user ${userId}: status=${status}, plan=${planId}`);
-  }
-
-  /**
-   * Check if notification has been shown
-   * @deprecated Use GamificationService methods instead
-   * Proxy method maintained for backward compatibility
-   */
-  static async hasNotificationBeenShown(userId: number, notificationId: string): Promise<boolean> {
-    // Check if notification exists in PostgreSQL
-    const notifications = await storage.getUserNotifications(userId, 'read');
-    return notifications.some((n: any) => n.id === notificationId || n.type === notificationId);
-  }
-
-  /**
-   * Mark notification as shown
-   * @deprecated Use GamificationService.markNotificationShown instead
-   * Proxy method maintained for backward compatibility
-   */
-  static async markNotificationShown(userId: number, notificationId: string): Promise<void> {
-    // Convert string ID to number if it's a numeric string
-    const id = parseInt(notificationId, 10);
-    if (!isNaN(id)) {
-      await storage.markNotificationAsRead(id);
-    }
-  }
-
-  /**
-   * Trigger notification for user
-   * @deprecated Use GamificationService.triggerNotification instead
-   * Proxy method maintained for backward compatibility
-   */
-  static async triggerNotification(userId: number, notificationId: string): Promise<{ shouldShow: boolean; notification?: any }> {
-    return GamificationService.triggerNotification(userId, notificationId);
   }
 
   /**
