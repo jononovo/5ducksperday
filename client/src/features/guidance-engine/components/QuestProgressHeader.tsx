@@ -15,24 +15,44 @@ export function QuestProgressHeader({
   const progressPercentage = (challengesCompleted / totalChallenges) * 100;
   const [isExpanded, setIsExpanded] = useState(false);
   const collapseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isHoveringRef = useRef(false);
 
-  const handleMouseEnter = useCallback(() => {
+  const clearCollapseTimeout = useCallback(() => {
     if (collapseTimeoutRef.current) {
       clearTimeout(collapseTimeoutRef.current);
       collapseTimeoutRef.current = null;
     }
-    setIsExpanded(true);
   }, []);
+
+  const scheduleCollapse = useCallback((delay: number) => {
+    clearCollapseTimeout();
+    collapseTimeoutRef.current = setTimeout(() => {
+      if (!isHoveringRef.current) {
+        setIsExpanded(false);
+      }
+    }, delay);
+  }, [clearCollapseTimeout]);
+
+  const handleMouseEnter = useCallback(() => {
+    isHoveringRef.current = true;
+    clearCollapseTimeout();
+    setIsExpanded(true);
+  }, [clearCollapseTimeout]);
 
   const handleMouseLeave = useCallback(() => {
-    collapseTimeoutRef.current = setTimeout(() => {
-      setIsExpanded(false);
-    }, 300);
-  }, []);
+    isHoveringRef.current = false;
+    scheduleCollapse(1500);
+  }, [scheduleCollapse]);
 
   const handleTap = useCallback(() => {
-    setIsExpanded(prev => !prev);
-  }, []);
+    if (!isExpanded) {
+      setIsExpanded(true);
+      scheduleCollapse(2000);
+    } else {
+      clearCollapseTimeout();
+      setIsExpanded(false);
+    }
+  }, [isExpanded, scheduleCollapse, clearCollapseTimeout]);
 
   return (
     <AnimatePresence>
