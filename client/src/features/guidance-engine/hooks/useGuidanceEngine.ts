@@ -34,43 +34,128 @@ function saveProgress(state: GuidanceState) {
   }
 }
 
+function getAuthHeaders(): HeadersInit {
+  const headers: HeadersInit = { "Content-Type": "application/json" };
+  const authToken = localStorage.getItem('authToken');
+  if (authToken) {
+    headers['Authorization'] = `Bearer ${authToken}`;
+  }
+  return headers;
+}
+
 async function fetchServerProgress(): Promise<Partial<GuidanceState> | null> {
   try {
-    const res = await fetch("/api/guidance/progress", { credentials: "include" });
-    if (!res.ok) return null;
-    return await res.json();
+    const authToken = localStorage.getItem('authToken');
+    console.log("[GuidanceEngine] Fetching server progress...", { hasAuthToken: !!authToken });
+    
+    const headers: HeadersInit = {};
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`;
+    }
+    
+    const res = await fetch("/api/guidance/progress", { 
+      credentials: "include",
+      headers 
+    });
+    console.log("[GuidanceEngine] Fetch response status:", res.status);
+    if (!res.ok) {
+      console.warn("[GuidanceEngine] Fetch failed with status:", res.status);
+      return null;
+    }
+    const data = await res.json();
+    console.log("[GuidanceEngine] Server progress received:", data);
+    return data;
   } catch (e) {
-    console.error("Failed to fetch server guidance progress:", e);
+    console.error("[GuidanceEngine] Failed to fetch server guidance progress:", e);
     return null;
   }
 }
 
 async function syncToServer(state: GuidanceState): Promise<void> {
+  const authToken = localStorage.getItem('authToken');
+  const payload = {
+    completedQuests: state.completedQuests,
+    completedChallenges: state.completedChallenges,
+    currentQuestId: state.currentQuestId,
+    currentChallengeIndex: state.currentChallengeIndex,
+    currentStepIndex: state.currentStepIndex,
+  };
+  console.log("[GuidanceEngine] Syncing to server:", { ...payload, hasAuthToken: !!authToken });
+  
   try {
-    await fetch("/api/guidance/progress", {
+    const headers: HeadersInit = { "Content-Type": "application/json" };
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`;
+    }
+    
+    const res = await fetch("/api/guidance/progress", {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers,
       credentials: "include",
-      body: JSON.stringify({
-        completedQuests: state.completedQuests,
-        completedChallenges: state.completedChallenges,
-        currentQuestId: state.currentQuestId,
-        currentChallengeIndex: state.currentChallengeIndex,
-        currentStepIndex: state.currentStepIndex,
-      }),
+      body: JSON.stringify(payload),
     });
+    console.log("[GuidanceEngine] Sync response status:", res.status);
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("[GuidanceEngine] Sync failed:", res.status, errorText);
+    } else {
+      const responseData = await res.json();
+      console.log("[GuidanceEngine] Sync successful, server response:", responseData);
+    }
   } catch (e) {
-    console.error("Failed to sync guidance progress to server:", e);
+    console.error("[GuidanceEngine] Failed to sync guidance progress to server:", e);
   }
 }
 
-export function useGuidanceEngine(): GuidanceContextValue {
+interface UseGuidanceEngineOptions {
+  authReady: boolean;
+  userId: number | null;
+}
+
+export function useGuidanceEngine(options: UseGuidanceEngineOptions): GuidanceContextValue {
+  const { authReady, userId } = options;
   const [state, setState] = useState<GuidanceState>(loadProgress);
   const [isInitialized, setIsInitialized] = useState(false);
   const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastUserIdRef = useRef<number | null>(null);
 
+  // Initialize from server once auth is ready
   useEffect(() => {
+    if (!authReady) {
+      console.log("[GuidanceEngine] Waiting for auth to be ready before initializing...");
+      return;
+    }
+
     async function initFromServer() {
+      console.log("[GuidanceEngine] Initializing from server...", { userId, authReady });
+      const serverProgress = await fetchServerProgress();
+      if (serverProgress) {
+        console.log("[GuidanceEngine] Applying server progress to state");
+        setState((prev) => ({
+          ...prev,
+          completedQuests: serverProgress.completedQuests || prev.completedQuests,
+          completedChallenges: serverProgress.completedChallenges || prev.completedChallenges,
+          currentQuestId: serverProgress.currentQuestId ?? prev.currentQuestId,
+          currentChallengeIndex: serverProgress.currentChallengeIndex ?? prev.currentChallengeIndex,
+          currentStepIndex: serverProgress.currentStepIndex ?? prev.currentStepIndex,
+        }));
+      }
+      setIsInitialized(true);
+      lastUserIdRef.current = userId;
+      console.log("[GuidanceEngine] Initialization complete, isInitialized=true, userId=", userId);
+    }
+    initFromServer();
+  }, [authReady, userId]);
+
+  // Re-fetch progress when user changes (login/logout transition)
+  useEffect(() => {
+    if (!authReady || !isInitialized) return;
+    if (lastUserIdRef.current === userId) return;
+    
+    console.log("[GuidanceEngine] User changed from", lastUserIdRef.current, "to", userId, "- re-fetching progress");
+    lastUserIdRef.current = userId;
+    
+    async function refetchProgress() {
       const serverProgress = await fetchServerProgress();
       if (serverProgress) {
         setState((prev) => ({
@@ -82,20 +167,35 @@ export function useGuidanceEngine(): GuidanceContextValue {
           currentStepIndex: serverProgress.currentStepIndex ?? prev.currentStepIndex,
         }));
       }
-      setIsInitialized(true);
     }
-    initFromServer();
-  }, []);
+    refetchProgress();
+  }, [authReady, isInitialized, userId]);
 
+  // Sync to server when state changes (with debounce)
   useEffect(() => {
     saveProgress(state);
     
-    if (!isInitialized) return;
+    if (!isInitialized) {
+      console.log("[GuidanceEngine] Skipping server sync - not yet initialized");
+      return;
+    }
+    
+    if (!authReady) {
+      console.log("[GuidanceEngine] Skipping server sync - auth not ready");
+      return;
+    }
+    
+    console.log("[GuidanceEngine] State changed, scheduling sync in 1s:", {
+      completedChallenges: state.completedChallenges,
+      completedQuests: state.completedQuests,
+      userId,
+    });
     
     if (syncTimeoutRef.current) {
       clearTimeout(syncTimeoutRef.current);
     }
     syncTimeoutRef.current = setTimeout(() => {
+      console.log("[GuidanceEngine] Debounce complete, triggering sync now");
       syncToServer(state);
     }, 1000);
 
@@ -104,7 +204,7 @@ export function useGuidanceEngine(): GuidanceContextValue {
         clearTimeout(syncTimeoutRef.current);
       }
     };
-  }, [state, isInitialized]);
+  }, [state, isInitialized, authReady, userId]);
 
   const currentQuest: Quest | null = useMemo(() => {
     if (!state.currentQuestId) return null;

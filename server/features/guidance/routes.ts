@@ -6,10 +6,12 @@ export function registerGuidanceRoutes(app: Express) {
   app.get("/api/guidance/progress", async (req, res) => {
     try {
       const userId = getUserId(req);
+      console.log("[GuidanceRoutes] GET /api/guidance/progress - userId:", userId);
       
       // Demo user (id 1) is the fallback for unauthenticated requests
       // Return empty progress to ensure new users get fresh state
       if (userId === 1) {
+        console.log("[GuidanceRoutes] Returning empty progress for demo user (id=1)");
         return res.json({
           completedQuests: [],
           completedChallenges: {},
@@ -21,8 +23,10 @@ export function registerGuidanceRoutes(app: Express) {
       }
       
       const progress = await storage.getUserGuidanceProgress(userId);
+      console.log("[GuidanceRoutes] Database progress for user", userId, ":", progress);
       
       if (!progress) {
+        console.log("[GuidanceRoutes] No progress found, returning defaults");
         return res.json({
           completedQuests: [],
           completedChallenges: {},
@@ -42,7 +46,7 @@ export function registerGuidanceRoutes(app: Express) {
         settings: progress.settings || {}
       });
     } catch (error) {
-      console.error("Error fetching guidance progress:", error);
+      console.error("[GuidanceRoutes] Error fetching guidance progress:", error);
       res.status(500).json({ message: "Failed to fetch guidance progress" });
     }
   });
@@ -50,13 +54,24 @@ export function registerGuidanceRoutes(app: Express) {
   app.patch("/api/guidance/progress", async (req, res) => {
     try {
       const userId = getUserId(req);
+      console.log("[GuidanceRoutes] PATCH /api/guidance/progress - userId:", userId);
+      console.log("[GuidanceRoutes] Request body:", req.body);
       
       // Don't save progress for demo user (unauthenticated fallback)
       if (userId === 1) {
+        console.log("[GuidanceRoutes] SKIPPING SAVE - demo user (id=1), not persisting to database");
         return res.json({ success: true });
       }
       
       const { completedQuests, completedChallenges, currentQuestId, currentChallengeIndex, currentStepIndex, settings } = req.body;
+      
+      console.log("[GuidanceRoutes] Saving progress for user", userId, ":", {
+        completedQuests,
+        completedChallenges,
+        currentQuestId,
+        currentChallengeIndex,
+        currentStepIndex,
+      });
       
       const updated = await storage.updateUserGuidanceProgress(userId, {
         completedQuests,
@@ -67,6 +82,8 @@ export function registerGuidanceRoutes(app: Express) {
         settings
       });
       
+      console.log("[GuidanceRoutes] Successfully saved progress for user", userId);
+      
       res.json({
         completedQuests: updated.completedQuests || [],
         completedChallenges: updated.completedChallenges || {},
@@ -76,7 +93,7 @@ export function registerGuidanceRoutes(app: Express) {
         settings: updated.settings || {}
       });
     } catch (error) {
-      console.error("Error updating guidance progress:", error);
+      console.error("[GuidanceRoutes] Error updating guidance progress:", error);
       res.status(500).json({ message: "Failed to update guidance progress" });
     }
   });

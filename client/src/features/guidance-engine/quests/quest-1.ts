@@ -33,7 +33,7 @@ export const quest1: Quest = {
           selector: '[data-testid="search-type-option-contacts"]',
           action: "click",
           instruction: "Select '+ Contacts' to search for companies AND their contacts",
-          tooltipPosition: "right",
+          tooltipPosition: "bottom",
           route: "/app",
         },
         {
@@ -57,7 +57,7 @@ export const quest1: Quest = {
           id: "execute-search",
           selector: '[data-testid="search-button"]',
           action: "click",
-          instruction: "Click the Search button!",
+          instruction: "Click on Search!",
           tooltipPosition: "left",
           route: "/app",
         },

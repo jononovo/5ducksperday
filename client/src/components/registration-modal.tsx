@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
-import { Mail, ChevronRight, ArrowLeft } from "lucide-react";
+import { Mail, ChevronRight, ArrowLeft, X } from "lucide-react";
 import { useRegistrationModal, type RegistrationPage } from "@/hooks/use-registration-modal";
 import { firebaseAuth } from "@/lib/firebase";
 import { sendPasswordResetEmail } from "firebase/auth";
@@ -229,13 +229,14 @@ export function RegistrationModal() {
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-0 sm:p-4">
-      {/* Login link in upper right */}
+      {/* Close button in upper right */}
       <div className="absolute top-6 right-6 z-10">
         <button 
-          onClick={handleLoginClick}
-          className="text-white hover:text-blue-300 transition-colors font-medium"
+          onClick={closeModal}
+          className="text-white/70 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-full"
+          aria-label="Close modal"
         >
-          Sign In
+          <X className="h-6 w-6" />
         </button>
       </div>
       
