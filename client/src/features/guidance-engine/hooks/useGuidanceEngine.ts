@@ -36,31 +36,48 @@ function saveProgress(state: GuidanceState) {
 
 async function fetchServerProgress(): Promise<Partial<GuidanceState> | null> {
   try {
+    console.log("[GuidanceEngine] Fetching server progress...");
     const res = await fetch("/api/guidance/progress", { credentials: "include" });
-    if (!res.ok) return null;
-    return await res.json();
+    console.log("[GuidanceEngine] Fetch response status:", res.status);
+    if (!res.ok) {
+      console.warn("[GuidanceEngine] Fetch failed with status:", res.status);
+      return null;
+    }
+    const data = await res.json();
+    console.log("[GuidanceEngine] Server progress received:", data);
+    return data;
   } catch (e) {
-    console.error("Failed to fetch server guidance progress:", e);
+    console.error("[GuidanceEngine] Failed to fetch server guidance progress:", e);
     return null;
   }
 }
 
 async function syncToServer(state: GuidanceState): Promise<void> {
+  const payload = {
+    completedQuests: state.completedQuests,
+    completedChallenges: state.completedChallenges,
+    currentQuestId: state.currentQuestId,
+    currentChallengeIndex: state.currentChallengeIndex,
+    currentStepIndex: state.currentStepIndex,
+  };
+  console.log("[GuidanceEngine] Syncing to server:", payload);
   try {
-    await fetch("/api/guidance/progress", {
+    const res = await fetch("/api/guidance/progress", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
-      body: JSON.stringify({
-        completedQuests: state.completedQuests,
-        completedChallenges: state.completedChallenges,
-        currentQuestId: state.currentQuestId,
-        currentChallengeIndex: state.currentChallengeIndex,
-        currentStepIndex: state.currentStepIndex,
-      }),
+      body: JSON.stringify(payload),
     });
+    console.log("[GuidanceEngine] Sync response status:", res.status);
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("[GuidanceEngine] Sync failed:", res.status, errorText);
+    } else {
+      const responseData = await res.json();
+      console.log("[GuidanceEngine] Sync successful, server response:", responseData);
+    }
   } catch (e) {
-    console.error("Failed to sync guidance progress to server:", e);
+    console.error("[GuidanceEngine] Failed to sync guidance progress to server:", e);
   }
 }
 
@@ -71,8 +88,10 @@ export function useGuidanceEngine(): GuidanceContextValue {
 
   useEffect(() => {
     async function initFromServer() {
+      console.log("[GuidanceEngine] Initializing from server...");
       const serverProgress = await fetchServerProgress();
       if (serverProgress) {
+        console.log("[GuidanceEngine] Applying server progress to state");
         setState((prev) => ({
           ...prev,
           completedQuests: serverProgress.completedQuests || prev.completedQuests,
@@ -83,6 +102,7 @@ export function useGuidanceEngine(): GuidanceContextValue {
         }));
       }
       setIsInitialized(true);
+      console.log("[GuidanceEngine] Initialization complete, isInitialized=true");
     }
     initFromServer();
   }, []);
@@ -90,12 +110,21 @@ export function useGuidanceEngine(): GuidanceContextValue {
   useEffect(() => {
     saveProgress(state);
     
-    if (!isInitialized) return;
+    if (!isInitialized) {
+      console.log("[GuidanceEngine] Skipping server sync - not yet initialized");
+      return;
+    }
+    
+    console.log("[GuidanceEngine] State changed, scheduling sync in 1s:", {
+      completedChallenges: state.completedChallenges,
+      completedQuests: state.completedQuests,
+    });
     
     if (syncTimeoutRef.current) {
       clearTimeout(syncTimeoutRef.current);
     }
     syncTimeoutRef.current = setTimeout(() => {
+      console.log("[GuidanceEngine] Debounce complete, triggering sync now");
       syncToServer(state);
     }, 1000);
 
