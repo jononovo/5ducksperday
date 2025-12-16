@@ -33,7 +33,7 @@ export const quest1: Quest = {
           selector: '[data-testid="search-type-option-contacts"]',
           action: "click",
           instruction: "Select '+ Contacts' to search for companies AND their contacts",
-          tooltipPosition: "right",
+          tooltipPosition: "bottom",
           route: "/app",
         },
         {
