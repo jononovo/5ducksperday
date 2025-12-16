@@ -230,8 +230,8 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
     }
 
     const advanceWithDelay = () => {
-      // Default 1 second delay between steps so users notice completion before next prompt
-      const delay = currentStep.advanceDelay ?? 1000;
+      // Default 2 second delay between steps so users notice completion before next prompt
+      const delay = currentStep.advanceDelay ?? 2000;
       advanceDelayTimerRef.current = setTimeout(() => {
         engine.advanceStep();
       }, delay);
