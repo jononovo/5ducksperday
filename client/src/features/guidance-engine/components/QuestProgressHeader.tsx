@@ -145,8 +145,9 @@ export function QuestProgressHeader({
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
-                  className="px-3 py-1.5 flex items-center"
+                  className="px-3 py-1.5 flex items-center gap-2"
                 >
+                  <Trophy className="h-3.5 w-3.5 text-yellow-500" />
                   <div className="w-24 h-2 bg-gray-700 rounded-full overflow-hidden">
                     <motion.div
                       className="h-full bg-gradient-to-r from-yellow-500 to-amber-400 rounded-full"
