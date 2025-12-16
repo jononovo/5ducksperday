@@ -51,8 +51,11 @@ function isRouteMatch(currentLocation: string, triggerRoute: string): boolean {
 
 export function GuidanceProvider({ children, autoStartForNewUsers = true }: GuidanceProviderProps) {
   const [location, navigate] = useLocation();
-  const engine = useGuidanceEngine();
   const { user, isLoading: authLoading } = useAuth();
+  const engine = useGuidanceEngine({ 
+    authReady: !authLoading, 
+    userId: user?.id ?? null 
+  });
   const [showChallengeComplete, setShowChallengeComplete] = useState(false);
   const [completedChallengeName, setCompletedChallengeName] = useState("");
   const [completedChallengeMessage, setCompletedChallengeMessage] = useState("");
