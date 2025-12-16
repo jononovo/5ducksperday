@@ -183,7 +183,7 @@ export function GuidanceTooltip({
           <img 
             src={ducklingMascot} 
             alt="Duckling guide" 
-            className="absolute -left-12 -top-2 w-10 h-10 mascot-wiggle object-contain"
+            className="absolute -left-12 -top-2 w-10 h-10 mascot-wiggle object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]"
           />
           
           <div className="p-3">
