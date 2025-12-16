@@ -249,6 +249,7 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
 
     // Hide tooltip immediately, then advance after delay
     const hideAndAdvance = () => {
+      if (advanceDelayTimerRef.current) return; // Prevent double-clicks
       tooltipHiddenRef.current = true;
       setVisibilityTick(t => t + 1);
       const delay = advanceDelay ?? 1200;
