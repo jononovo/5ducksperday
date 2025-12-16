@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { GuidanceTooltipProps } from "../types";
+import ducklingMascot from "@/assets/duckling-mascot.png";
 
 export function GuidanceTooltip({
   targetSelector,
@@ -179,7 +180,11 @@ export function GuidanceTooltip({
         >
           <div style={arrowStyles[coords.arrowPosition]} />
           
-          <span className="absolute -left-10 top-2 text-2xl mascot-wiggle">🐥</span>
+          <img 
+            src={ducklingMascot} 
+            alt="Duckling guide" 
+            className="absolute -left-12 -top-2 w-10 h-10 mascot-wiggle object-contain"
+          />
           
           <div className="p-3">
             <div className="flex items-start gap-2">
