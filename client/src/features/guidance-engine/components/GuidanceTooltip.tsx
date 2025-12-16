@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronRight, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { GuidanceTooltipProps } from "../types";
+import ducklingMascot from "@/assets/duckling-mascot.png";
 
 export function GuidanceTooltip({
   targetSelector,
@@ -11,6 +12,7 @@ export function GuidanceTooltip({
   position = "auto",
   isVisible,
   onDismiss,
+  onBack,
   stepNumber,
   totalSteps,
 }: GuidanceTooltipProps) {
@@ -25,8 +27,8 @@ export function GuidanceTooltip({
     }
 
     const rect = element.getBoundingClientRect();
-    const tooltipWidth = 300;
-    const tooltipHeight = 120;
+    const tooltipWidth = 260;
+    const tooltipHeight = 100;
     const spacing = 16;
 
     let finalPosition = position;
@@ -142,57 +144,91 @@ export function GuidanceTooltip({
   };
 
   return createPortal(
-    <AnimatePresence>
-      {isVisible && (
-        <motion.div
+    <>
+      <style>
+        {`
+          @keyframes mascot-wiggle {
+            0% { transform: translateY(0) rotate(0deg); }
+            2% { transform: translateY(-4px) rotate(0deg); }
+            4% { transform: translateY(0) rotate(0deg); }
+            4%, 35% { transform: translateY(0) rotate(0deg); }
+            36% { transform: rotate(5deg); }
+            37% { transform: rotate(-5deg); }
+            38% { transform: rotate(0deg); }
+            38%, 75% { transform: translateY(0) rotate(0deg); }
+            77% { transform: translateY(-2px) rotate(2deg); }
+            79% { transform: translateY(-3px) rotate(-1deg); }
+            81% { transform: translateY(-1px) rotate(1deg); }
+            83% { transform: translateY(0) rotate(0deg); }
+            83%, 100% { transform: translateY(0) rotate(0deg); }
+          }
+          .mascot-wiggle {
+            animation: mascot-wiggle 12s ease-in-out infinite;
+          }
+        `}
+      </style>
+      <AnimatePresence>
+        {isVisible && (
+          <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.9 }}
           transition={{ duration: 0.2 }}
-          className="fixed z-[9999] w-[300px] bg-gray-800 text-white rounded-xl shadow-2xl border border-yellow-500/30 overflow-hidden"
+          className="fixed z-[9999] w-[260px] bg-gray-800 text-white rounded-lg shadow-2xl border border-yellow-500/30"
           style={{ top: coords.top, left: coords.left }}
           data-testid="guidance-tooltip"
         >
           <div style={arrowStyles[coords.arrowPosition]} />
           
-          <div className="p-4">
-            <div className="flex items-start justify-between gap-2 mb-2">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl">🐥</span>
-                {stepNumber && totalSteps && (
-                  <span className="text-xs text-yellow-400 font-medium">
-                    Step {stepNumber} of {totalSteps}
-                  </span>
-                )}
-              </div>
+          <img 
+            src={ducklingMascot} 
+            alt="Duckling guide" 
+            className="absolute -left-12 -top-2 w-10 h-10 mascot-wiggle object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]"
+          />
+          
+          <div className="p-3">
+            <div className="flex items-start gap-2">
+              <p className="text-sm text-gray-200 leading-snug flex-1">
+                {instruction}
+                <span className="inline-flex items-center align-middle ml-1">
+                  {stepNumber && stepNumber > 1 && onBack && (
+                    <button
+                      className="text-gray-400 hover:text-yellow-400 h-5 w-5 p-0 inline-flex items-center justify-center transition-colors"
+                      onClick={onBack}
+                      data-testid="tooltip-back"
+                    >
+                      <ChevronLeft className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                  {stepNumber && totalSteps && (
+                    <span className="text-xs text-gray-400 font-medium">
+                      {stepNumber} / {totalSteps}
+                    </span>
+                  )}
+                  <button
+                    className="text-gray-400 hover:text-yellow-400 h-5 w-5 p-0 inline-flex items-center justify-center transition-colors"
+                    onClick={onDismiss}
+                    data-testid="tooltip-next"
+                  >
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </button>
+                </span>
+              </p>
               {onDismiss && (
                 <button
                   onClick={onDismiss}
-                  className="text-gray-400 hover:text-white transition-colors"
+                  className="text-gray-400 hover:text-white transition-colors flex-shrink-0"
+                  data-testid="tooltip-close"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-3.5 w-3.5" />
                 </button>
               )}
             </div>
-            
-            <p className="text-sm text-gray-200 leading-relaxed mb-3">
-              {instruction}
-            </p>
-            
-            <div className="flex justify-end">
-              <Button
-                size="sm"
-                variant="ghost"
-                className="text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/10 text-xs"
-                onClick={onDismiss}
-              >
-                Got it <ChevronRight className="h-3 w-3 ml-1" />
-              </Button>
-            </div>
           </div>
-        </motion.div>
-      )}
-    </AnimatePresence>,
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>,
     document.body
   );
 }

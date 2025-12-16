@@ -43,8 +43,7 @@ export function ElementHighlight({ targetSelector, isVisible }: ElementHighlight
     height: rect.height + padding * 2,
     border: "3px solid #facc15",
     borderRadius: "8px",
-    background: "rgba(250, 204, 21, 0.1)",
-    boxShadow: "0 0 20px rgba(250, 204, 21, 0.5)",
+    boxShadow: "0 0 12px 2px rgba(250, 204, 21, 0.4)",
     pointerEvents: "none" as const,
     zIndex: 9998,
     animation: "guidance-pulse 2s infinite",
@@ -55,9 +54,9 @@ export function ElementHighlight({ targetSelector, isVisible }: ElementHighlight
       <style>
         {`
           @keyframes guidance-pulse {
-            0% { box-shadow: 0 0 20px rgba(250, 204, 21, 0.5); }
-            50% { box-shadow: 0 0 40px rgba(250, 204, 21, 0.8); }
-            100% { box-shadow: 0 0 20px rgba(250, 204, 21, 0.5); }
+            0% { box-shadow: 0 0 12px 2px rgba(250, 204, 21, 0.4); }
+            50% { box-shadow: 0 0 18px 3px rgba(250, 204, 21, 0.6); }
+            100% { box-shadow: 0 0 12px 2px rgba(250, 204, 21, 0.4); }
           }
         `}
       </style>

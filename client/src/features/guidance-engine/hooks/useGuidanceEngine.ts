@@ -197,6 +197,15 @@ export function useGuidanceEngine(): GuidanceContextValue {
     }
   }, [currentChallenge, state.currentStepIndex, state.currentQuestId, state.completedChallenges]);
 
+  const previousStep = useCallback(() => {
+    if (state.currentStepIndex > 0) {
+      setState((prev) => ({
+        ...prev,
+        currentStepIndex: prev.currentStepIndex - 1,
+      }));
+    }
+  }, [state.currentStepIndex]);
+
   const completeChallenge = useCallback(() => {
     if (!currentChallenge || !state.currentQuestId) return;
 
@@ -296,6 +305,7 @@ export function useGuidanceEngine(): GuidanceContextValue {
     startQuest,
     startNextChallenge,
     advanceStep,
+    previousStep,
     completeChallenge,
     pauseGuidance,
     resumeGuidance,
