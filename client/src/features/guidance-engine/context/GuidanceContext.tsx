@@ -164,7 +164,7 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
         const timer = setTimeout(() => {
           startQuestRef.current(quest.id);
           markQuestAsTriggered(quest.id);
-        }, 2000);
+        }, 5000);
         return () => clearTimeout(timer);
       }
     }
