@@ -1,8 +1,8 @@
-import type { Quest } from "../../types";
-import { quest1FindingCustomers } from "./quest-1-finding-customers";
+import type { Quest } from "../types";
+import { quest1 } from "./quest-1";
 
 export const QUESTS: Quest[] = [
-  quest1FindingCustomers,
+  quest1,
 ];
 
 export function getQuestById(questId: string): Quest | undefined {
@@ -20,3 +20,5 @@ export function getNextQuest(currentQuestId: string): Quest | undefined {
 export function getFirstIncompleteQuest(completedQuests: string[]): Quest | undefined {
   return QUESTS.find((q) => !completedQuests.includes(q.id));
 }
+
+export { GUIDANCE_DEFAULTS, resolveDelay } from "./defaults";

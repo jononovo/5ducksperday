@@ -25,7 +25,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useGuidance } from "../context/GuidanceContext";
-import { QUESTS } from "../data/quests";
+import { QUESTS } from "../quests";
 import { CertificateShowcase } from "./CertificateShowcase";
 import type { Quest, Challenge } from "../types";
 import confetti from "canvas-confetti";

@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import type { GuidanceState, GuidanceContextValue, Quest, Challenge, GuidanceStep } from "../types";
-import { QUESTS, getQuestById, getFirstIncompleteQuest } from "../data/quests";
+import { QUESTS, getQuestById, getFirstIncompleteQuest } from "../quests";
 
 const STORAGE_KEY = "fluffy-guidance-progress";
 

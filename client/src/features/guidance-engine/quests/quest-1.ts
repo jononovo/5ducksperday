@@ -1,22 +1,23 @@
-import type { Quest } from "../../types";
+import type { Quest } from "../types";
 
-export const quest1FindingCustomers: Quest = {
+export const quest1: Quest = {
   id: "quest-1-finding-customers",
   name: "Finding Customers",
   description: "Learn how to discover and find potential customers using our powerful search tools.",
   emoji: "🔍",
-  trigger: {
-    type: "newUser",
-    route: "/app",
-    requiresAuth: true,
-    once: true,
-  },
   challenges: [
     {
       id: "challenge-1-basic-search",
       name: "Basic Search",
       description: "Perform your first company and contacts search",
       emoji: "🎯",
+      trigger: {
+        type: "newUser",
+        route: "/app",
+        requiresAuth: true,
+        once: true,
+      },
+      startDelay: 5000,
       setupEvent: "startNewSearch",
       steps: [
         {
@@ -109,6 +110,7 @@ export const quest1FindingCustomers: Quest = {
       id: "challenge-4-full-search",
       name: "Do Full Search",
       description: "Complete a full search with contacts and emails in one go",
+      emoji: "🚀",
       steps: [
         {
           id: "step-1-new-search",
