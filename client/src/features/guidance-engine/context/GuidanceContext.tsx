@@ -283,7 +283,6 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
       if (advanceDelayTimerRef.current) {
         clearTimeout(advanceDelayTimerRef.current);
         advanceDelayTimerRef.current = null;
-        setIsTooltipHidden(false);
       }
     };
   }, [isOnEnabledRoute, state.isActive, currentStep, engine]);
