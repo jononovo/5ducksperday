@@ -61,6 +61,10 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
   const shownChallengeCompletionRef = useRef<string | null>(null);
   const advanceDelayTimerRef = useRef<NodeJS.Timeout | null>(null);
   
+  // Simple tooltip visibility: ref for state, counter to force re-render
+  const tooltipHiddenRef = useRef(false);
+  const [, setVisibilityTick] = useState(0);
+  
   // Stable refs for engine functions to avoid effect re-runs when engine object changes
   const startQuestRef = useRef(engine.startQuest);
   startQuestRef.current = engine.startQuest;
@@ -224,8 +228,18 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
     }
   }, [isOnEnabledRoute, state.isActive, state.isHeaderVisible, engine]);
 
+  // Reset tooltip visibility when step changes
   useEffect(() => {
-    if (!isOnEnabledRoute || !state.isActive || !currentStep) return;
+    tooltipHiddenRef.current = false;
+    setVisibilityTick(t => t + 1);
+  }, [state.currentQuestId, state.currentChallengeIndex, state.currentStepIndex]);
+
+  useEffect(() => {
+    const selector = currentStep?.selector;
+    const action = currentStep?.action;
+    const advanceDelay = currentStep?.advanceDelay;
+    
+    if (!isOnEnabledRoute || !state.isActive || !selector) return;
 
     // Clear any existing timer when step changes
     if (advanceDelayTimerRef.current) {
@@ -233,9 +247,11 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
       advanceDelayTimerRef.current = null;
     }
 
-    // Simple delay before advancing - uses ref to avoid dependency on engine object
-    const advanceWithDelay = () => {
-      const delay = currentStep.advanceDelay ?? 1200;
+    // Hide tooltip immediately, then advance after delay
+    const hideAndAdvance = () => {
+      tooltipHiddenRef.current = true;
+      setVisibilityTick(t => t + 1);
+      const delay = advanceDelay ?? 1200;
       advanceDelayTimerRef.current = setTimeout(() => {
         advanceStepRef.current();
       }, delay);
@@ -245,24 +261,24 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
 
     const handleElementClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      const stepElement = document.querySelector(currentStep.selector);
+      const stepElement = document.querySelector(selector);
       
       if (stepElement && (stepElement === target || stepElement.contains(target))) {
-        if (currentStep.action === "click") {
-          advanceWithDelay();
+        if (action === "click") {
+          hideAndAdvance();
         }
       }
     };
 
     const handleInput = (e: Event) => {
-      if (currentStep.action !== "type" || hasAdvancedForType) return;
+      if (action !== "type" || hasAdvancedForType) return;
       
       const target = e.target as HTMLElement;
-      const stepElement = document.querySelector(currentStep.selector);
+      const stepElement = document.querySelector(selector);
       
       if (stepElement && (stepElement === target || stepElement.contains(target))) {
         hasAdvancedForType = true;
-        advanceWithDelay();
+        hideAndAdvance();
       }
     };
 
@@ -285,7 +301,7 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
         advanceDelayTimerRef.current = null;
       }
     };
-  }, [isOnEnabledRoute, state.isActive, currentStep]);
+  }, [isOnEnabledRoute, state.isActive, currentStep?.selector, currentStep?.action, currentStep?.advanceDelay]);
 
   const prevCompletedChallengesRef = useRef<Record<string, string[]>>(
     JSON.parse(JSON.stringify(state.completedChallenges))
@@ -362,13 +378,13 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
             <>
               <ElementHighlight
                 targetSelector={currentStep.selector}
-                isVisible={state.isActive}
+                isVisible={state.isActive && !tooltipHiddenRef.current}
               />
               <GuidanceTooltip
                 targetSelector={currentStep.selector}
                 instruction={currentStep.instruction}
                 position={currentStep.tooltipPosition || "auto"}
-                isVisible={state.isActive}
+                isVisible={state.isActive && !tooltipHiddenRef.current}
                 onDismiss={() => engine.advanceStep()}
                 onBack={() => engine.previousStep()}
                 stepNumber={state.currentStepIndex + 1}
