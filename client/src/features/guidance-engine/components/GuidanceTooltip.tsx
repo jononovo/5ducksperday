@@ -214,15 +214,6 @@ export function GuidanceTooltip({
                   </button>
                 </span>
               </p>
-              {onDismiss && (
-                <button
-                  onClick={onDismiss}
-                  className="text-gray-400 hover:text-white transition-colors flex-shrink-0"
-                  data-testid="tooltip-close"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              )}
             </div>
           </div>
           </motion.div>

@@ -61,9 +61,17 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
   const shownChallengeCompletionRef = useRef<string | null>(null);
   const advanceDelayTimerRef = useRef<NodeJS.Timeout | null>(null);
   
-  // Stable ref for startQuest to avoid effect re-runs when engine object changes
+  // Simple tooltip visibility: ref for state, counter to force re-render
+  const tooltipHiddenRef = useRef(false);
+  const [, setVisibilityTick] = useState(0);
+  
+  // Stable refs for engine functions to avoid effect re-runs when engine object changes
   const startQuestRef = useRef(engine.startQuest);
   startQuestRef.current = engine.startQuest;
+  const advanceStepRef = useRef(engine.advanceStep);
+  advanceStepRef.current = engine.advanceStep;
+  const pauseGuidanceRef = useRef(engine.pauseGuidance);
+  pauseGuidanceRef.current = engine.pauseGuidance;
 
   const { state, currentQuest, currentChallenge, currentStep, getChallengeProgress } = engine;
 
@@ -189,7 +197,7 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
       }
     };
 
-    const eventNames = [...new Set(eventQuests.map(q => q.trigger!.eventName!))];
+    const eventNames = Array.from(new Set(eventQuests.map(q => q.trigger!.eventName!)));
     eventNames.forEach(name => window.addEventListener(name, handleUserEvent));
 
     return () => {
@@ -220,8 +228,18 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
     }
   }, [isOnEnabledRoute, state.isActive, state.isHeaderVisible, engine]);
 
+  // Reset tooltip visibility when step changes
   useEffect(() => {
-    if (!isOnEnabledRoute || !state.isActive || !currentStep) return;
+    tooltipHiddenRef.current = false;
+    setVisibilityTick(t => t + 1);
+  }, [state.currentQuestId, state.currentChallengeIndex, state.currentStepIndex]);
+
+  useEffect(() => {
+    const selector = currentStep?.selector;
+    const action = currentStep?.action;
+    const advanceDelay = currentStep?.advanceDelay;
+    
+    if (!isOnEnabledRoute || !state.isActive || !selector) return;
 
     // Clear any existing timer when step changes
     if (advanceDelayTimerRef.current) {
@@ -229,11 +247,14 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
       advanceDelayTimerRef.current = null;
     }
 
-    const advanceWithDelay = () => {
-      // Default 1 second delay between steps so users notice completion before next prompt
-      const delay = currentStep.advanceDelay ?? 1000;
+    // Hide tooltip immediately, then advance after delay
+    const hideAndAdvance = () => {
+      if (advanceDelayTimerRef.current) return; // Prevent double-clicks
+      tooltipHiddenRef.current = true;
+      setVisibilityTick(t => t + 1);
+      const delay = advanceDelay ?? 1200;
       advanceDelayTimerRef.current = setTimeout(() => {
-        engine.advanceStep();
+        advanceStepRef.current();
       }, delay);
     };
 
@@ -241,30 +262,30 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
 
     const handleElementClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      const stepElement = document.querySelector(currentStep.selector);
+      const stepElement = document.querySelector(selector);
       
       if (stepElement && (stepElement === target || stepElement.contains(target))) {
-        if (currentStep.action === "click") {
-          advanceWithDelay();
+        if (action === "click") {
+          hideAndAdvance();
         }
       }
     };
 
     const handleInput = (e: Event) => {
-      if (currentStep.action !== "type" || hasAdvancedForType) return;
+      if (action !== "type" || hasAdvancedForType) return;
       
       const target = e.target as HTMLElement;
-      const stepElement = document.querySelector(currentStep.selector);
+      const stepElement = document.querySelector(selector);
       
       if (stepElement && (stepElement === target || stepElement.contains(target))) {
         hasAdvancedForType = true;
-        advanceWithDelay();
+        hideAndAdvance();
       }
     };
 
     const handleKeyPress = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        engine.pauseGuidance();
+        pauseGuidanceRef.current();
       }
     };
 
@@ -281,7 +302,7 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
         advanceDelayTimerRef.current = null;
       }
     };
-  }, [isOnEnabledRoute, state.isActive, currentStep, engine]);
+  }, [isOnEnabledRoute, state.isActive, currentStep?.selector, currentStep?.action, currentStep?.advanceDelay]);
 
   const prevCompletedChallengesRef = useRef<Record<string, string[]>>(
     JSON.parse(JSON.stringify(state.completedChallenges))
@@ -358,13 +379,13 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
             <>
               <ElementHighlight
                 targetSelector={currentStep.selector}
-                isVisible={state.isActive}
+                isVisible={state.isActive && !tooltipHiddenRef.current}
               />
               <GuidanceTooltip
                 targetSelector={currentStep.selector}
                 instruction={currentStep.instruction}
                 position={currentStep.tooltipPosition || "auto"}
-                isVisible={state.isActive}
+                isVisible={state.isActive && !tooltipHiddenRef.current}
                 onDismiss={() => engine.advanceStep()}
                 onBack={() => engine.previousStep()}
                 stepNumber={state.currentStepIndex + 1}
