@@ -57,7 +57,7 @@ export const quest1: Quest = {
           id: "execute-search",
           selector: '[data-testid="search-button"]',
           action: "click",
-          instruction: "Click on "Search"!",
+          instruction: "Click on Search!",
           tooltipPosition: "left",
           route: "/app",
         },
