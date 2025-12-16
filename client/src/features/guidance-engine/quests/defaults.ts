@@ -1,6 +1,6 @@
 export const GUIDANCE_DEFAULTS = {
   startDelay: 5000,
-  advanceDelay: 700,
+  advanceDelay: 400,
 } as const;
 
 export function resolveDelay(
