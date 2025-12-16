@@ -56,6 +56,7 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
   const [showChallengeComplete, setShowChallengeComplete] = useState(false);
   const [completedChallengeName, setCompletedChallengeName] = useState("");
   const [completedChallengeMessage, setCompletedChallengeMessage] = useState("");
+  const [isTooltipHidden, setIsTooltipHidden] = useState(false);
   const previousLocation = useRef<string | null>(null);
   const previousStepKey = useRef<string | null>(null);
   const shownChallengeCompletionRef = useRef<string | null>(null);
@@ -230,10 +231,13 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
     }
 
     const advanceWithDelay = () => {
+      // Hide tooltip immediately when user completes action
+      setIsTooltipHidden(true);
       // Default 2 second delay between steps so users notice completion before next prompt
       const delay = currentStep.advanceDelay ?? 2000;
       advanceDelayTimerRef.current = setTimeout(() => {
         engine.advanceStep();
+        setIsTooltipHidden(false);
       }, delay);
     };
 
@@ -358,13 +362,13 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
             <>
               <ElementHighlight
                 targetSelector={currentStep.selector}
-                isVisible={state.isActive}
+                isVisible={state.isActive && !isTooltipHidden}
               />
               <GuidanceTooltip
                 targetSelector={currentStep.selector}
                 instruction={currentStep.instruction}
                 position={currentStep.tooltipPosition || "auto"}
-                isVisible={state.isActive}
+                isVisible={state.isActive && !isTooltipHidden}
                 onDismiss={() => engine.advanceStep()}
                 onBack={() => engine.previousStep()}
                 stepNumber={state.currentStepIndex + 1}
