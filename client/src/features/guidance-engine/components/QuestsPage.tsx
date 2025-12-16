@@ -56,6 +56,8 @@ function getChallengeStatus(
   questStatus: QuestStatus,
   allChallenges: Challenge[]
 ): ChallengeStatus {
+  if (challenge.steps.length === 0) return "locked";
+  
   const questCompletedChallenges = completedChallenges[questId] || [];
   if (questCompletedChallenges.includes(challenge.id)) return "completed";
   if (currentQuestId === questId && challengeIndex === currentChallengeIndex) return "in-progress";
@@ -264,7 +266,11 @@ function QuestCard({
                     </div>
 
                     <div className="text-xs text-gray-500">
-                      {challenge.steps.length} step{challenge.steps.length !== 1 ? "s" : ""}
+                      {challenge.steps.length === 0 ? (
+                        <span className="text-amber-500/70">Coming Soon</span>
+                      ) : (
+                        `${challenge.steps.length} step${challenge.steps.length !== 1 ? "s" : ""}`
+                      )}
                     </div>
 
                     {(challengeStatus === "in-progress" || challengeStatus === "available") && (
