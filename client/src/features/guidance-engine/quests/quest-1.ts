@@ -17,7 +17,7 @@ export const quest1: Quest = {
         requiresAuth: true,
         once: true,
       },
-      startDelay: 5000,
+      startDelay: 7000,
       setupEvent: "startNewSearch",
       steps: [
         {
@@ -40,7 +40,7 @@ export const quest1: Quest = {
           id: "search-input",
           selector: '[data-testid="search-input"]',
           action: "click",
-          instruction: "Click on the search bar to start finding companies and contacts",
+          instruction: "Click on the search bar to start.",
           tooltipPosition: "bottom",
           route: "/app",
         },
@@ -57,7 +57,7 @@ export const quest1: Quest = {
           id: "execute-search",
           selector: '[data-testid="search-button"]',
           action: "click",
-          instruction: "Click the Search button to find companies matching your query!",
+          instruction: "Click the Search button!",
           tooltipPosition: "left",
           route: "/app",
         },
