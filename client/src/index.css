@@ -8,7 +8,7 @@
 }
 
 *:focus-visible {
-  outline: 2px solid rgb(147, 197, 253) !important; /* light-blue-300 */
+  outline: 2px solid rgba(147, 197, 253, 0.05) !important; /* light-blue-300 at 5% opacity */
   outline-offset: 1px;
 }
 
@@ -271,7 +271,7 @@ input[type="checkbox"]:indeterminate::before {
 
     --border: 240 6% 90%;
     --input: 240 6% 90%;
-    --ring: 217 100% 50%;
+    --ring: 217 100% 50% / 0.05;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
@@ -304,7 +304,7 @@ input[type="checkbox"]:indeterminate::before {
 
     --border: 240 4% 16%;
     --input: 240 4% 16%;
-    --ring: 45 93% 47%;
+    --ring: 45 93% 47% / 0.05;
 
     --destructive: 0 63% 31%;
     --destructive-foreground: 0 0% 98%;
