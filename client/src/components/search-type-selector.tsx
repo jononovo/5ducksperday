@@ -70,6 +70,7 @@ export function SearchTypeSelector({ selectedType, onTypeChange, disabled = fals
     <>
       {/* Search Type Icons in Input Field */}
       <div 
+        data-testid="search-options-button"
         className={`flex items-center gap-1 px-2 py-1 cursor-pointer hover:bg-gray-50 rounded transition-colors ${
           disabled ? 'opacity-50 cursor-not-allowed' : ''
         }`}
@@ -94,6 +95,7 @@ export function SearchTypeSelector({ selectedType, onTypeChange, disabled = fals
             {searchTypeConfigs.map((config) => (
               <div
                 key={config.type}
+                data-testid={`search-type-option-${config.type}`}
                 className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all hover:bg-gray-50 ${
                   selectedType === config.type 
                     ? 'border-blue-300 bg-blue-50' 

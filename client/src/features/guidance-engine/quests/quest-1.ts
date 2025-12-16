@@ -21,6 +21,22 @@ export const quest1: Quest = {
       setupEvent: "startNewSearch",
       steps: [
         {
+          id: "open-search-options",
+          selector: '[data-testid="search-options-button"]',
+          action: "click",
+          instruction: "Click on the search options to choose what you want to search for",
+          tooltipPosition: "bottom",
+          route: "/app",
+        },
+        {
+          id: "select-contacts-search",
+          selector: '[data-testid="search-type-option-contacts"]',
+          action: "click",
+          instruction: "Select '+ Contacts' to search for companies AND their contacts",
+          tooltipPosition: "right",
+          route: "/app",
+        },
+        {
           id: "search-input",
           selector: '[data-testid="search-input"]',
           action: "click",
