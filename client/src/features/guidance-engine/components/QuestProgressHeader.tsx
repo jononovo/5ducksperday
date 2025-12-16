@@ -145,7 +145,7 @@ export function QuestProgressHeader({
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
-                  className="px-3 py-1 flex items-center gap-2"
+                  className="px-3 py-1.5 flex items-center"
                 >
                   <div className="w-24 h-2 bg-gray-700 rounded-full overflow-hidden">
                     <motion.div
@@ -155,17 +155,6 @@ export function QuestProgressHeader({
                       transition={{ duration: 0.5, ease: "easeOut" }}
                     />
                   </div>
-                  
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onClose();
-                    }}
-                    className="text-gray-400 hover:text-white transition-colors p-1"
-                    data-testid="close-quest-header"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
                 </motion.div>
               )}
             </AnimatePresence>
