@@ -3,7 +3,7 @@ import type { Quest } from "../types";
 export const quest1: Quest = {
   id: "finding-customers",
   name: "Finding Customers",
-  description: "Learn how to discover and find potential customers using our powerful search tools.",
+  description: "Discover potential customers using our powerful AI search tools.",
   emoji: "🔍",
   challenges: [
     {
@@ -33,7 +33,7 @@ export const quest1: Quest = {
           selector: '[data-testid="search-input"]',
           action: "type",
           advanceDelay: 3000,
-          instruction: "Type a search query like 'marketing agencies in Austin' - describe the type of businesses you want to find",
+          instruction: "Type a search query like 'marketing agencies in Austin'.",
           tooltipPosition: "bottom",
           route: "/app",
         },
