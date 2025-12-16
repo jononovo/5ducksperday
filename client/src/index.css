@@ -8,7 +8,7 @@
 }
 
 *:focus-visible {
-  outline: 2px solid rgb(147, 197, 253) !important; /* light-blue-300 */
+  outline: 2px solid rgba(147, 197, 253, 0.05) !important; /* light-blue-300 at 5% opacity */
   outline-offset: 1px;
 }
 
