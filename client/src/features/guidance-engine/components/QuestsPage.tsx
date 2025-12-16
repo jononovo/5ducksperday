@@ -25,13 +25,13 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useGuidance } from "../context/GuidanceContext";
-import { QUESTS } from "../data/quests";
+import { QUESTS } from "../quests";
 import { CertificateShowcase } from "./CertificateShowcase";
 import type { Quest, Challenge } from "../types";
 import confetti from "canvas-confetti";
 
 type QuestStatus = "completed" | "in-progress" | "locked";
-type ChallengeStatus = "completed" | "in-progress" | "locked";
+type ChallengeStatus = "completed" | "in-progress" | "available" | "locked";
 
 function getQuestStatus(
   quest: Quest,
@@ -52,12 +52,24 @@ function getChallengeStatus(
   completedChallenges: Record<string, string[]>,
   currentQuestId: string | null,
   currentChallengeIndex: number,
-  challengeIndex: number
+  challengeIndex: number,
+  questStatus: QuestStatus,
+  allChallenges: Challenge[]
 ): ChallengeStatus {
-  const questCompleted = completedChallenges[questId] || [];
-  if (questCompleted.includes(challenge.id)) return "completed";
+  if (challenge.steps.length === 0) return "locked";
+  
+  const questCompletedChallenges = completedChallenges[questId] || [];
+  if (questCompletedChallenges.includes(challenge.id)) return "completed";
   if (currentQuestId === questId && challengeIndex === currentChallengeIndex) return "in-progress";
   if (currentQuestId === questId && challengeIndex < currentChallengeIndex) return "completed";
+  
+  if (questStatus === "in-progress" && currentQuestId !== questId) {
+    const isFirstIncomplete = allChallenges
+      .slice(0, challengeIndex)
+      .every(c => questCompletedChallenges.includes(c.id));
+    if (isFirstIncomplete) return "available";
+  }
+  
   return "locked";
 }
 
@@ -191,7 +203,9 @@ function QuestCard({
                   completedChallenges,
                   currentQuestId,
                   currentChallengeIndex,
-                  challengeIndex
+                  challengeIndex,
+                  status,
+                  quest.challenges
                 );
 
                 return (
@@ -205,13 +219,15 @@ function QuestCard({
                         onRestartChallenge(quest.id, challengeIndex, challenge.name);
                       } else if (challengeStatus === "in-progress") {
                         onContinueChallenge(quest.id, challengeIndex);
+                      } else if (challengeStatus === "available") {
+                        onStartQuest(quest.id);
                       }
                     }}
                     className={`
                       flex items-center gap-3 p-3 rounded-lg
                       ${challengeStatus === "completed"
                         ? "bg-green-500/10 cursor-pointer hover:bg-green-500/20"
-                        : challengeStatus === "in-progress"
+                        : challengeStatus === "in-progress" || challengeStatus === "available"
                         ? "bg-amber-500/10 cursor-pointer hover:bg-amber-500/20"
                         : "bg-gray-800/50"
                       }
@@ -222,14 +238,14 @@ function QuestCard({
                       w-8 h-8 rounded-lg flex items-center justify-center
                       ${challengeStatus === "completed"
                         ? "bg-green-500/20"
-                        : challengeStatus === "in-progress"
+                        : challengeStatus === "in-progress" || challengeStatus === "available"
                         ? "bg-amber-500/20"
                         : "bg-gray-700/50"
                       }
                     `}>
                       {challengeStatus === "completed" ? (
                         <Check className="h-4 w-4 text-green-400" />
-                      ) : challengeStatus === "in-progress" ? (
+                      ) : challengeStatus === "in-progress" || challengeStatus === "available" ? (
                         <Play className="h-4 w-4 text-amber-400" />
                       ) : (
                         <Play className="h-4 w-4 text-gray-500" />
@@ -250,34 +266,32 @@ function QuestCard({
                     </div>
 
                     <div className="text-xs text-gray-500">
-                      {challenge.steps.length} step{challenge.steps.length !== 1 ? "s" : ""}
+                      {challenge.steps.length === 0 ? (
+                        <span className="text-amber-500/70">Coming Soon</span>
+                      ) : (
+                        `${challenge.steps.length} step${challenge.steps.length !== 1 ? "s" : ""}`
+                      )}
                     </div>
 
-                    {challengeStatus === "in-progress" && (
+                    {(challengeStatus === "in-progress" || challengeStatus === "available") && (
                       <Button
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
-                          onContinueChallenge(quest.id, challengeIndex);
+                          if (challengeStatus === "available") {
+                            onStartQuest(quest.id);
+                          } else {
+                            onContinueChallenge(quest.id, challengeIndex);
+                          }
                         }}
                         className="bg-amber-500 hover:bg-amber-600 text-white text-xs px-3"
                       >
-                        Continue
+                        {challengeStatus === "available" ? "Start" : "Continue"}
                       </Button>
                     )}
                   </motion.div>
                 );
               })}
-
-              {status === "in-progress" && questChallengesCompleted === 0 && (
-                <Button
-                  onClick={() => onStartQuest(quest.id)}
-                  className="w-full mt-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
-                >
-                  <Play className="h-4 w-4 mr-2" />
-                  Start Quest
-                </Button>
-              )}
             </div>
           </motion.div>
         )}

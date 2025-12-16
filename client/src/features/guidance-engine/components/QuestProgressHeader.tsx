@@ -103,12 +103,16 @@ export function QuestProgressHeader({
                     
                     <div className="h-4 w-px bg-gray-600" />
                     
-                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <Link 
+                      href="/quests"
+                      className="flex items-center gap-2 min-w-0 flex-1 hover:opacity-80 transition-opacity cursor-pointer"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <Target className="h-4 w-4 text-gray-400 flex-shrink-0 hidden sm:block" />
                       <span className="text-xs text-gray-300 truncate">
                         {currentChallengeName || "Ready for next challenge"}
                       </span>
-                    </div>
+                    </Link>
                   </div>
                   
                   <div className="flex items-center gap-4">

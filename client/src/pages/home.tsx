@@ -2204,7 +2204,7 @@ export default function Home() {
                             setCurrentQuery(suggestion);
                             setInputHasChanged(true);
                           }}
-                          className="px-3 py-1.5 text-sm bg-muted hover:bg-muted/80 rounded-full transition-colors hover:shadow-sm"
+                          className="px-3 py-1.5 text-sm bg-gray-200 hover:bg-gray-300 rounded-full transition-colors hover:shadow-sm"
                           data-testid={`button-suggestion-${suggestion.toLowerCase().replace(/\s+/g, '-').slice(0, 30)}`}
                         >
                           {suggestion}

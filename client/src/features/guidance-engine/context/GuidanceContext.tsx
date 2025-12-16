@@ -1,8 +1,8 @@
 import { createContext, useContext, useState, useCallback, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
-import type { GuidanceContextValue, QuestTrigger } from "../types";
+import type { GuidanceContextValue, QuestTrigger, Challenge } from "../types";
 import { useGuidanceEngine } from "../hooks/useGuidanceEngine";
-import { QUESTS } from "../data/quests";
+import { QUESTS, resolveDelay } from "../quests";
 import { useAuth } from "@/hooks/use-auth";
 import {
   ElementHighlight,
@@ -155,17 +155,20 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
     };
 
     for (const quest of QUESTS) {
-      if (!quest.trigger) continue;
-      if (quest.trigger.type === "userEvent") continue;
-      
-      const shouldTrigger = evaluateTrigger(quest.id, quest.trigger);
+      for (const challenge of quest.challenges) {
+        if (!challenge.trigger) continue;
+        if (challenge.trigger.type === "userEvent") continue;
+        
+        const shouldTrigger = evaluateTrigger(quest.id, challenge.trigger);
 
-      if (shouldTrigger) {
-        const timer = setTimeout(() => {
-          startQuestRef.current(quest.id);
-          markQuestAsTriggered(quest.id);
-        }, 2000);
-        return () => clearTimeout(timer);
+        if (shouldTrigger) {
+          const delay = resolveDelay(challenge.startDelay, "startDelay");
+          const timer = setTimeout(() => {
+            startQuestRef.current(quest.id);
+            markQuestAsTriggered(quest.id);
+          }, delay);
+          return () => clearTimeout(timer);
+        }
       }
     }
   }, [autoStartForNewUsers, authLoading, user, location, state.isActive, state.currentQuestId, state.completedQuests]);
@@ -174,17 +177,24 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
     if (!autoStartForNewUsers) return;
     if (authLoading) return;
 
-    const eventQuests = QUESTS.filter(q => q.trigger?.type === "userEvent" && q.trigger.eventName);
-    if (eventQuests.length === 0) return;
+    const eventChallenges: { quest: typeof QUESTS[0]; challenge: Challenge }[] = [];
+    for (const quest of QUESTS) {
+      for (const challenge of quest.challenges) {
+        if (challenge.trigger?.type === "userEvent" && challenge.trigger.eventName) {
+          eventChallenges.push({ quest, challenge });
+        }
+      }
+    }
+    if (eventChallenges.length === 0) return;
 
     const handleUserEvent = (e: Event) => {
       const eventName = (e as CustomEvent).type;
       
-      for (const quest of eventQuests) {
-        if (quest.trigger?.eventName !== eventName) continue;
+      for (const { quest, challenge } of eventChallenges) {
+        if (challenge.trigger?.eventName !== eventName) continue;
         
-        const requiresAuth = quest.trigger.requiresAuth !== false;
-        const once = quest.trigger.once !== false;
+        const requiresAuth = challenge.trigger.requiresAuth !== false;
+        const once = challenge.trigger.once !== false;
 
         if (requiresAuth && !user) continue;
         if (once && hasQuestBeenTriggered(quest.id)) continue;
@@ -197,7 +207,7 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
       }
     };
 
-    const eventNames = Array.from(new Set(eventQuests.map(q => q.trigger!.eventName!)));
+    const eventNames = Array.from(new Set(eventChallenges.map(ec => ec.challenge.trigger!.eventName!)));
     eventNames.forEach(name => window.addEventListener(name, handleUserEvent));
 
     return () => {
@@ -252,7 +262,7 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
       if (advanceDelayTimerRef.current) return; // Prevent double-clicks
       tooltipHiddenRef.current = true;
       setVisibilityTick(t => t + 1);
-      const delay = advanceDelay ?? 1200;
+      const delay = resolveDelay(advanceDelay, "advanceDelay");
       advanceDelayTimerRef.current = setTimeout(() => {
         advanceStepRef.current();
       }, delay);

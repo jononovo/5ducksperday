@@ -13,16 +13,6 @@ export interface GuidanceStep {
   advanceDelay?: number;
 }
 
-export interface Challenge {
-  id: string;
-  name: string;
-  description: string;
-  emoji?: string;
-  steps: GuidanceStep[];
-  completionMessage?: string;
-  setupEvent?: string;
-}
-
 export interface QuestTrigger {
   type: "newUser" | "firstVisit" | "route" | "userEvent";
   route?: string;           // Required for route/firstVisit/newUser types
@@ -31,13 +21,24 @@ export interface QuestTrigger {
   once?: boolean;           // Default true - only trigger once per user
 }
 
+export interface Challenge {
+  id: string;
+  name: string;
+  description: string;
+  emoji?: string;
+  steps: GuidanceStep[];
+  completionMessage?: string;
+  setupEvent?: string;
+  trigger?: QuestTrigger;   // Defines when/how this challenge auto-starts
+  startDelay?: number;      // Delay before challenge begins (omit = use default from defaults.ts)
+}
+
 export interface Quest {
   id: string;
   name: string;
   description: string;
   emoji?: string;
   challenges: Challenge[];
-  trigger?: QuestTrigger;   // Defines when/how this quest auto-starts
 }
 
 export interface GuidanceState {

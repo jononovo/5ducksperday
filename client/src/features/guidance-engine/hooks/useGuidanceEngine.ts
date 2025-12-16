@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import type { GuidanceState, GuidanceContextValue, Quest, Challenge, GuidanceStep } from "../types";
-import { QUESTS, getQuestById, getFirstIncompleteQuest } from "../data/quests";
+import { QUESTS, getQuestById, getFirstIncompleteQuest } from "../quests";
 
 const STORAGE_KEY = "fluffy-guidance-progress";
 
@@ -127,14 +127,16 @@ export function useGuidanceEngine(): GuidanceContextValue {
 
     const completedChallengesForQuest = state.completedChallenges[questId] || [];
     const firstIncompleteIndex = quest.challenges.findIndex(
-      (c) => !completedChallengesForQuest.includes(c.id)
+      (c) => !completedChallengesForQuest.includes(c.id) && c.steps.length > 0
     );
+
+    if (firstIncompleteIndex < 0) return;
 
     setState((prev) => ({
       ...prev,
       isActive: true,
       currentQuestId: questId,
-      currentChallengeIndex: firstIncompleteIndex >= 0 ? firstIncompleteIndex : 0,
+      currentChallengeIndex: firstIncompleteIndex,
       currentStepIndex: 0,
       isHeaderVisible: true,
     }));
@@ -149,13 +151,18 @@ export function useGuidanceEngine(): GuidanceContextValue {
       return;
     }
 
-    const nextChallengeIndex = state.currentChallengeIndex + 1;
+    const completedChallengesForQuest = state.completedChallenges[currentQuest.id] || [];
+    const nextValidIndex = currentQuest.challenges.findIndex(
+      (c, idx) => idx > state.currentChallengeIndex && 
+                  c.steps.length > 0 && 
+                  !completedChallengesForQuest.includes(c.id)
+    );
     
-    if (nextChallengeIndex < currentQuest.challenges.length) {
+    if (nextValidIndex >= 0) {
       setState((prev) => ({
         ...prev,
         isActive: true,
-        currentChallengeIndex: nextChallengeIndex,
+        currentChallengeIndex: nextValidIndex,
         currentStepIndex: 0,
         isHeaderVisible: true,
       }));
@@ -169,7 +176,7 @@ export function useGuidanceEngine(): GuidanceContextValue {
         isActive: false,
       }));
     }
-  }, [currentQuest, state.currentChallengeIndex, state.completedQuests, startQuest]);
+  }, [currentQuest, state.currentChallengeIndex, state.completedQuests, state.completedChallenges, startQuest]);
 
   const advanceStep = useCallback(() => {
     if (!currentChallenge) return;
@@ -262,7 +269,7 @@ export function useGuidanceEngine(): GuidanceContextValue {
     if (!quest) return;
     
     const challenge = quest.challenges[challengeIndex];
-    if (!challenge) return;
+    if (!challenge || challenge.steps.length === 0) return;
 
     const completedForQuest = state.completedChallenges[questId] || [];
     const updatedCompleted = completedForQuest.filter(id => id !== challenge.id);
