@@ -147,18 +147,13 @@ export function QuestProgressHeader({
                   transition={{ duration: 0.15 }}
                   className="px-3 py-1 flex items-center gap-2"
                 >
-                  <div className="flex items-center gap-2">
-                    <div className="w-24 h-2 bg-gray-700 rounded-full overflow-hidden">
-                      <motion.div
-                        className="h-full bg-gradient-to-r from-yellow-500 to-amber-400 rounded-full"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${progressPercentage}%` }}
-                        transition={{ duration: 0.5, ease: "easeOut" }}
-                      />
-                    </div>
-                    <span className="text-xs text-gray-400">
-                      {challengesCompleted}/{totalChallenges}
-                    </span>
+                  <div className="w-24 h-2 bg-gray-700 rounded-full overflow-hidden">
+                    <motion.div
+                      className="h-full bg-gradient-to-r from-yellow-500 to-amber-400 rounded-full"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${progressPercentage}%` }}
+                      transition={{ duration: 0.5, ease: "easeOut" }}
+                    />
                   </div>
                   
                   <button
