@@ -145,7 +145,7 @@ export function QuestProgressHeader({
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
-                  className="px-4 py-2 flex items-center gap-3"
+                  className="px-3 py-1 flex items-center gap-2"
                 >
                   <div className="flex items-center gap-2">
                     <div className="w-24 h-2 bg-gray-700 rounded-full overflow-hidden">
