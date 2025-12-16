@@ -1,13 +1,13 @@
 import type { Quest } from "../types";
 
 export const quest1: Quest = {
-  id: "quest-1-finding-customers",
+  id: "finding-customers",
   name: "Finding Customers",
   description: "Learn how to discover and find potential customers using our powerful search tools.",
   emoji: "🔍",
   challenges: [
     {
-      id: "challenge-1-basic-search",
+      id: "basic-search",
       name: "Basic Search",
       description: "Perform your first company and contacts search",
       emoji: "🎯",
@@ -21,7 +21,7 @@ export const quest1: Quest = {
       setupEvent: "startNewSearch",
       steps: [
         {
-          id: "step-1-search-input",
+          id: "search-input",
           selector: '[data-testid="search-input"]',
           action: "click",
           instruction: "Click on the search bar to start finding companies and contacts",
@@ -29,7 +29,7 @@ export const quest1: Quest = {
           route: "/app",
         },
         {
-          id: "step-2-type-query",
+          id: "type-query",
           selector: '[data-testid="search-input"]',
           action: "type",
           advanceDelay: 3000,
@@ -38,7 +38,7 @@ export const quest1: Quest = {
           route: "/app",
         },
         {
-          id: "step-3-execute-search",
+          id: "execute-search",
           selector: '[data-testid="search-button"]',
           action: "click",
           instruction: "Click the Search button to find companies matching your query!",
@@ -49,13 +49,13 @@ export const quest1: Quest = {
       completionMessage: "Awesome! You've completed your first search! 🎉",
     },
     {
-      id: "challenge-2-view-results",
+      id: "view-results",
       name: "Explore Results",
       description: "Learn to navigate your search results and manage contacts",
       emoji: "📊",
       steps: [
         {
-          id: "step-1-view-results",
+          id: "view-results",
           selector: '[data-testid="search-results-card"]',
           action: "view",
           instruction: "Here are your search results! Each row shows a company with their key contacts. Click on any company to see more details.",
@@ -63,7 +63,7 @@ export const quest1: Quest = {
           route: "/app",
         },
         {
-          id: "step-2-contacts-page",
+          id: "contacts-page",
           selector: '[data-testid="text-all-contacts-count"]',
           action: "view",
           instruction: "This is your Contacts page! Here you can see all your saved contacts organized into lists. The 'All Contacts' card shows your total contact count.",
@@ -71,7 +71,7 @@ export const quest1: Quest = {
           route: "/contacts",
         },
         {
-          id: "step-3-back-to-search",
+          id: "back-to-search",
           selector: '[data-testid="search-input"]',
           action: "view",
           instruction: "You're back at the search page! You can now search for more companies or continue with your existing results.",
@@ -82,13 +82,13 @@ export const quest1: Quest = {
       completionMessage: "Great! You've learned how to navigate between search results and your contacts! 🎯",
     },
     {
-      id: "challenge-3-find-email",
+      id: "find-email",
       name: "Find Contact Emails",
       description: "Use the email finder to discover contact emails",
       emoji: "📧",
       steps: [
         {
-          id: "step-1-find-email-button",
+          id: "find-email-button",
           selector: '[data-testid="find-emails-button"]',
           action: "view",
           instruction: "The 'Find Key Emails' button searches for email addresses of the top contacts at each company. This helps you reach decision-makers directly!",
@@ -96,7 +96,7 @@ export const quest1: Quest = {
           route: "/app",
         },
         {
-          id: "step-2-click-email-button",
+          id: "click-email-button",
           selector: '[data-testid="find-emails-button"]',
           action: "click",
           instruction: "Click 'Find Key Emails' to discover email addresses for your contacts!",
@@ -107,13 +107,13 @@ export const quest1: Quest = {
       completionMessage: "Excellent! You've discovered how to find contact emails! 📬",
     },
     {
-      id: "challenge-4-full-search",
+      id: "full-search",
       name: "Do Full Search",
       description: "Complete a full search with contacts and emails in one go",
       emoji: "🚀",
       steps: [
         {
-          id: "step-1-new-search",
+          id: "new-search",
           selector: '[data-testid="search-input"]',
           action: "click",
           instruction: "Let's do a complete search! Click on the search bar to start a new search.",
@@ -121,7 +121,7 @@ export const quest1: Quest = {
           route: "/app",
         },
         {
-          id: "step-2-enter-query",
+          id: "enter-query",
           selector: '[data-testid="search-input"]',
           action: "view",
           instruction: "Type a search query describing your ideal customers - for example 'tech startups in San Francisco' or 'real estate agents in Miami'",
@@ -129,7 +129,7 @@ export const quest1: Quest = {
           route: "/app",
         },
         {
-          id: "step-3-run-search",
+          id: "run-search",
           selector: '[data-testid="search-button"]',
           action: "click",
           instruction: "Click Search to find companies and their key contacts!",
@@ -137,7 +137,7 @@ export const quest1: Quest = {
           route: "/app",
         },
         {
-          id: "step-4-view-contacts",
+          id: "view-contacts",
           selector: '[data-testid="search-results-card"]',
           action: "view",
           instruction: "Great! You now have a list of companies with their key contacts. Review the results to see decision-makers at each company.",
@@ -145,7 +145,7 @@ export const quest1: Quest = {
           route: "/app",
         },
         {
-          id: "step-5-find-all-emails",
+          id: "find-all-emails",
           selector: '[data-testid="find-emails-button"]',
           action: "click",
           instruction: "Now click 'Find Key Emails' to discover email addresses for all these contacts at once!",
@@ -153,7 +153,7 @@ export const quest1: Quest = {
           route: "/app",
         },
         {
-          id: "step-6-complete",
+          id: "complete",
           selector: '[data-testid="search-results-card"]',
           action: "view",
           instruction: "You've completed a full search! You now have companies, contacts, and their email addresses - everything you need to start reaching out!",
