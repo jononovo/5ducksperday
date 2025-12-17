@@ -1,6 +1,10 @@
 import express, { type Express } from "express";
 import { storage } from "../../storage";
 import { getUserId } from "../../utils/auth";
+import { CreditRewardService } from "../billing/rewards/service";
+
+// Default credits per challenge (can be overridden per challenge)
+const DEFAULT_CHALLENGE_CREDITS = 110;
 
 export function registerGuidanceRoutes(app: Express) {
   app.get("/api/guidance/progress", async (req, res) => {
@@ -65,12 +69,50 @@ export function registerGuidanceRoutes(app: Express) {
       
       const { completedQuests, completedChallenges, currentQuestId, currentChallengeIndex, currentStepIndex, settings } = req.body;
       
+      // Get existing progress to detect newly completed challenges
+      const existingProgress = await storage.getUserGuidanceProgress(userId);
+      const existingCompletedChallenges: Record<string, string[]> = existingProgress?.completedChallenges || {};
+      const incomingCompletedChallenges: Record<string, string[]> = completedChallenges || {};
+      
+      // Find newly completed challenges (in incoming but not in existing)
+      const newlyCompleted: { questId: string; challengeId: string }[] = [];
+      for (const [questId, challengeIds] of Object.entries(incomingCompletedChallenges)) {
+        const existingForQuest = existingCompletedChallenges[questId] || [];
+        for (const challengeId of challengeIds) {
+          if (!existingForQuest.includes(challengeId)) {
+            newlyCompleted.push({ questId, challengeId });
+          }
+        }
+      }
+      
+      // Award credits for newly completed challenges
+      const creditsAwarded: { challengeId: string; credits: number; credited: boolean }[] = [];
+      for (const { questId, challengeId } of newlyCompleted) {
+        try {
+          const result = await CreditRewardService.awardChallengeCredits(
+            userId,
+            challengeId,
+            DEFAULT_CHALLENGE_CREDITS
+          );
+          creditsAwarded.push({
+            challengeId,
+            credits: DEFAULT_CHALLENGE_CREDITS,
+            credited: result.credited
+          });
+          console.log(`[GuidanceRoutes] Challenge credit award for ${challengeId}:`, result);
+        } catch (error) {
+          console.error(`[GuidanceRoutes] Failed to award credits for challenge ${challengeId}:`, error);
+        }
+      }
+      
       console.log("[GuidanceRoutes] Saving progress for user", userId, ":", {
         completedQuests,
         completedChallenges,
         currentQuestId,
         currentChallengeIndex,
         currentStepIndex,
+        newlyCompleted,
+        creditsAwarded
       });
       
       const updated = await storage.updateUserGuidanceProgress(userId, {
@@ -90,7 +132,8 @@ export function registerGuidanceRoutes(app: Express) {
         currentQuestId: updated.currentQuestId,
         currentChallengeIndex: updated.currentChallengeIndex || 0,
         currentStepIndex: updated.currentStepIndex || 0,
-        settings: updated.settings || {}
+        settings: updated.settings || {},
+        creditsAwarded
       });
     } catch (error) {
       console.error("[GuidanceRoutes] Error updating guidance progress:", error);

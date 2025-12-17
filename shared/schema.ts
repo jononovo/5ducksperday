@@ -32,13 +32,15 @@ export const creditTransactions = pgTable("credit_transactions", {
   amount: integer("amount").notNull(), // Positive for additions, negative for usage
   type: text("type").notNull(), // 'purchase', 'usage', 'refund', 'bonus'
   description: text("description"),
+  rewardKey: text("reward_key"), // Unique key for one-time rewards (e.g., "challenge:basic-search")
   metadata: jsonb("metadata").default({}), // Additional transaction details
   balanceAfter: integer("balance_after").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow()
 }, (table) => [
   index('idx_credit_transactions_user_id').on(table.userId),
   index('idx_credit_transactions_type').on(table.type),
-  index('idx_credit_transactions_created_at').on(table.createdAt)
+  index('idx_credit_transactions_created_at').on(table.createdAt),
+  uniqueIndex('idx_credit_transactions_reward_key').on(table.userId, table.rewardKey)
 ]);
 
 // Subscriptions table (migrated from KV)
