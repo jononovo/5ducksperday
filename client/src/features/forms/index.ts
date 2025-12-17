@@ -20,7 +20,7 @@ export {
   onboardingQuestionnaire,
   ONBOARDING_QUESTIONNAIRE_INITIAL_DATA,
   type OnboardingQuestionnaireData,
-} from "./forms";
+} from "./formSlides";
 
 export { useOnboardingFlow } from "./hooks/useOnboardingFlow";
 export { OnboardingShell } from "./components/OnboardingShell";
