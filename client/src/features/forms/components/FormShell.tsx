@@ -3,24 +3,24 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createPortal } from "react-dom";
-import type { OnboardingShellProps, QuestionComponentProps } from "../types";
+import type { FormShellProps, SlideComponentProps } from "../types";
 import { fireSectionConfetti, fireFinalConfetti } from "../utils/confetti";
 import { apiRequest } from "@/lib/queryClient";
-import { QuestionSingleSelect } from "./QuestionSingleSelect";
-import { QuestionMultiSelect } from "./QuestionMultiSelect";
-import { QuestionTextInput } from "./QuestionTextInput";
+import { SlideSingleSelect } from "./SlideSingleSelect";
+import { SlideMultiSelect } from "./SlideMultiSelect";
+import { SlideTextInput } from "./SlideTextInput";
 import { WelcomeScreen } from "./WelcomeScreen";
 import { SectionIntro } from "./SectionIntro";
 import { SectionComplete } from "./SectionComplete";
 import { FinalComplete } from "./FinalComplete";
 
-export function OnboardingShell<T extends Record<string, string>>({
+export function FormShell<T extends Record<string, string>>({
   isOpen,
   onClose,
   onComplete,
   flow,
   componentRegistry = {},
-}: OnboardingShellProps<T>) {
+}: FormShellProps<T>) {
   const confettiFiredRef = useRef<number | null>(null);
   const creditClaimedRef = useRef<Set<string>>(new Set());
 
@@ -28,7 +28,8 @@ export function OnboardingShell<T extends Record<string, string>>({
     currentStep,
     data,
     progress,
-    currentQuestion,
+    currentSlide,
+    currentSection,
     setData,
     handleNext,
     handleBack,
@@ -40,36 +41,36 @@ export function OnboardingShell<T extends Record<string, string>>({
   useEffect(() => {
     if (confettiFiredRef.current === currentStep) return;
 
-    if (currentQuestion?.type === "section-complete") {
+    if (currentSlide?.slideType === "section-complete") {
       confettiFiredRef.current = currentStep;
       fireSectionConfetti();
       
-      const section = currentQuestion.section?.toLowerCase();
-      if (section && !creditClaimedRef.current.has(section)) {
-        creditClaimedRef.current.add(section);
-        const milestoneId = `onboarding-section-${section}`;
-        console.log(`[Onboarding] Claiming credits for milestone: ${milestoneId}`);
+      const slideId = currentSlide.id;
+      if (slideId && !creditClaimedRef.current.has(slideId)) {
+        creditClaimedRef.current.add(slideId);
+        const milestoneId = `onboarding-${slideId}`;
+        console.log(`[Forms] Claiming credits for milestone: ${milestoneId}`);
         
         apiRequest("POST", `/api/progress/form/milestone/${milestoneId}`)
           .then((response) => {
-            console.log(`[Onboarding] Credit claim response:`, response);
+            console.log(`[Forms] Credit claim response:`, response);
           })
           .catch((error) => {
-            console.error(`[Onboarding] Failed to claim credits for ${milestoneId}:`, error);
+            console.error(`[Forms] Failed to claim credits for ${milestoneId}:`, error);
           });
       }
-    } else if (currentQuestion?.type === "final-complete") {
+    } else if (currentSlide?.slideType === "final-complete") {
       confettiFiredRef.current = currentStep;
       fireFinalConfetti();
     }
-  }, [currentStep, currentQuestion]);
+  }, [currentStep, currentSlide]);
 
-  const handleSelect = (questionId: string, optionId: string) => {
-    setData(questionId as keyof T, optionId);
+  const handleSelect = (slideId: string, optionId: string) => {
+    setData(slideId as keyof T, optionId);
   };
 
-  const handleTextInput = (questionId: string, value: string) => {
-    setData(questionId as keyof T, value);
+  const handleTextInput = (slideId: string, value: string) => {
+    setData(slideId as keyof T, value);
   };
 
   const handleContinue = () => {
@@ -82,65 +83,65 @@ export function OnboardingShell<T extends Record<string, string>>({
 
   if (!isOpen) return null;
 
-  const renderQuestionContent = () => {
-    if (!currentQuestion) return null;
+  const renderSlideContent = () => {
+    if (!currentSlide) return null;
 
-    const props: QuestionComponentProps<T> = {
-      question: currentQuestion,
+    const props: SlideComponentProps<T> = {
+      slide: currentSlide,
       data,
       onSelect: handleSelect,
       onTextInput: handleTextInput,
       onNext: handleNext,
     };
 
-    if (currentQuestion.component && componentRegistry[currentQuestion.component]) {
-      const CustomComponent = componentRegistry[currentQuestion.component];
+    if (currentSlide.component && componentRegistry[currentSlide.component]) {
+      const CustomComponent = componentRegistry[currentSlide.component];
       return <CustomComponent {...props} />;
     }
 
-    switch (currentQuestion.type) {
+    switch (currentSlide.slideType) {
       case "welcome":
         return (
           <WelcomeScreen
-            title={currentQuestion.title}
-            subtitle={currentQuestion.subtitle}
-            emoji={currentQuestion.emoji}
+            title={currentSlide.title}
+            subtitle={currentSlide.subtitle}
+            emoji={currentSlide.emoji}
           />
         );
       case "section-intro":
         return (
           <SectionIntro
-            title={currentQuestion.title}
-            subtitle={currentQuestion.subtitle}
-            emoji={currentQuestion.emoji}
+            title={currentSlide.title}
+            subtitle={currentSlide.subtitle}
+            emoji={currentSlide.emoji}
           />
         );
       case "section-complete":
         return (
           <SectionComplete
-            title={currentQuestion.title}
-            subtitle={currentQuestion.subtitle}
-            emoji={currentQuestion.emoji}
-            credits={currentQuestion.credits}
+            title={currentSlide.title}
+            subtitle={currentSlide.subtitle}
+            emoji={currentSlide.emoji}
+            credits={currentSection?.completionCredits}
           />
         );
       case "final-complete":
         return (
           <FinalComplete
-            title={currentQuestion.title}
-            subtitle={currentQuestion.subtitle}
-            emoji={currentQuestion.emoji}
+            title={currentSlide.title}
+            subtitle={currentSlide.subtitle}
+            emoji={currentSlide.emoji}
           />
         );
       case "single-select":
-        return <QuestionSingleSelect {...props} />;
+        return <SlideSingleSelect {...props} />;
       case "multi-select":
-        return <QuestionMultiSelect {...props} />;
+        return <SlideMultiSelect {...props} />;
       case "text-input":
-        return <QuestionTextInput {...props} />;
+        return <SlideTextInput {...props} />;
       case "multi-field":
-        if (currentQuestion.component && componentRegistry[currentQuestion.component]) {
-          const CustomComponent = componentRegistry[currentQuestion.component];
+        if (currentSlide.component && componentRegistry[currentSlide.component]) {
+          const CustomComponent = componentRegistry[currentSlide.component];
           return <CustomComponent {...props} />;
         }
         return null;
@@ -162,7 +163,7 @@ export function OnboardingShell<T extends Record<string, string>>({
           className={`p-2 rounded-full hover:bg-white/10 transition-colors ${
             currentStep === 0 ? "opacity-0 pointer-events-none" : "opacity-100"
           }`}
-          data-testid="button-onboarding-back"
+          data-testid="button-form-back"
         >
           <ChevronLeft className="w-6 h-6 text-white/70" />
         </button>
@@ -181,7 +182,7 @@ export function OnboardingShell<T extends Record<string, string>>({
         <button
           onClick={onClose}
           className="p-2 rounded-full hover:bg-white/10 transition-colors"
-          data-testid="button-onboarding-close"
+          data-testid="button-form-close"
         >
           <X className="w-6 h-6 text-white/70" />
         </button>
@@ -198,13 +199,13 @@ export function OnboardingShell<T extends Record<string, string>>({
               transition={{ duration: 0.3 }}
               className="space-y-8"
             >
-              {renderQuestionContent()}
+              {renderSlideContent()}
             </motion.div>
           </AnimatePresence>
         </div>
       </div>
 
-      {currentQuestion?.type !== "single-select" && (
+      {currentSlide?.slideType !== "single-select" && (
         <div className="px-6 py-6">
           <div className="max-w-lg mx-auto">
             <Button
@@ -215,7 +216,7 @@ export function OnboardingShell<T extends Record<string, string>>({
                   ? "bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-black shadow-[0_0_30px_rgba(250,204,21,0.3)]"
                   : "bg-white/10 text-gray-500 cursor-not-allowed"
               }`}
-              data-testid="button-onboarding-continue"
+              data-testid="button-form-continue"
             >
               {getButtonText()}
               <ChevronRight className="w-5 h-5 ml-2" />

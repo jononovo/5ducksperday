@@ -1,12 +1,12 @@
 import { motion } from "framer-motion";
-import type { QuestionComponentProps } from "../types";
+import type { SlideComponentProps } from "../types";
 
-export function QuestionMultiSelect<T extends Record<string, string>>({
-  question,
+export function SlideMultiSelect<T extends Record<string, string>>({
+  slide,
   data,
   onSelect,
-}: QuestionComponentProps<T>) {
-  const selectedValues = (data[question.id as keyof T] as string || "")
+}: SlideComponentProps<T>) {
+  const selectedValues = (data[slide.id as keyof T] as string || "")
     .split(",")
     .filter(Boolean);
 
@@ -20,7 +20,7 @@ export function QuestionMultiSelect<T extends Record<string, string>>({
       newValues = [...selectedValues, optionId];
     }
     
-    onSelect?.(question.id, newValues.join(","));
+    onSelect?.(slide.id, newValues.join(","));
   };
 
   return (
@@ -29,16 +29,16 @@ export function QuestionMultiSelect<T extends Record<string, string>>({
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-yellow-500/10 border border-yellow-500/20 mb-6">
           <span className="text-2xl">🐥</span>
           <h2 className="text-xl md:text-2xl font-bold text-white">
-            {question.title}
+            {slide.title}
           </h2>
         </div>
-        {question.subtitle && (
-          <p className="text-gray-400">{question.subtitle}</p>
+        {slide.subtitle && (
+          <p className="text-gray-400">{slide.subtitle}</p>
         )}
       </div>
 
       <div className="space-y-3">
-        {question.options?.map((option, index) => {
+        {slide.options?.map((option, index) => {
           const isSelected = selectedValues.includes(option.id);
           return (
             <motion.button
@@ -52,7 +52,7 @@ export function QuestionMultiSelect<T extends Record<string, string>>({
                   ? "bg-yellow-500/10 border-yellow-500/50 shadow-[0_0_20px_rgba(250,204,21,0.2)]"
                   : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"
               }`}
-              data-testid={`option-${question.id}-${option.id}`}
+              data-testid={`option-${slide.id}-${option.id}`}
             >
               <div
                 className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
@@ -71,15 +71,12 @@ export function QuestionMultiSelect<T extends Record<string, string>>({
                 >
                   {option.label}
                 </span>
-                {option.description && (
-                  <p className="text-sm text-gray-500 mt-1">{option.description}</p>
-                )}
               </div>
               <div
                 className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all ${
                   isSelected
                     ? "bg-yellow-500 border-yellow-500"
-                    : "border-gray-500 group-hover:border-gray-400"
+                    : "border-white/30"
                 }`}
               >
                 {isSelected && (

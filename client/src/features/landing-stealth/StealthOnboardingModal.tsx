@@ -1,11 +1,11 @@
 import { 
-  OnboardingShell, 
-  useOnboardingFlow,
-  QuestionCompanyDetails,
-  STEALTH_FLOW_CONFIG,
-  type StealthOnboardingData,
-  type QuestionComponentProps
-} from "@/features/onboarding-questionaire";
+  FormShell, 
+  useFormFlow,
+  SlideCompanyDetails,
+  onboardingQuestionnaire,
+  type OnboardingQuestionnaireData,
+  type SlideComponentProps
+} from "@/features/forms";
 
 interface StealthOnboardingModalProps {
   isOpen: boolean;
@@ -13,15 +13,15 @@ interface StealthOnboardingModalProps {
   onComplete: () => void;
 }
 
-const componentRegistry: Record<string, React.ComponentType<QuestionComponentProps<StealthOnboardingData>>> = {
-  "company-details": QuestionCompanyDetails as React.ComponentType<QuestionComponentProps<StealthOnboardingData>>,
+const componentRegistry: Record<string, React.ComponentType<SlideComponentProps<OnboardingQuestionnaireData>>> = {
+  "company-details": SlideCompanyDetails as React.ComponentType<SlideComponentProps<OnboardingQuestionnaireData>>,
 };
 
 export function StealthOnboardingModal({ isOpen, onClose, onComplete }: StealthOnboardingModalProps) {
-  const flow = useOnboardingFlow<StealthOnboardingData>(STEALTH_FLOW_CONFIG);
+  const flow = useFormFlow<OnboardingQuestionnaireData>(onboardingQuestionnaire);
 
   return (
-    <OnboardingShell
+    <FormShell
       isOpen={isOpen}
       onClose={onClose}
       onComplete={onComplete}
