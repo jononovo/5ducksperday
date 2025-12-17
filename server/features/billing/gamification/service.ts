@@ -12,10 +12,12 @@ import {
   BadgeResult
 } from "./types";
 import { storage } from '../../../storage';
+import { CreditRewardService } from "../rewards/service";
 
 export class GamificationService {
   /**
    * Claim Easter Egg bonus credits
+   * Uses CreditRewardService.awardOneTimeCredits with proper rewardKey for idempotency
    */
   static async claimEasterEgg(userId: number, query: string): Promise<EasterEggResult> {
     // Find matching easter egg by trigger (case-insensitive)
@@ -27,27 +29,25 @@ export class GamificationService {
       return { success: false, message: "Invalid easter egg" };
     }
 
-    // Check if already claimed by looking at credit history
-    const history = await storage.getUserCreditHistory(userId, 100);
-    const alreadyClaimed = history.some((tx: any) => 
-      tx.description?.includes(easterEgg.emoji) && 
-      tx.description?.includes(easterEgg.description)
-    );
-    
-    if (alreadyClaimed) {
-      return { success: false, message: "Easter egg already claimed!" };
-    }
-
-    // Award credits using PostgreSQL storage
+    const rewardKey = `easter-egg:${easterEgg.trigger.toLowerCase().replace(/\s+/g, '-')}`;
     const description = `${easterEgg.emoji} ${easterEgg.description}`;
     
     try {
-      const result = await storage.updateUserCredits(userId, easterEgg.reward, 'bonus', description);
+      const result = await CreditRewardService.awardOneTimeCredits(
+        userId,
+        easterEgg.reward,
+        rewardKey,
+        description
+      );
+      
+      if (result.alreadyClaimed) {
+        return { success: false, message: "Easter egg already claimed!" };
+      }
       
       return { 
         success: true, 
         message: `🎉 Easter egg found! +${easterEgg.reward} credits added!`, 
-        newBalance: result.balance,
+        newBalance: result.newBalance,
         easterEgg 
       };
     } catch (error) {
@@ -205,16 +205,15 @@ export class GamificationService {
   
   /**
    * Get user's claimed easter eggs
+   * Uses rewardKey for reliable detection
    */
   static async getClaimedEasterEggs(userId: number): Promise<EasterEgg[]> {
-    const history = await storage.getUserCreditHistory(userId, 100);
+    const history = await storage.getUserCreditHistory(userId, 200);
     const claimedEggs: EasterEgg[] = [];
     
     for (const egg of EASTER_EGGS) {
-      const claimed = history.some((tx: any) => 
-        tx.description?.includes(egg.emoji) && 
-        tx.description?.includes(egg.description)
-      );
+      const rewardKey = `easter-egg:${egg.trigger.toLowerCase().replace(/\s+/g, '-')}`;
+      const claimed = history.some((tx: any) => tx.rewardKey === rewardKey);
       if (claimed) {
         claimedEggs.push(egg);
       }
