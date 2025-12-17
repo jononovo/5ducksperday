@@ -18,6 +18,7 @@ export class CreditRewardService {
    * - Easter eggs
    * 
    * Features control the amount. The rewardKey ensures idempotency.
+   * Demo user (id=1) is excluded from receiving credits.
    * 
    * @param userId - The user receiving credits
    * @param amount - Amount of credits to award (defined by the feature)
@@ -30,6 +31,19 @@ export class CreditRewardService {
     rewardKey: string,
     description?: string
   ): Promise<OneTimeRewardResult> {
+    // Demo user (id=1) should never receive credits - it's the fallback for unauthenticated requests
+    if (userId === 1) {
+      console.log(`[CreditRewardService] SKIPPING credit award for demo user (id=1) - ${rewardKey}`);
+      return {
+        success: true,
+        credited: false,
+        newBalance: 0,
+        alreadyClaimed: false,
+        amount,
+        rewardKey
+      };
+    }
+    
     console.log(`[CreditRewardService] Attempting to award ${amount} credits to user ${userId} for ${rewardKey}`);
     
     try {

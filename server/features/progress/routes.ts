@@ -103,11 +103,12 @@ export function registerProgressRoutes(app: Express) {
       
       const config = NAMESPACE_CONFIGS[namespace];
       const creditsAwarded: { milestoneId: string; credits: number; credited: boolean }[] = [];
+      const DEFAULT_CREDITS = 50;
       
       for (const milestoneId of newlyCompleted) {
         try {
-          const milestoneConfig = config?.milestones[milestoneId];
-          const credits = milestoneConfig?.credits ?? config?.defaultCredits ?? 50;
+          const milestoneConfig = config?.milestones?.[milestoneId];
+          const credits = milestoneConfig?.credits ?? config?.defaultCredits ?? DEFAULT_CREDITS;
           const description = milestoneConfig?.description ?? `${namespace}:${milestoneId}`;
           const rewardKey = `${namespace}:${milestoneId}`;
           
@@ -170,7 +171,7 @@ export function registerProgressRoutes(app: Express) {
       }
       
       const config = NAMESPACE_CONFIGS[namespace];
-      const milestoneConfig = config?.milestones[milestoneId];
+      const milestoneConfig = config?.milestones?.[milestoneId];
       const credits = milestoneConfig?.credits ?? config?.defaultCredits ?? 50;
       const description = milestoneConfig?.description ?? `${namespace}:${milestoneId}`;
       const rewardKey = `${namespace}:${milestoneId}`;
