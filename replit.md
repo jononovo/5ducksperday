@@ -37,9 +37,10 @@ The platform is built with a React SPA frontend (TypeScript, Vite, Tailwind, sha
 - **Unified Service**: `CreditRewardService` (`server/features/billing/rewards/service.ts`) provides `awardOneTimeCredits()` for all credit rewards across features.
 - **Progress Routes**: Generic endpoints at `/api/progress/:namespace` (GET/PATCH) and `/api/progress/:namespace/milestone/:milestoneId` (POST) handle any namespace with automatic milestone diffing and credit awarding.
 - **Idempotency**: Uses `rewardKey` column in `credit_transactions` with unique index on (user_id, reward_key) to prevent duplicate claims.
-- **RewardKey Format**: `"namespace:milestoneId"` (e.g., `"challenge:basic-company-contact-search"`, `"form:onboarding-section-a"`, `"easter-egg:5ducks"`).
+- **RewardKey Format**: `"namespace:milestoneId"` (e.g., `"registration:welcome-bonus"`, `"challenge:basic-company-contact-search"`, `"form:onboarding-section-a"`, `"easter-egg:5ducks"`).
+- **Registration Credits**: 250 credits awarded immediately at user creation (all 3 paths: Firebase auth, email/password, Google OAuth) using rewardKey `"registration:welcome-bonus"`. No lazy initialization.
 - **Namespace Configs**: Defined in `server/features/progress/routes.ts` with milestone-specific credits. Unknown namespaces fall back to 50 credits.
-- **Onboarding Credits**: Section A=50, Section B=75, Section C=100, Section D=120 credits.
+- **Onboarding Credits**: Section A=50, Section B=75, Section C=100, Section D=120 credits (total 345, stacks on top of registration 250 = 595).
 - **Challenge Credits**: 110 credits per completed challenge (configurable via `completionCredits` field). Credits awarded server-side when guidance progress is saved.
 - **Storage Helper**: `storage.awardOneTimeCredits()` uses database transaction with conflict detection for race-safe credit attribution.
 - **Demo User Exclusion**: User id=1 (demo user) is excluded from progress saving and credit operations (enforced in CreditRewardService).
