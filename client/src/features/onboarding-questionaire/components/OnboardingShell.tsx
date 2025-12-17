@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { createPortal } from "react-dom";
 import type { OnboardingShellProps, QuestionComponentProps } from "../types";
 import { fireSectionConfetti, fireFinalConfetti } from "../utils/confetti";
+import { apiRequest } from "@/lib/queryClient";
 import { QuestionSingleSelect } from "./QuestionSingleSelect";
 import { QuestionMultiSelect } from "./QuestionMultiSelect";
 import { QuestionTextInput } from "./QuestionTextInput";
@@ -21,6 +22,7 @@ export function OnboardingShell<T extends Record<string, string>>({
   componentRegistry = {},
 }: OnboardingShellProps<T>) {
   const confettiFiredRef = useRef<number | null>(null);
+  const creditClaimedRef = useRef<Set<string>>(new Set());
 
   const {
     currentStep,
@@ -41,6 +43,21 @@ export function OnboardingShell<T extends Record<string, string>>({
     if (currentQuestion?.type === "section-complete") {
       confettiFiredRef.current = currentStep;
       fireSectionConfetti();
+      
+      const section = currentQuestion.section?.toLowerCase();
+      if (section && !creditClaimedRef.current.has(section)) {
+        creditClaimedRef.current.add(section);
+        const milestoneId = `onboarding-section-${section}`;
+        console.log(`[Onboarding] Claiming credits for milestone: ${milestoneId}`);
+        
+        apiRequest("POST", `/api/progress/form/milestone/${milestoneId}`)
+          .then((response) => {
+            console.log(`[Onboarding] Credit claim response:`, response);
+          })
+          .catch((error) => {
+            console.error(`[Onboarding] Failed to claim credits for ${milestoneId}:`, error);
+          });
+      }
     } else if (currentQuestion?.type === "final-complete") {
       confettiFiredRef.current = currentStep;
       fireFinalConfetti();
