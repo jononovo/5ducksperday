@@ -31,6 +31,7 @@ export interface Challenge {
   setupEvent?: string;
   trigger?: QuestTrigger;   // Defines when/how this challenge auto-starts
   startDelay?: number;      // Delay before challenge begins (omit = use default from defaults.ts)
+  completionCredits?: number; // Credits awarded on completion (omit = use default from defaults.ts)
 }
 
 export interface Quest {

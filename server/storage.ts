@@ -164,6 +164,7 @@ export interface IStorage {
   getUserCredits(userId: number): Promise<{ balance: number; totalPurchased: number; totalUsed: number; lastUpdated?: Date } | null>;
   updateUserCredits(userId: number, amount: number, type: 'purchase' | 'usage' | 'refund' | 'bonus', description?: string): Promise<{ balance: number }>;
   getUserCreditHistory(userId: number, limit?: number): Promise<any[]>;
+  awardOneTimeCredits(userId: number, amount: number, rewardKey: string, description?: string): Promise<{ success: boolean; credited: boolean; newBalance: number; alreadyClaimed: boolean }>;
 
   // Subscriptions
   getUserSubscription(userId: number): Promise<any | null>;
@@ -1425,6 +1426,96 @@ class DatabaseStorage implements IStorage {
       .where(eq(creditTransactions.userId, userId))
       .orderBy(desc(creditTransactions.createdAt))
       .limit(limit);
+  }
+
+  async awardOneTimeCredits(
+    userId: number,
+    amount: number,
+    rewardKey: string,
+    description?: string
+  ): Promise<{ success: boolean; credited: boolean; newBalance: number; alreadyClaimed: boolean }> {
+    try {
+      return await db.transaction(async (tx) => {
+        // Check if reward already claimed
+        const [existing] = await tx.select()
+          .from(creditTransactions)
+          .where(and(
+            eq(creditTransactions.userId, userId),
+            eq(creditTransactions.rewardKey, rewardKey)
+          ));
+
+        if (existing) {
+          // Already claimed - get current balance
+          const [credit] = await tx.select()
+            .from(userCredits)
+            .where(eq(userCredits.userId, userId));
+          return {
+            success: true,
+            credited: false,
+            newBalance: credit?.balance || 0,
+            alreadyClaimed: true
+          };
+        }
+
+        // Get current credits
+        const [current] = await tx.select()
+          .from(userCredits)
+          .where(eq(userCredits.userId, userId));
+
+        const currentBalance = current?.balance || 0;
+        const newBalance = currentBalance + amount;
+
+        // Update or create credits record
+        if (current) {
+          await tx.update(userCredits)
+            .set({
+              balance: newBalance,
+              lastUpdated: new Date()
+            })
+            .where(eq(userCredits.userId, userId));
+        } else {
+          await tx.insert(userCredits)
+            .values({
+              userId,
+              balance: newBalance,
+              totalPurchased: 0,
+              totalUsed: 0
+            });
+        }
+
+        // Record transaction with rewardKey for idempotency
+        await tx.insert(creditTransactions)
+          .values({
+            userId,
+            amount,
+            type: 'bonus',
+            description: description || `Reward: ${rewardKey}`,
+            rewardKey,
+            balanceAfter: newBalance
+          });
+
+        return {
+          success: true,
+          credited: true,
+          newBalance,
+          alreadyClaimed: false
+        };
+      });
+    } catch (error: any) {
+      // Handle unique constraint violation (race condition protection)
+      if (error.code === '23505' && error.constraint?.includes('reward_key')) {
+        const [credit] = await db.select()
+          .from(userCredits)
+          .where(eq(userCredits.userId, userId));
+        return {
+          success: true,
+          credited: false,
+          newBalance: credit?.balance || 0,
+          alreadyClaimed: true
+        };
+      }
+      throw error;
+    }
   }
 
   // Subscriptions Implementation

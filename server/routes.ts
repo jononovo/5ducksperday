@@ -309,7 +309,7 @@ Respond in this exact JSON format:
   // Sender and Customer Profiles Routes are registered via their modules
 
   // Register all billing-related routes (credits, Stripe, gamification)
-  registerBillingRoutes(app);
+  registerBillingRoutes(app, requireAuth);
   
   // Register access applications routes (stealth landing page)
   registerAccessApplicationsRoutes(app);

@@ -3,15 +3,10 @@
  */
 
 import { storage } from '../storage';
-import { CreditService } from '../features/billing/credits/service';
 import type { 
   ProfileUpdateRequest, 
   ProfileResponse,
-  EmailPreferencesData,
-  NotificationTriggerRequest,
-  NotificationMarkShownRequest,
-  NotificationStatusResponse,
-  EasterEggClaimRequest
+  EmailPreferencesData
 } from './types';
 
 export class UserAccountSettingsService {
@@ -122,51 +117,5 @@ export class UserAccountSettingsService {
     }
     
     return updatedPreferences;
-  }
-
-  /**
-   * Trigger notification
-   */
-  static async triggerNotification(userId: number, trigger: string) {
-    return await CreditService.triggerNotification(userId, trigger);
-  }
-
-  /**
-   * Mark notification or badge as shown
-   */
-  static async markNotificationShown(userId: number, data: NotificationMarkShownRequest) {
-    const { notificationId, badgeId } = data;
-    
-    if (typeof badgeId === 'number') {
-      // Award badge
-      await CreditService.awardBadge(userId, badgeId);
-    } else if (typeof notificationId === 'number') {
-      // Mark notification as shown
-      await CreditService.markNotificationShown(userId, notificationId);
-    } else {
-      throw new Error('Either notificationId or badgeId is required');
-    }
-    
-    return { success: true };
-  }
-
-  /**
-   * Get notification status
-   */
-  static async getNotificationStatus(userId: number): Promise<NotificationStatusResponse> {
-    const credits = await CreditService.getUserCredits(userId);
-    
-    return {
-      notifications: credits.notifications || [],
-      badges: credits.badges || [],
-      isWaitlistMember: credits.notifications?.includes(1) || false
-    };
-  }
-
-  /**
-   * Claim easter egg
-   */
-  static async claimEasterEgg(userId: number, query: string) {
-    return await CreditService.claimEasterEgg(userId, query);
   }
 }
