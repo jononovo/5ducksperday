@@ -67,6 +67,7 @@ export interface FormState<T extends Record<string, string>> {
   totalSteps: number;
   progress: number;
   currentSlide: FormSlide<T> | null;
+  currentSection: FormSection<T> | null;
 }
 
 export interface FormActions<T extends Record<string, string>> {
@@ -101,66 +102,4 @@ export interface ScreenComponentProps {
   subtitle?: string;
   emoji?: string;
   credits?: number;
-}
-
-export type OnboardingDataBase = Record<string, string> & { [key: string]: string };
-
-export interface Question<T extends Record<string, string> = Record<string, string>> {
-  id: string;
-  type: SlideType;
-  section?: string;
-  title: string;
-  subtitle?: string;
-  emoji?: string;
-  options?: SlideOption[];
-  placeholder?: string;
-  inputType?: "text" | "textarea" | "url";
-  conditionalOn?: keyof T;
-  conditionalValue?: string;
-  credits?: number;
-  component?: string;
-  validate?: (data: T) => boolean;
-  optional?: boolean;
-}
-
-export interface FlowConfig<T extends Record<string, string>> {
-  questions: Question<T>[];
-  initialData: T;
-  sectionCredits?: Partial<Record<string, number>>;
-}
-
-export interface FlowState<T extends Record<string, string>> {
-  currentStep: number;
-  data: T;
-  visibleQuestions: Question<T>[];
-  totalSteps: number;
-  progress: number;
-  currentQuestion: Question<T> | null;
-}
-
-export interface FlowActions_Legacy<T extends Record<string, string>> {
-  setData: (key: keyof T, value: string) => void;
-  handleNext: () => void;
-  handleBack: () => void;
-  canContinue: () => boolean;
-  getButtonText: () => string;
-}
-
-export interface OnboardingFlowReturn<T extends Record<string, string>> 
-  extends FlowState<T>, FlowActions_Legacy<T> {}
-
-export interface OnboardingShellProps<T extends Record<string, string>> {
-  isOpen: boolean;
-  onClose: () => void;
-  onComplete: () => void;
-  flow: OnboardingFlowReturn<T>;
-  componentRegistry?: Record<string, React.ComponentType<QuestionComponentProps<T>>>;
-}
-
-export interface QuestionComponentProps<T extends Record<string, string>> {
-  question: Question<T>;
-  data: T;
-  onSelect?: (questionId: string, optionId: string) => void;
-  onTextInput?: (questionId: string, value: string) => void;
-  onNext?: () => void;
 }

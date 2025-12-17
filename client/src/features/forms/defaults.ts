@@ -1,8 +1,7 @@
 export const FORM_DEFAULTS = {
   autoAdvanceDelay: 400,
   animationDuration: 300,
-  sectionCompleteCredits: 50,
-  formCompleteCredits: 100,
+  defaultSectionCredits: 50,
   allowSkip: false,
   showProgressBar: true,
   confettiOnSectionComplete: true,

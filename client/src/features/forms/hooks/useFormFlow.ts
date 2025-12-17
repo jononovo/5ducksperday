@@ -1,18 +1,20 @@
 import { useState, useMemo, useCallback } from "react";
-import type { Form, FormSlide, FormFlowReturn } from "../types";
+import type { Form, FormSlide, FormSection, FormFlowReturn } from "../types";
 
 export function useFormFlow<T extends Record<string, string>>(
   form: Form<T>
 ): FormFlowReturn<T> {
   const allSlides = useMemo(() => {
-    return form.sections.flatMap((section) => section.slides);
+    return form.sections.flatMap((section) => 
+      section.slides.map(slide => ({ slide, section }))
+    );
   }, [form.sections]);
 
   const [currentStep, setCurrentStep] = useState(0);
   const [data, setDataState] = useState<T>(form.initialData);
 
   const visibleSlides = useMemo(() => {
-    return allSlides.filter((slide) => {
+    return allSlides.filter(({ slide }) => {
       if (slide.conditionalOn) {
         return data[slide.conditionalOn as keyof T] === slide.conditionalValue;
       }
@@ -21,7 +23,9 @@ export function useFormFlow<T extends Record<string, string>>(
   }, [allSlides, data]);
 
   const totalSteps = visibleSlides.length;
-  const currentSlide = visibleSlides[currentStep] || null;
+  const currentSlideData = visibleSlides[currentStep] || null;
+  const currentSlide = currentSlideData?.slide || null;
+  const currentSection = currentSlideData?.section || null;
   const progress = ((currentStep + 1) / totalSteps) * 100;
 
   const setData = useCallback((key: keyof T, value: string) => {
@@ -102,13 +106,18 @@ export function useFormFlow<T extends Record<string, string>>(
     }
   }, [currentSlide, currentStep, totalSteps]);
 
+  const flatVisibleSlides = useMemo(() => {
+    return visibleSlides.map(({ slide }) => slide);
+  }, [visibleSlides]);
+
   return {
     currentStep,
     data,
-    visibleSlides,
+    visibleSlides: flatVisibleSlides,
     totalSteps,
     progress,
     currentSlide,
+    currentSection,
     setData,
     handleNext,
     handleBack,

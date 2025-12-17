@@ -38,18 +38,11 @@ export interface OnboardingQuestionnaireData {
   serviceOther: string;
 }
 
-const SECTION_CREDITS = {
-  A: 50,
-  B: 75,
-  C: 100,
-  D: 120,
-};
-
 const sectionA: FormSection<OnboardingQuestionnaireData> = {
   id: "section-a",
   name: "Get to Know You",
   emoji: "🐥",
-  completionCredits: SECTION_CREDITS.A,
+  completionCredits: 50,
   slides: [
     {
       id: "welcome",
@@ -76,7 +69,7 @@ const sectionA: FormSection<OnboardingQuestionnaireData> = {
       title: "Nice work!",
       subtitle: "You've unlocked your first reward",
       emoji: "🎉",
-      credits: SECTION_CREDITS.A,
+      credits: 50,
     },
   ],
 };
@@ -85,7 +78,7 @@ const sectionB: FormSection<OnboardingQuestionnaireData> = {
   id: "section-b",
   name: "Your Company",
   emoji: "🏢",
-  completionCredits: SECTION_CREDITS.B,
+  completionCredits: 75,
   slides: [
     {
       id: "section-b-intro",
@@ -145,7 +138,7 @@ const sectionB: FormSection<OnboardingQuestionnaireData> = {
       title: "Awesome!",
       subtitle: "Fluffy is getting to know you better",
       emoji: "✨",
-      credits: SECTION_CREDITS.B,
+      credits: 75,
     },
   ],
 };
@@ -154,7 +147,7 @@ const sectionC: FormSection<OnboardingQuestionnaireData> = {
   id: "section-c",
   name: "Your Product",
   emoji: "🐥",
-  completionCredits: SECTION_CREDITS.C,
+  completionCredits: 100,
   slides: [
     {
       id: "section-c-intro",
@@ -196,7 +189,7 @@ const sectionC: FormSection<OnboardingQuestionnaireData> = {
       title: "You're a star!",
       subtitle: "Fluffy knows your product now",
       emoji: "⭐",
-      credits: SECTION_CREDITS.C,
+      credits: 100,
     },
   ],
 };
@@ -205,7 +198,7 @@ const sectionD: FormSection<OnboardingQuestionnaireData> = {
   id: "section-d",
   name: "Product Pricing",
   emoji: "💰",
-  completionCredits: SECTION_CREDITS.D,
+  completionCredits: 120,
   slides: [
     {
       id: "section-d-intro",
@@ -292,7 +285,7 @@ const sectionD: FormSection<OnboardingQuestionnaireData> = {
       title: "Perfect!",
       subtitle: "Fluffy is ready to help you sell",
       emoji: "🎯",
-      credits: SECTION_CREDITS.D,
+      credits: 120,
     },
   ],
 };
