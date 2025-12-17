@@ -59,6 +59,7 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
   const [showChallengeComplete, setShowChallengeComplete] = useState(false);
   const [completedChallengeName, setCompletedChallengeName] = useState("");
   const [completedChallengeMessage, setCompletedChallengeMessage] = useState("");
+  const [completedChallengeCredits, setCompletedChallengeCredits] = useState<number>(0);
   const previousLocation = useRef<string | null>(null);
   const previousStepKey = useRef<string | null>(null);
   const shownChallengeCompletionRef = useRef<string | null>(null);
@@ -332,6 +333,7 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
       if (isNewCompletion && !showChallengeComplete) {
         setCompletedChallengeName(currentChallenge.name);
         setCompletedChallengeMessage(currentChallenge.completionMessage || "Great job!");
+        setCompletedChallengeCredits(currentChallenge.completionCredits ?? 110);
         setShowChallengeComplete(true);
       }
     }
@@ -411,6 +413,7 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
             isVisible={showChallengeComplete}
             challengeName={completedChallengeName}
             message={completedChallengeMessage}
+            creditsAwarded={completedChallengeCredits}
             onContinue={handleNextChallenge}
             onDismiss={handleChallengeCompleteClose}
           />

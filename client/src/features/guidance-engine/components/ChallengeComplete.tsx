@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createPortal } from "react-dom";
-import { Trophy, ChevronRight } from "lucide-react";
+import { Trophy, ChevronRight, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import confetti from "canvas-confetti";
 
@@ -9,6 +9,7 @@ interface ChallengeCompleteProps {
   isVisible: boolean;
   challengeName: string;
   message?: string;
+  creditsAwarded?: number;
   onContinue: () => void;
   onDismiss: () => void;
 }
@@ -17,6 +18,7 @@ export function ChallengeComplete({
   isVisible,
   challengeName,
   message,
+  creditsAwarded,
   onContinue,
   onDismiss,
 }: ChallengeCompleteProps) {
@@ -100,10 +102,22 @@ export function ChallengeComplete({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
-                className="text-gray-300 text-sm mb-6"
+                className="text-gray-300 text-sm mb-4"
               >
                 {message}
               </motion.p>
+            )}
+
+            {creditsAwarded && creditsAwarded > 0 && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.55, type: "spring", stiffness: 400, damping: 20 }}
+                className="flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-500/30 rounded-full px-4 py-2 mb-6"
+              >
+                <Coins className="h-5 w-5 text-amber-400" />
+                <span className="text-amber-400 font-semibold">+{creditsAwarded} Credits Earned!</span>
+              </motion.div>
             )}
 
             <motion.div
