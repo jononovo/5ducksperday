@@ -32,13 +32,17 @@ The platform is built with a React SPA frontend (TypeScript, Vite, Tailwind, sha
 - **Daily Outreach** (`server/features/daily-outreach/`): User-to-prospect prospecting emails via Gmail OAuth. AI-generated personalized content, per-user scheduling, autopilot windows. Tables: `daily_outreach_jobs`, `daily_outreach_batches`, `daily_outreach_items`.
 - These systems are intentionally separate due to different delivery channels (SendGrid vs Gmail), content generation (templates vs AI), and compliance requirements (system notifications vs marketing outreach).
 
-**Credit Reward System:**
+**Credit Reward & Progress Tracking System:**
+- **Unified Progress Table**: `user_progress` stores all progress across features using namespace scoping (e.g., `form`, `challenge`, `easter-egg`). Fields: `userId`, `namespace`, `completedMilestones` (string array), `metadata` (JSON).
 - **Unified Service**: `CreditRewardService` (`server/features/billing/rewards/service.ts`) provides `awardOneTimeCredits()` for all credit rewards across features.
+- **Progress Routes**: Generic endpoints at `/api/progress/:namespace` (GET/PATCH) and `/api/progress/:namespace/milestone/:milestoneId` (POST) handle any namespace with automatic milestone diffing and credit awarding.
 - **Idempotency**: Uses `rewardKey` column in `credit_transactions` with unique index on (user_id, reward_key) to prevent duplicate claims.
-- **RewardKey Format**: `"source:identifier"` (e.g., `"challenge:basic-company-contact-search"`, `"onboarding:section-a"`, `"easter:5ducks"`).
+- **RewardKey Format**: `"namespace:milestoneId"` (e.g., `"challenge:basic-company-contact-search"`, `"form:onboarding-section-a"`, `"easter-egg:5ducks"`).
+- **Namespace Configs**: Defined in `server/features/progress/routes.ts` with milestone-specific credits. Unknown namespaces fall back to 50 credits.
+- **Onboarding Credits**: Section A=50, Section B=75, Section C=100, Section D=120 credits.
 - **Challenge Credits**: 110 credits per completed challenge (configurable via `completionCredits` field). Credits awarded server-side when guidance progress is saved.
 - **Storage Helper**: `storage.awardOneTimeCredits()` uses database transaction with conflict detection for race-safe credit attribution.
-- **Demo User Exclusion**: User id=1 (demo user) is excluded from credit operations.
+- **Demo User Exclusion**: User id=1 (demo user) is excluded from progress saving and credit operations (enforced in CreditRewardService).
 
 **System Design Choices:**
 - **Data Architecture**: PostgreSQL serves as the primary database for core entities (users, companies, contacts, campaigns) and analytics. Replit KV stores credits, tokens, subscriptions, and rate limiting data. A database-persistent job queue with retry logic manages background tasks.
