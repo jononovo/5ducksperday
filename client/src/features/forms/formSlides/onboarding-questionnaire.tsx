@@ -43,6 +43,7 @@ const sectionA: FormSection<OnboardingQuestionnaireData> = {
   name: "Get to Know You",
   emoji: "🐥",
   completionCredits: 50,
+  trigger: { type: "auto" },
   slides: [
     {
       id: "welcome",
@@ -78,6 +79,7 @@ const sectionB: FormSection<OnboardingQuestionnaireData> = {
   name: "Your Company",
   emoji: "🏢",
   completionCredits: 75,
+  trigger: { type: "afterSection", afterSectionId: "section-a" },
   slides: [
     {
       id: "section-b-intro",
@@ -146,6 +148,7 @@ const sectionC: FormSection<OnboardingQuestionnaireData> = {
   name: "Your Product",
   emoji: "🐥",
   completionCredits: 100,
+  trigger: { type: "afterSection", afterSectionId: "section-b" },
   slides: [
     {
       id: "section-c-intro",
@@ -196,6 +199,7 @@ const sectionD: FormSection<OnboardingQuestionnaireData> = {
   name: "Product Pricing",
   emoji: "💰",
   completionCredits: 120,
+  trigger: { type: "afterSection", afterSectionId: "section-c" },
   slides: [
     {
       id: "section-d-intro",

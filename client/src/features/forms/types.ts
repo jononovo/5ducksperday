@@ -33,12 +33,18 @@ export interface FormSlide<T extends Record<string, string> = Record<string, str
   optional?: boolean;
 }
 
+export interface FormSectionTrigger {
+  type: "auto" | "afterSection" | "manual";
+  afterSectionId?: string;
+}
+
 export interface FormSection<T extends Record<string, string> = Record<string, string>> {
   id: string;
   name: string;
   emoji?: string;
   slides: FormSlide<T>[];
   completionCredits?: number;
+  trigger?: FormSectionTrigger;
 }
 
 export interface FormTrigger {
