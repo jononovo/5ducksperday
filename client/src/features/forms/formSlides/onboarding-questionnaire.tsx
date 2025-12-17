@@ -69,7 +69,6 @@ const sectionA: FormSection<OnboardingQuestionnaireData> = {
       title: "Nice work!",
       subtitle: "You've unlocked your first reward",
       emoji: "🎉",
-      credits: 50,
     },
   ],
 };
@@ -138,7 +137,6 @@ const sectionB: FormSection<OnboardingQuestionnaireData> = {
       title: "Awesome!",
       subtitle: "Fluffy is getting to know you better",
       emoji: "✨",
-      credits: 75,
     },
   ],
 };
@@ -189,7 +187,6 @@ const sectionC: FormSection<OnboardingQuestionnaireData> = {
       title: "You're a star!",
       subtitle: "Fluffy knows your product now",
       emoji: "⭐",
-      credits: 100,
     },
   ],
 };
@@ -285,7 +282,6 @@ const sectionD: FormSection<OnboardingQuestionnaireData> = {
       title: "Perfect!",
       subtitle: "Fluffy is ready to help you sell",
       emoji: "🎯",
-      credits: 120,
     },
   ],
 };

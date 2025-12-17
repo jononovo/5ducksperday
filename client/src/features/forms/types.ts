@@ -28,7 +28,6 @@ export interface FormSlide<T extends Record<string, string> = Record<string, str
   inputType?: "text" | "textarea" | "url";
   conditionalOn?: keyof T;
   conditionalValue?: string;
-  credits?: number;
   component?: string;
   validate?: (data: T) => boolean;
   optional?: boolean;

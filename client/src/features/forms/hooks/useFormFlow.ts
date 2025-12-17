@@ -26,7 +26,7 @@ export function useFormFlow<T extends Record<string, string>>(
   const currentSlideData = visibleSlides[currentStep] || null;
   const currentSlide = currentSlideData?.slide || null;
   const currentSection = currentSlideData?.section || null;
-  const progress = ((currentStep + 1) / totalSteps) * 100;
+  const progress = totalSteps > 0 ? ((currentStep + 1) / totalSteps) * 100 : 0;
 
   const setData = useCallback((key: keyof T, value: string) => {
     setDataState((prev) => ({ ...prev, [key]: value }));

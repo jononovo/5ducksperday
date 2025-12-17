@@ -29,6 +29,7 @@ export function FormShell<T extends Record<string, string>>({
     data,
     progress,
     currentSlide,
+    currentSection,
     setData,
     handleNext,
     handleBack,
@@ -121,7 +122,7 @@ export function FormShell<T extends Record<string, string>>({
             title={currentSlide.title}
             subtitle={currentSlide.subtitle}
             emoji={currentSlide.emoji}
-            credits={currentSlide.credits}
+            credits={currentSection?.completionCredits}
           />
         );
       case "final-complete":
