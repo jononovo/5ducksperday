@@ -140,7 +140,7 @@ export const oauthTokens = pgTable("oauth_tokens", {
 
 export const searchLists = pgTable("search_lists", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  userId: integer("user_id").notNull().references(() => users.id),  
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),  
   listId: integer("list_id").notNull(),
   prompt: text("prompt").notNull(),
   resultCount: integer("result_count").notNull(),
@@ -158,7 +158,7 @@ export const searchLists = pgTable("search_lists", {
 
 export const companies = pgTable("companies", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  userId: integer("user_id").notNull().references(() => users.id),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   name: text("name").notNull(),
   listId: integer("list_id"),  
   description: text("description"),
@@ -185,7 +185,7 @@ export const companies = pgTable("companies", {
 
 export const contacts = pgTable("contacts", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  userId: integer("user_id").notNull().references(() => users.id),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   companyId: integer("company_id"),
   name: text("name").notNull(),
   role: text("role"),
@@ -238,7 +238,7 @@ export const contactFeedback = pgTable("contact_feedback", {
 
 export const emailTemplates = pgTable("email_templates", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   name: text("name").notNull(),
   subject: text("subject").notNull(),
   content: text("content").notNull(),
@@ -267,7 +267,7 @@ export interface UserSettings {
 // Email sending preferences for fallback system
 export const userEmailPreferences = pgTable("user_email_preferences", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   preferredMethod: text("preferred_method").default('smart-default'), // 'smart-default' | 'gmail' | 'outlook' | 'default-app' | 'ask-always'
   hasSeenFirstTimeModal: boolean("has_seen_first_time_modal").default(false),
   hasSeenIOSNotification: boolean("has_seen_ios_notification").default(false),
@@ -282,7 +282,7 @@ export const userEmailPreferences = pgTable("user_email_preferences", {
 // Search jobs for persistent and resilient search execution
 export const searchJobs = pgTable("search_jobs", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  userId: integer("user_id").notNull().references(() => users.id),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   jobId: uuid("job_id").notNull().unique().defaultRandom(),
   query: text("query").notNull(),
   searchType: text("search_type").notNull().default('companies'), // 'companies', 'contacts', 'emails', 'contact-only', 'email-single', 'individual'
@@ -534,7 +534,7 @@ export const webhookLogs = pgTable("webhook_logs", {
 // Daily Outreach Tables
 export const dailyOutreachBatches = pgTable("daily_outreach_batches", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   batchDate: timestamp("batch_date", { withTimezone: true }).notNull(),
   secureToken: uuid("secure_token").defaultRandom().notNull(),
   status: text("status").default("pending"), // "pending", "partial", "complete", "expired"
@@ -548,10 +548,10 @@ export const dailyOutreachBatches = pgTable("daily_outreach_batches", {
 
 export const dailyOutreachItems = pgTable("daily_outreach_items", {
   id: serial("id").primaryKey(),
-  batchId: integer("batch_id").notNull().references(() => dailyOutreachBatches.id),
-  contactId: integer("contact_id").notNull().references(() => contacts.id),
-  companyId: integer("company_id").notNull().references(() => companies.id),
-  communicationId: integer("communication_id").references(() => communicationHistory.id), // Link to CRM record when sent
+  batchId: integer("batch_id").notNull().references(() => dailyOutreachBatches.id, { onDelete: 'cascade' }),
+  contactId: integer("contact_id").notNull().references(() => contacts.id, { onDelete: 'cascade' }),
+  companyId: integer("company_id").notNull().references(() => companies.id, { onDelete: 'cascade' }),
+  communicationId: integer("communication_id").references(() => communicationHistory.id, { onDelete: 'set null' }), // Link to CRM record when sent
   emailSubject: text("email_subject").notNull(),
   emailBody: text("email_body").notNull(),
   emailTone: text("email_tone").notNull(),
@@ -569,9 +569,9 @@ export const dailyOutreachItems = pgTable("daily_outreach_items", {
 export const communicationHistory = pgTable("communication_history", {
   // Core identification
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
-  contactId: integer("contact_id").notNull().references(() => contacts.id),
-  companyId: integer("company_id").notNull().references(() => companies.id),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  contactId: integer("contact_id").notNull().references(() => contacts.id, { onDelete: 'cascade' }),
+  companyId: integer("company_id").notNull().references(() => companies.id, { onDelete: 'cascade' }),
   
   // Channel & type
   channel: text("channel").notNull().default('email'), // 'email', 'sms', 'phone', 'linkedin', 'whatsapp'
@@ -603,8 +603,8 @@ export const communicationHistory = pgTable("communication_history", {
   
   // Attribution
   campaignId: integer("campaign_id"), // Future campaigns
-  batchId: integer("batch_id").references(() => dailyOutreachBatches.id),
-  templateId: integer("template_id").references(() => emailTemplates.id),
+  batchId: integer("batch_id").references(() => dailyOutreachBatches.id, { onDelete: 'set null' }),
+  templateId: integer("template_id").references(() => emailTemplates.id, { onDelete: 'set null' }),
   
   // Enhanced metadata
   metadata: jsonb("metadata").default({}),
@@ -653,7 +653,7 @@ export const communicationHistory = pgTable("communication_history", {
 ]);
 
 export const userOutreachPreferences = pgTable("user_outreach_preferences", {
-  userId: integer("user_id").primaryKey().references(() => users.id),
+  userId: integer("user_id").primaryKey().references(() => users.id, { onDelete: 'cascade' }),
   // Campaign activation status - true means the user has explicitly started their campaign
   // Note: Campaign only runs when enabled=true AND all components configured (product, sender, customer)
   enabled: boolean("enabled").default(true), // TODO: Consider renaming to 'isCampaignActive' for clarity
@@ -661,9 +661,9 @@ export const userOutreachPreferences = pgTable("user_outreach_preferences", {
   scheduleTime: text("schedule_time").default('09:00'), // Store as string for simplicity
   timezone: text("timezone").default('America/New_York'),
   minContactsRequired: integer("min_contacts_required").default(5),
-  activeProductId: integer("active_product_id").references(() => strategicProfiles.id),
-  activeSenderProfileId: integer("active_sender_profile_id").references(() => senderProfiles.id),
-  activeCustomerProfileId: integer("active_customer_profile_id").references(() => customerProfiles.id),
+  activeProductId: integer("active_product_id").references(() => strategicProfiles.id, { onDelete: 'set null' }),
+  activeSenderProfileId: integer("active_sender_profile_id").references(() => senderProfiles.id, { onDelete: 'set null' }),
+  activeCustomerProfileId: integer("active_customer_profile_id").references(() => customerProfiles.id, { onDelete: 'set null' }),
   // Vacation mode fields
   vacationMode: boolean("vacation_mode").default(false),
   vacationStartDate: timestamp("vacation_start_date", { withTimezone: true }),
@@ -678,7 +678,7 @@ export const userOutreachPreferences = pgTable("user_outreach_preferences", {
 // Daily outreach job persistence table
 export const dailyOutreachJobs = pgTable("daily_outreach_jobs", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   nextRunAt: timestamp("next_run_at", { withTimezone: true }).notNull(),
   lastRunAt: timestamp("last_run_at", { withTimezone: true }),
   status: text("status").default("scheduled"), // "scheduled", "running", "completed", "failed"
@@ -696,11 +696,11 @@ export const dailyOutreachJobs = pgTable("daily_outreach_jobs", {
 // Daily outreach job execution logs for audit trail
 export const dailyOutreachJobLogs = pgTable("daily_outreach_job_logs", {
   id: serial("id").primaryKey(),
-  jobId: integer("job_id").notNull().references(() => dailyOutreachJobs.id),
-  userId: integer("user_id").notNull().references(() => users.id),
+  jobId: integer("job_id").notNull().references(() => dailyOutreachJobs.id, { onDelete: 'cascade' }),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   executedAt: timestamp("executed_at", { withTimezone: true }).notNull(),
   status: text("status").notNull(), // "success", "failed", "skipped"
-  batchId: integer("batch_id").references(() => dailyOutreachBatches.id),
+  batchId: integer("batch_id").references(() => dailyOutreachBatches.id, { onDelete: 'set null' }),
   processingTimeMs: integer("processing_time_ms"),
   contactsProcessed: integer("contacts_processed"),
   errorMessage: text("error_message"),
@@ -715,7 +715,7 @@ export const dailyOutreachJobLogs = pgTable("daily_outreach_job_logs", {
 // Sender Profiles for Campaigns
 export const senderProfiles = pgTable("sender_profiles", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   displayName: text("display_name").notNull(),
   email: text("email").notNull(),
   firstName: text("first_name"),
@@ -734,7 +734,7 @@ export const senderProfiles = pgTable("sender_profiles", {
 // Target Customer Profiles for Campaigns
 export const customerProfiles = pgTable("customer_profiles", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   label: text("label").notNull(), // e.g., "Small Business Owners"
   targetDescription: text("target_description"), // Full description of target customer
   industries: text("industries").array(), // Array of industries
@@ -751,16 +751,16 @@ export const customerProfiles = pgTable("customer_profiles", {
 // Campaign Tables
 export const campaigns = pgTable("campaigns", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   name: text("name").notNull(),
   status: text("status").notNull().default("draft"), // draft, active, paused, completed, scheduled
   subject: text("subject"),
   body: text("body"),
   prompt: text("prompt"),
-  contactListId: integer("contact_list_id").references(() => contactLists.id),
-  senderProfileId: integer("sender_profile_id").references(() => senderProfiles.id),
-  strategicProfileId: integer("strategic_profile_id").references(() => strategicProfiles.id), // Reference to product/service info
-  targetCustomerProfileId: integer("target_customer_profile_id").references(() => customerProfiles.id),
+  contactListId: integer("contact_list_id").references(() => contactLists.id, { onDelete: 'set null' }),
+  senderProfileId: integer("sender_profile_id").references(() => senderProfiles.id, { onDelete: 'set null' }),
+  strategicProfileId: integer("strategic_profile_id").references(() => strategicProfiles.id, { onDelete: 'set null' }), // Reference to product/service info
+  targetCustomerProfileId: integer("target_customer_profile_id").references(() => customerProfiles.id, { onDelete: 'set null' }),
   // Email generation settings
   tone: text("tone"),
   offerType: text("offer_type"),
@@ -777,7 +777,7 @@ export const campaigns = pgTable("campaigns", {
   delayBetweenEmails: integer("delay_between_emails").default(30), // minutes
   // Human Review settings
   requiresHumanReview: boolean("requires_human_review").default(true), // true = notification/review flow, false = auto-send
-  emailTemplateId: integer("email_template_id").references(() => emailTemplates.id), // template for auto-send campaigns
+  emailTemplateId: integer("email_template_id").references(() => emailTemplates.id, { onDelete: 'set null' }), // template for auto-send campaigns
   // Generation type settings
   generationType: text("generation_type").default("merge_field"), // 'ai_unique' = generate unique email per recipient, 'merge_field' = use template with merge fields
   // Tracking settings
@@ -796,7 +796,7 @@ export const campaigns = pgTable("campaigns", {
 
 export const strategicProfiles = pgTable("strategic_profiles", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   title: text("title").notNull(),
   businessType: text("business_type").notNull(), // "product" or "service"
   businessDescription: text("business_description").notNull(),
@@ -830,8 +830,8 @@ export const strategicProfiles = pgTable("strategic_profiles", {
 
 export const onboardingChats = pgTable("onboarding_chats", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
-  profileId: integer("profile_id").notNull().references(() => strategicProfiles.id),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  profileId: integer("profile_id").notNull().references(() => strategicProfiles.id, { onDelete: 'cascade' }),
   messages: jsonb("messages").default([]),
   currentStep: text("current_step").default("business_description"),
   isComplete: boolean("is_complete").default(false),
@@ -1116,7 +1116,7 @@ export type InsertCampaign = z.infer<typeof insertCampaignSchema>;
 // Contact Lists tables
 export const contactLists = pgTable("contact_lists", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   name: text("name").notNull(),
   description: text("description"),
   contactCount: integer("contact_count").notNull().default(0),
@@ -1130,7 +1130,7 @@ export const contactListMembers = pgTable("contact_list_members", {
   listId: integer("list_id").notNull().references(() => contactLists.id, { onDelete: 'cascade' }),
   contactId: integer("contact_id").notNull().references(() => contacts.id, { onDelete: 'cascade' }),
   addedAt: timestamp("added_at").defaultNow(),
-  addedBy: integer("added_by").references(() => users.id),
+  addedBy: integer("added_by").references(() => users.id, { onDelete: 'set null' }),
   source: text("source").notNull().default('manual'), // 'manual', 'search_list', 'company', 'bulk'
   sourceMetadata: jsonb("source_metadata")
 }, (table) => [
