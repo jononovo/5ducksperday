@@ -52,6 +52,7 @@ import { registerContactListRoutes } from "./features/contact-lists/routes";
 import { registerOnboardingRoutes } from "./features/onboarding/routes";
 import { registerSearchQueueRoutes } from "./features/search-queues/routes";
 import { registerGuidanceRoutes } from "./features/guidance/routes";
+import { registerProgressRoutes } from "./features/progress/routes";
 import { registerAccessApplicationsRoutes } from "./features/access-applications/routes";
 
 
@@ -192,6 +193,9 @@ export function registerRoutes(app: Express) {
   
   // Register guidance engine routes
   registerGuidanceRoutes(app);
+  
+  // Register unified progress routes (namespace-scoped progress for any feature)
+  registerProgressRoutes(app);
   
   // Register daily outreach routes
   // Note: Auth is handled selectively inside the router - token-based endpoints don't need auth

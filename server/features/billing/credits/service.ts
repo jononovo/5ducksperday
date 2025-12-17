@@ -3,7 +3,9 @@ import { storage } from '../../../storage';
 
 export class CreditService {
   /**
-   * Get user credits, creating initial record if needed
+   * Get user credits
+   * Credits are now awarded at registration time via CreditRewardService.awardOneTimeCredits()
+   * This function simply retrieves the current state - no lazy initialization
    */
   static async getUserCredits(userId: number): Promise<UserCredits> {
     try {
@@ -13,29 +15,19 @@ export class CreditService {
       const creditData = await storage.getUserCredits(userId);
       
       if (!creditData) {
-        console.log(`[CreditService] No credits found for user ${userId}, creating initial record with 250 credits`);
-        
-        // Create initial credit record with 250 credit starting bonus
-        await storage.updateUserCredits(userId, 250, 'bonus', 'Welcome bonus - 250 free credits');
-        
-        const initialCredits: UserCredits = {
-          currentBalance: 250,
+        // No credits found - this shouldn't happen for registered users
+        // Return zero balance (credits are awarded at registration, not lazily)
+        console.log(`[CreditService] No credits found for user ${userId} - returning zero balance`);
+        return {
+          currentBalance: 0,
           lastTopUp: Date.now(),
           totalUsed: 0,
           isBlocked: false,
-          transactions: [{
-            type: 'credit',
-            amount: 250,
-            description: 'Welcome bonus - 250 free credits',
-            timestamp: Date.now()
-          }],
+          transactions: [],
           monthlyAllowance: MONTHLY_CREDIT_ALLOWANCE,
           createdAt: Date.now(),
           updatedAt: Date.now()
         };
-        
-        console.log(`[CreditService] Successfully created initial credits for user ${userId}`);
-        return initialCredits;
       }
       
       // Get transaction history
@@ -76,18 +68,13 @@ export class CreditService {
       return userCredits;
     } catch (error) {
       console.error(`Error getting credits for user ${userId}:`, error);
-      // Return default credits on error
+      // Return zero balance on error - credits are awarded at registration, not here
       return {
-        currentBalance: 250,
+        currentBalance: 0,
         lastTopUp: Date.now(),
         totalUsed: 0,
         isBlocked: false,
-        transactions: [{
-          type: 'credit',
-          amount: 250,
-          description: 'Welcome bonus - 250 free credits (fallback)',
-          timestamp: Date.now()
-        }],
+        transactions: [],
         monthlyAllowance: MONTHLY_CREDIT_ALLOWANCE,
         createdAt: Date.now(),
         updatedAt: Date.now()

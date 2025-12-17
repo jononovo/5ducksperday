@@ -4,7 +4,7 @@ import {
   senderProfiles, customerProfiles, campaigns, searchJobs,
   contactLists, contactListMembers, oauthTokens,
   userCredits, creditTransactions, subscriptions, userNotifications,
-  campaignRecipients, userGuidanceProgress, accessApplications,
+  campaignRecipients, userGuidanceProgress, userProgress, accessApplications,
   emailSequences, emailSequenceEvents, emailSends,
   type UserPreferences, type InsertUserPreferences,
   type UserEmailPreferences, type InsertUserEmailPreferences,
@@ -22,6 +22,7 @@ import {
   type ContactListMember, type InsertContactListMember,
   type CampaignRecipient, type InsertCampaignRecipient,
   type UserGuidanceProgress, type InsertUserGuidanceProgress,
+  type UserProgress, type InsertUserProgress,
   type AccessApplication, type InsertAccessApplication,
   type EmailSequence, type InsertEmailSequence,
   type EmailSequenceEvent, type InsertEmailSequenceEvent,
@@ -177,9 +178,13 @@ export interface IStorage {
   markNotificationAsRead(notificationId: number): Promise<void>;
   dismissNotification(notificationId: number): Promise<void>;
 
-  // User Guidance Progress
+  // User Guidance Progress (legacy - being replaced by unified userProgress)
   getUserGuidanceProgress(userId: number): Promise<UserGuidanceProgress | null>;
   updateUserGuidanceProgress(userId: number, data: Partial<InsertUserGuidanceProgress>): Promise<UserGuidanceProgress>;
+
+  // Unified User Progress (namespace-scoped progress for any feature)
+  getUserProgress(userId: number, namespace: string): Promise<UserProgress | null>;
+  upsertUserProgress(userId: number, namespace: string, completedMilestones: string[], metadata?: Record<string, any>): Promise<UserProgress>;
 
   // Access Applications (for stealth landing page)
   createAccessApplication(data: InsertAccessApplication): Promise<AccessApplication>;
@@ -1642,6 +1647,51 @@ class DatabaseStorage implements IStorage {
         currentChallengeIndex: data.currentChallengeIndex || 0,
         currentStepIndex: data.currentStepIndex || 0,
         settings: data.settings || {}
+      })
+      .returning();
+    return created;
+  }
+
+  // Unified User Progress Implementation
+  async getUserProgress(userId: number, namespace: string): Promise<UserProgress | null> {
+    const [progress] = await db.select()
+      .from(userProgress)
+      .where(and(
+        eq(userProgress.userId, userId),
+        eq(userProgress.namespace, namespace)
+      ));
+    return progress || null;
+  }
+
+  async upsertUserProgress(
+    userId: number, 
+    namespace: string, 
+    completedMilestones: string[], 
+    metadata?: Record<string, any>
+  ): Promise<UserProgress> {
+    const existing = await this.getUserProgress(userId, namespace);
+    
+    if (existing) {
+      const [updated] = await db.update(userProgress)
+        .set({
+          completedMilestones,
+          metadata: metadata || existing.metadata || {},
+          updatedAt: new Date()
+        })
+        .where(and(
+          eq(userProgress.userId, userId),
+          eq(userProgress.namespace, namespace)
+        ))
+        .returning();
+      return updated;
+    }
+    
+    const [created] = await db.insert(userProgress)
+      .values({
+        userId,
+        namespace,
+        completedMilestones,
+        metadata: metadata || {}
       })
       .returning();
     return created;

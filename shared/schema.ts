@@ -103,6 +103,22 @@ export const userGuidanceProgress = pgTable("user_guidance_progress", {
   uniqueIndex('idx_user_guidance_progress_user_id').on(table.userId)
 ]);
 
+// Unified User Progress - namespace-scoped progress for any feature (forms, challenges, etc.)
+// Replaces feature-specific progress tables with a single unified approach
+export const userProgress = pgTable("user_progress", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  namespace: text("namespace").notNull(), // e.g., "challenge", "form", "easter-egg"
+  completedMilestones: text("completed_milestones").array().default([]), // e.g., ["onboarding-section-a", "basic-search"]
+  metadata: jsonb("metadata").default({}), // Additional state (e.g., currentQuestId for guidance)
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow()
+}, (table) => [
+  uniqueIndex('idx_user_progress_user_namespace').on(table.userId, table.namespace),
+  index('idx_user_progress_user_id').on(table.userId),
+  index('idx_user_progress_namespace').on(table.namespace)
+]);
+
 // OAuth tokens with encryption for sensitive data
 export const oauthTokens = pgTable("oauth_tokens", {
   id: serial("id").primaryKey(),
@@ -430,7 +446,7 @@ export type InsertUserPreferences = z.infer<typeof insertUserPreferencesSchema>;
 export type UserEmailPreferences = typeof userEmailPreferences.$inferSelect;
 export type InsertUserEmailPreferences = z.infer<typeof insertUserEmailPreferencesSchema>;
 
-// User Guidance Progress types
+// User Guidance Progress types (legacy - being replaced by unified userProgress)
 export type UserGuidanceProgress = typeof userGuidanceProgress.$inferSelect;
 export type InsertUserGuidanceProgress = {
   userId: number;
@@ -440,6 +456,15 @@ export type InsertUserGuidanceProgress = {
   currentChallengeIndex?: number;
   currentStepIndex?: number;
   settings?: GuidanceProgressSettings;
+};
+
+// Unified User Progress types
+export type UserProgress = typeof userProgress.$inferSelect;
+export type InsertUserProgress = {
+  userId: number;
+  namespace: string;
+  completedMilestones?: string[];
+  metadata?: Record<string, any>;
 };
 
 // N8N workflow types have been removed

@@ -9,6 +9,7 @@ import { User, User as SelectUser } from "@shared/schema";
 import admin from "firebase-admin";
 import { TokenService } from "./features/billing/tokens/service";
 import { UserTokens } from "./features/billing/tokens/types";
+import { CreditRewardService } from "./features/billing/rewards/service";
 import connectPgSimple from "connect-pg-simple";
 import { pool } from "./db";
 import { dripEmailEngine } from "./email/drip-engine";
@@ -123,6 +124,14 @@ async function verifyFirebaseToken(req: Request): Promise<SelectUser | null> {
         username: decodedToken.name || decodedToken.email.split('@')[0],
         password: '',  // Not used for Firebase auth
       });
+      
+      // Award registration credits using unified system (non-blocking)
+      CreditRewardService.awardOneTimeCredits(
+        user.id, 
+        250, 
+        "registration:welcome-bonus", 
+        "Welcome bonus - 250 free credits"
+      ).catch(err => console.error(`[Auth] Failed to award registration credits:`, err));
       
       // Send welcome email to new user (non-blocking)
       sendWelcomeEmail(decodedToken.email, decodedToken.name);
@@ -386,6 +395,14 @@ export function setupAuth(app: Express) {
           timestamp: new Date().toISOString()
         });
 
+        // Award registration credits using unified system (non-blocking)
+        CreditRewardService.awardOneTimeCredits(
+          user.id, 
+          250, 
+          "registration:welcome-bonus", 
+          "Welcome bonus - 250 free credits"
+        ).catch(err => console.error(`[Auth] Failed to award registration credits:`, err));
+
         // Send welcome email to new user (non-blocking)
         sendWelcomeEmail(email, user.username);
 
@@ -615,6 +632,14 @@ export function setupAuth(app: Express) {
             password: '',  // Not used for Google auth
           });
           console.log(`[/api/google-auth] Successfully created new user: id=${user.id}`);
+          
+          // Award registration credits using unified system (non-blocking)
+          CreditRewardService.awardOneTimeCredits(
+            user.id, 
+            250, 
+            "registration:welcome-bonus", 
+            "Welcome bonus - 250 free credits"
+          ).catch(err => console.error(`[Auth] Failed to award registration credits:`, err));
           
           // Send welcome email to new user (non-blocking)
           sendWelcomeEmail(email, username);
