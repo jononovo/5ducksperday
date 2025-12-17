@@ -25,7 +25,7 @@ export const quest1: Quest = {
           selector: '[data-testid="search-options-button"]',
           action: "click",
           instruction: "Click on the search options to choose what you want to search for",
-          tooltipPosition: "bottom",
+          tooltipPosition: "right",
           route: "/app",
         },
         {
