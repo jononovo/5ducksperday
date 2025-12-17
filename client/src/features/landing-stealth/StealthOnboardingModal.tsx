@@ -5,7 +5,7 @@ import {
   STEALTH_FLOW_CONFIG,
   type StealthOnboardingData,
   type QuestionComponentProps
-} from "@/features/onboarding-questionaire";
+} from "@/features/forms";
 
 interface StealthOnboardingModalProps {
   isOpen: boolean;
