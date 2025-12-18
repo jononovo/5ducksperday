@@ -190,7 +190,7 @@ export default function DailyOutreach() {
   const sendEmailMutation = useMutation({
     mutationFn: async ({ to, subject, body }: { to: string; subject: string; body: string }) => {
       markPending(); // Mark as sending
-      const response = await fetch('/api/gmail/send', {
+      const response = await fetch('/api/send-gmail', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ to, subject, body })

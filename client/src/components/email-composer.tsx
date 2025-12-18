@@ -494,7 +494,7 @@ export function EmailComposer({
   // Mutations
   const sendEmailMutation = useMutation({
     mutationFn: async (data: { to: string; subject: string; body: string }) => {
-      const res = await apiRequest("POST", '/api/gmail/send', data);
+      const res = await apiRequest("POST", '/api/send-gmail', data);
       return await res.json();
     },
     onSuccess: () => {
