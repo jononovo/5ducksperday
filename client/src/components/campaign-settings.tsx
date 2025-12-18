@@ -38,6 +38,7 @@ import { format } from "date-fns";
 import { Send } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/use-auth";
 
 interface GmailAuthStatus {
   authorized: boolean;
@@ -85,6 +86,7 @@ export function CampaignSettings({
   className,
   totalRecipients = 100
 }: CampaignSettingsProps) {
+  const { user, authReady } = useAuth();
   const [localSettings, setLocalSettings] = useState<CampaignSettingsData>(settings);
   const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
   const [autopilotModalOpen, setAutopilotModalOpen] = useState(false);
@@ -94,15 +96,17 @@ export function CampaignSettings({
     setLocalSettings(settings);
   }, [settings]);
 
-  // Check Gmail connection status
+  // Check Gmail connection status - wait for auth to be ready
   const { data: gmailStatus } = useQuery<GmailAuthStatus>({
     queryKey: ['/api/gmail/auth-status'],
     refetchInterval: 10000, // Refresh every 10 seconds
+    enabled: authReady && !!user,
   });
 
-  // Fetch sender profiles
+  // Fetch sender profiles - wait for auth to be ready
   const { data: senderProfiles } = useQuery<SenderProfile[]>({
     queryKey: ['/api/sender-profiles'],
+    enabled: authReady && !!user,
   });
 
   // Set default sender profile when profiles are loaded

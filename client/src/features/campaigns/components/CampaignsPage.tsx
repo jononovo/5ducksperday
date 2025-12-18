@@ -6,6 +6,7 @@ import { z } from "zod";
 import { Link, useLocation } from "wouter";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -61,6 +62,7 @@ const createCampaignSchema = z.object({
 
 export default function CampaignsPage() {
   const { toast } = useToast();
+  const { user, authReady } = useAuth();
   const [, setLocation] = useLocation();
   const [expandedCampaigns, setExpandedCampaigns] = useState<Set<number>>(new Set());
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -74,8 +76,10 @@ export default function CampaignsPage() {
     },
   });
 
+  // Wait for auth to be ready before fetching campaigns to prevent 401s on idle tab return
   const { data: campaigns = [], isLoading } = useQuery<Campaign[]>({
     queryKey: ['/api/campaigns'],
+    enabled: authReady && !!user,
   });
 
   const createCampaignMutation = useMutation({
