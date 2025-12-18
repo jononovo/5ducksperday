@@ -7,12 +7,13 @@
 - **Default Email Tone**: Professional with personalized intros
 - **Campaign Defaults**: Batch size 10, daily limit 50
 - **UI Preferences**: Dark mode support, mobile-first responsive design
-- **Navigation Flow**: Search → Save List → Create Campaign → Launch
+- **Navigation Flow**: Search → Save List → Compose Email (via drawer) → Launch Campaign
 
 ## System Architecture
 The platform is built with a React SPA frontend (TypeScript, Vite, Tailwind, shadcn/ui, TanStack Query) and an Express.js backend (TypeScript) utilizing PostgreSQL for core data and Replit KV Store for dynamic configurations. Authentication is handled by Firebase and Passport.js.
 
 **UI/UX Decisions:**
+- **Consolidated Email Workflow**: The standalone /outreach page was removed; all email composition now happens via the email drawer on /app. This streamlines the user flow by keeping users on a single page for search and outreach.
 - **Historic Searches Drawer**: Moved to a permanent header position for accessibility.
 - **Mobile Optimization**: Designed with an 80% drawer width and tap-outside-to-close functionality for better mobile experience.
 - **Improved Navigation**: Employs event-based communication between components for a smoother user experience.

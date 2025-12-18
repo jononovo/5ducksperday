@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { LogOut, User, Menu, LayoutDashboard, Mail, MessageCircle, Target, Headphones, Flame, PanelLeft } from "lucide-react";
+import { LogOut, User, Menu, LayoutDashboard, MessageCircle, Target, Headphones, Flame, PanelLeft } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
 import { useStrategyOverlay } from "@/features/strategy-chat";
@@ -81,12 +81,6 @@ export function MainNav() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <Link href="/outreach">
-                  <DropdownMenuItem>
-                    <Mail className="h-4 w-4 mr-2" />
-                    <span>Outreach</span>
-                  </DropdownMenuItem>
-                </Link>
                 <Link href="/streak">
                   <DropdownMenuItem>
                     <Flame className="h-4 w-4 mr-2" />

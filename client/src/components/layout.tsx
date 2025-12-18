@@ -26,7 +26,7 @@ export function AppLayout({ children }: LayoutProps) {
   const [savedSearchesDrawerOpen, setSavedSearchesDrawerOpen] = useState(false);
   
   // Hide MiniFooter on these specific pages
-  const hideFooterOnPaths = ['/app', '/outreach', '/streak'];
+  const hideFooterOnPaths = ['/app', '/streak'];
   const shouldHideFooter = hideFooterOnPaths.includes(location);
   
   // Listen for drawer open events

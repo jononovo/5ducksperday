@@ -126,7 +126,7 @@ export default function Landing2Page() {
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-            <Link href="/outreach">
+            <Link href="/app">
               <Button variant="outline">
                 Login
               </Button>

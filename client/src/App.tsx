@@ -28,7 +28,6 @@ import Auth from "@/pages/auth";
 // Lazy imports for app pages that can be loaded on demand
 const Home = lazy(() => import("@/pages/home"));
 const Account = lazy(() => import("@/pages/account"));
-const Outreach = lazy(() => import("@/pages/outreach"));
 const Replies = lazy(() => import("@/pages/replies"));
 const CompanyDetails = lazy(() => import("@/pages/company-details"));
 const ContactDetails = lazy(() => import("@/pages/contact-details"));
@@ -196,11 +195,6 @@ function Router() {
                 <ProtectedRoute path="/account" component={() => 
                   <Suspense fallback={<LoadingScreen />}>
                     <Account />
-                  </Suspense>
-                } />
-                <ProtectedRoute path="/outreach" component={() => 
-                  <Suspense fallback={<LoadingScreen />}>
-                    <Outreach />
                   </Suspense>
                 } />
                 <ProtectedRoute path="/streak" component={() => 
