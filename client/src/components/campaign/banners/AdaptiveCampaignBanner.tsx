@@ -31,19 +31,17 @@ export function AdaptiveCampaignBanner({
   const [testModeIndex, setTestModeIndex] = useState(0);
   
   // Determine if test mode should be enabled
+  // Test mode is OPT-IN ONLY to avoid interfering with normal campaign behavior
   const isTestModeEnabled = () => {
     // Check for explicit prop
     if (enableTestCycle) return true;
     
-    // Check for development mode
-    if (import.meta.env.MODE !== 'production') return true;
-    
-    // Check for URL query parameter
+    // Check for URL query parameter (opt-in)
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       if (params.get('testBanners') === '1') return true;
       
-      // Check localStorage
+      // Check localStorage (opt-in)
       if (localStorage.getItem('bannerTestMode') === '1') return true;
     }
     
