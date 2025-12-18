@@ -24,21 +24,22 @@ export function AdaptiveCampaignBanner({
   hasCustomerProfile,
   onStartClick
 }: AdaptiveCampaignBannerProps) {
+  const hasNoComponents = !hasSenderProfile && !hasProduct && !hasCustomerProfile;
   const hasAllComponents = hasSenderProfile && hasProduct && hasCustomerProfile;
 
-  if (!hasAllComponents) {
-    return (
-      <SetupProgressBanner
-        hasSenderProfile={hasSenderProfile}
-        hasProduct={hasProduct}
-        hasCustomerProfile={hasCustomerProfile}
-      />
-    );
-  }
-  
-  if (!isActivated) {
+  if (hasNoComponents) {
     return <ActivationCTABanner onStartClick={onStartClick || (() => {})} />;
   }
-  
-  return <ActiveCampaignBanner stats={stats || {}} />;
+
+  if (isActivated && hasAllComponents) {
+    return <ActiveCampaignBanner stats={stats || {}} />;
+  }
+
+  return (
+    <SetupProgressBanner
+      hasSenderProfile={hasSenderProfile}
+      hasProduct={hasProduct}
+      hasCustomerProfile={hasCustomerProfile}
+    />
+  );
 }
