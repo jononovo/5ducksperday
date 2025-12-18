@@ -6,6 +6,7 @@ export interface TopProspectsCardProps {
   pendingContactIds: Set<number>;
   pendingHunterIds: Set<number>;
   pendingApolloIds: Set<number>;
+  pendingComprehensiveSearchIds?: Set<number>;
   isVisible: boolean;
   onEnrichProspects: (prospects: ContactWithCompanyInfo[]) => void;
   onSelectAll: (checked: boolean) => void;
@@ -15,4 +16,5 @@ export interface TopProspectsCardProps {
   onHunterSearch: (contactId: number) => void;
   onApolloSearch: (contactId: number) => void;
   onContactFeedback: (contactId: number, feedback: string) => void;
+  handleComprehensiveEmailSearch?: (contactId: number) => void;
 }

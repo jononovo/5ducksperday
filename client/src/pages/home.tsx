@@ -2348,6 +2348,7 @@ export default function Home() {
             pendingContactIds={pendingContactIds}
             pendingHunterIds={pendingHunterIds}
             pendingApolloIds={pendingApolloIds}
+            pendingComprehensiveSearchIds={pendingComprehensiveSearchIds}
             isVisible={!!(currentResults && currentResults.length > 0 && companiesViewMode !== 'slides')}
             onEnrichProspects={handleEnrichProspects}
             onSelectAll={handleSelectAllContacts}
@@ -2357,6 +2358,7 @@ export default function Home() {
             onHunterSearch={handleHunterSearch}
             onApolloSearch={handleApolloSearch}
             onContactFeedback={handleContactFeedback}
+            handleComprehensiveEmailSearch={handleComprehensiveEmailSearch}
           />
             </div>
 
