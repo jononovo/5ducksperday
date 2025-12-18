@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { UserCircle, Banknote, ChevronDown, ChevronUp } from "lucide-react";
+import { UserCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { ContactRow } from "@/components/contact-row";
 import type { TopProspectsCardProps } from "./types";
 
@@ -9,15 +9,11 @@ const INITIAL_VISIBLE_COUNT = 5;
 
 export function TopProspectsCard({
   prospects,
-  selectedContacts,
   pendingContactIds,
   pendingHunterIds,
   pendingApolloIds,
   pendingComprehensiveSearchIds,
   isVisible,
-  onEnrichProspects,
-  onSelectAll,
-  onCheckboxChange,
   onContactView,
   onEnrichContact,
   onHunterSearch,
@@ -28,10 +24,6 @@ export function TopProspectsCard({
   const [isExpanded, setIsExpanded] = useState(false);
   
   if (!isVisible || prospects.length === 0) return null;
-
-  const getSelectedProspects = () => {
-    return prospects.filter(contact => selectedContacts.has(contact.id));
-  };
   
   const visibleProspects = isExpanded ? prospects : prospects.slice(0, INITIAL_VISIBLE_COUNT);
   const remainingCount = prospects.length - INITIAL_VISIBLE_COUNT;
@@ -45,26 +37,6 @@ export function TopProspectsCard({
             <UserCircle className="w-5 h-5" />
             Top Prospects
           </CardTitle>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                const selectedProspects = getSelectedProspects();
-                if (selectedProspects.length > 0) {
-                  onEnrichProspects(selectedProspects);
-                } else {
-                  onEnrichProspects(prospects);
-                }
-              }}
-              data-testid="button-enrich-prospects"
-            >
-              <Banknote className="mr-2 h-4 w-4" />
-              {selectedContacts.size > 0 
-                ? `Enrich Selected (${selectedContacts.size})` 
-                : "Enrich All Prospects"}
-            </Button>
-          </div>
         </div>
         <p className="text-sm text-muted-foreground">
           Highest probability contacts across all companies

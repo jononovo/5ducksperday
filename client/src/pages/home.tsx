@@ -1140,88 +1140,6 @@ export default function Home() {
     feedbackMutation.mutate({ contactId, feedbackType });
   };
 
-  const handleEnrichProspects = async (prospects: ContactWithCompanyInfo[]) => {
-    if (prospects.length === 0) {
-      toast({
-        title: "No Prospects",
-        description: "There are no high-probability prospects to enrich.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      // Get all contact IDs regardless of company
-      const contactIds = prospects.map(contact => contact.id);
-
-      // Send all contacts for enrichment in a single request
-      const response = await apiRequest("POST", `/api/enrich-contacts`, {
-        contactIds
-      });
-      const data = await response.json();
-
-      toast({
-        title: "Email Search Started",
-        description: `Searching for emails for ${contactIds.length} top prospects`,
-      });
-
-      // Start polling for completion
-      const pollInterval = setInterval(async () => {
-        try {
-          const statusResponse = await apiRequest("GET", `/api/enrichment/${data.queueId}/status`);
-          const statusData = await statusResponse.json();
-
-          if (statusData.status === 'completed') {
-            clearInterval(pollInterval);
-            // Refresh all contacts that were enriched
-            const updatedContacts = await Promise.all(
-              contactIds.map(async (id) => {
-                const contactResponse = await apiRequest("GET", `/api/contacts/${id}`);
-                return contactResponse.json();
-              })
-            );
-
-            // Update the currentResults with the enriched contacts
-            setCurrentResults(prev => {
-              if (!prev) return null;
-              return prev.map(company => ({
-                ...company,
-                contacts: company.contacts?.map(contact =>
-                  updatedContacts.find(uc => uc.id === contact.id) || contact
-                )
-              }));
-            });
-
-            toast({
-              title: "Email Search Complete",
-              description: `Successfully found emails for ${statusData.completedItems} contacts`,
-            });
-          } else if (statusData.status === 'failed') {
-            clearInterval(pollInterval);
-            toast({
-              title: "Email Search Failed",
-              description: "Failed to complete email search",
-              variant: "destructive",
-            });
-          }
-        } catch (error) {
-          clearInterval(pollInterval);
-          console.error('Status check error:', error);
-        }
-      }, 2000); // Check every 2 seconds
-
-      // Clear interval after 5 minutes to prevent infinite polling
-      setTimeout(() => clearInterval(pollInterval), 300000);
-
-    } catch (error) {
-      toast({
-        title: "Email Search Failed",
-        description: error instanceof Error ? error.message : "Failed to start email search",
-        variant: "destructive",
-      });
-    }
-  };
-
   // Handle loading a saved search from the drawer
   const handleLoadSavedSearch = async (list: SearchList) => {
     console.log('Loading saved search:', {
@@ -1974,24 +1892,6 @@ export default function Home() {
     });
   };
 
-  const handleSelectAllContacts = () => {
-    const prospects = getTopProspects();
-    if (prospects.length === 0) return;
-    
-    // If all are already selected, deselect all
-    if (prospects.every(contact => selectedContacts.has(contact.id))) {
-      setSelectedContacts(new Set());
-    } else {
-      // Otherwise select all
-      setSelectedContacts(new Set(prospects.map(contact => contact.id)));
-    }
-  };
-
-  // Get selected contacts for batch operations
-  const getSelectedProspects = () => {
-    return getTopProspects().filter(contact => selectedContacts.has(contact.id));
-  };
-
   return (
     <>
       {/* Consolidated Search Report Modal - Rendered at root level to avoid overflow clipping */}
@@ -2332,15 +2232,11 @@ export default function Home() {
           {/* Top Prospects Section - Modular component */}
           <TopProspectsCard
             prospects={getTopProspects()}
-            selectedContacts={selectedContacts}
             pendingContactIds={pendingContactIds}
             pendingHunterIds={pendingHunterIds}
             pendingApolloIds={pendingApolloIds}
             pendingComprehensiveSearchIds={pendingComprehensiveSearchIds}
             isVisible={!!(currentResults && currentResults.length > 0 && companiesViewMode !== 'slides')}
-            onEnrichProspects={handleEnrichProspects}
-            onSelectAll={handleSelectAllContacts}
-            onCheckboxChange={handleCheckboxChange}
             onContactView={handleContactView}
             onEnrichContact={handleEnrichContact}
             onHunterSearch={handleHunterSearch}
