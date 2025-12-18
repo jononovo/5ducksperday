@@ -102,10 +102,13 @@ export function AdaptiveCampaignBanner({
     }
   };
   
+  // Check if all 3 required components are configured
+  const hasAllComponents = hasSenderProfile && hasProduct && hasCustomerProfile;
+  
   // Render banner based on test mode or normal logic
   const renderBanner = () => {
     if (testMode) {
-      // In test mode, cycle through all 3 banners
+      // In test mode, cycle through all 3 banners (matching the setup flow order)
       switch (testModeIndex) {
         case 0:
           return <ActivationCTABanner onStartClick={onStartClick || (() => {})} />;
@@ -124,14 +127,9 @@ export function AdaptiveCampaignBanner({
       }
     }
     
-    // Normal production logic - 3 states based on product and activation
-    if (!hasProduct) {
-      // State 1: No product configured yet - show the initial CTA to get started
-      return <ActivationCTABanner onStartClick={onStartClick || (() => {})} />;
-    } else if (!isActivated) {
-      // State 2: Has product but campaign not active 
-      // (either missing components OR user hasn't clicked "Start Campaign")
-      // Show setup progress to guide completion
+    // Normal production logic - 3 states
+    if (!hasAllComponents) {
+      // State 1: Any of the 3 elements are missing - show setup progress
       return (
         <SetupProgressBanner
           hasSenderProfile={hasSenderProfile}
@@ -139,6 +137,10 @@ export function AdaptiveCampaignBanner({
           hasCustomerProfile={hasCustomerProfile}
         />
       );
+    } else if (!isActivated) {
+      // State 2: All 3 elements configured but campaign not activated
+      // Show CTA to activate the campaign
+      return <ActivationCTABanner onStartClick={onStartClick || (() => {})} />;
     } else {
       // State 3: Campaign is fully active 
       // (all components configured AND user explicitly started campaign)

@@ -182,17 +182,62 @@ export default function StreakPage() {
     }
   }, [preferences]);
 
-  // Update preferences mutation
+  // Update preferences mutation with optimistic updates
   const updatePreferences = useMutation({
     mutationFn: async (data: any) => {
       const res = await apiRequest('PUT', '/api/daily-outreach/preferences', data);
       return res.json();
+    },
+    onMutate: async (newData: any) => {
+      // Cancel any outgoing refetches to prevent overwriting optimistic update
+      await queryClient.cancelQueries({ queryKey: ['/api/daily-outreach/preferences'] });
+      
+      // Snapshot the previous value
+      const previousPreferences = queryClient.getQueryData<OutreachPreferences>(['/api/daily-outreach/preferences']);
+      
+      // Create baseline preferences if cache is empty (cold start scenario)
+      const baselinePreferences: OutreachPreferences = previousPreferences || {
+        enabled: false,
+        scheduleDays: ['monday', 'tuesday', 'wednesday'],
+        scheduleTime: '09:00',
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        minContactsRequired: 5,
+        vacationMode: false,
+        vacationStartDate: null,
+        vacationEndDate: null,
+        activeProductId: undefined,
+        activeSenderProfileId: undefined,
+        activeCustomerProfileId: undefined
+      };
+      
+      // Optimistically update the cache immediately
+      queryClient.setQueryData<OutreachPreferences>(['/api/daily-outreach/preferences'], {
+        ...baselinePreferences,
+        ...newData
+      });
+      
+      // Return context with the previous value for rollback
+      return { previousPreferences };
+    },
+    onError: (err, newData, context) => {
+      // Roll back to the previous value on error
+      if (context?.previousPreferences) {
+        queryClient.setQueryData(['/api/daily-outreach/preferences'], context.previousPreferences);
+      }
+      toast({
+        title: 'Error updating settings',
+        description: 'Please try again',
+        variant: 'destructive'
+      });
     },
     onSuccess: () => {
       toast({
         title: 'Settings updated',
         description: 'Your outreach preferences have been saved'
       });
+    },
+    onSettled: () => {
+      // Always refetch after mutation settles to ensure consistency
       refetchPreferences();
       refetchStats();
     }
