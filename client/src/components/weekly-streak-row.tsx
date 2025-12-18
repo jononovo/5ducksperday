@@ -119,7 +119,7 @@ export function WeeklyStreakRow() {
 
   // Fetch weekly activity data
   const { data: activityData, isLoading } = useQuery<WeeklyActivityData>({
-    queryKey: ['/api/daily-outreach/weekly-activity', { weekOffset }],
+    queryKey: [`/api/daily-outreach/weekly-activity?weekOffset=${weekOffset}`],
     refetchInterval: isEditMode || weekOffset !== 0 ? false : 60000, // Don't auto-refresh in edit mode or when viewing past weeks
     placeholderData: keepPreviousData, // Show old data while loading new data
     staleTime: 30000 // Cache for 30 seconds
@@ -176,7 +176,7 @@ export function WeeklyStreakRow() {
       });
       setIsEditMode(false);
       // Refresh the query to get updated data
-      queryClient.invalidateQueries({ queryKey: ['/api/daily-outreach/weekly-activity'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/daily-outreach/weekly-activity?weekOffset=${weekOffset}`] });
       queryClient.invalidateQueries({ queryKey: ['/api/daily-outreach/preferences'] });
     },
     onError: () => {

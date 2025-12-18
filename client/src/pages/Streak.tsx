@@ -182,17 +182,62 @@ export default function StreakPage() {
     }
   }, [preferences]);
 
-  // Update preferences mutation
+  // Update preferences mutation with optimistic updates
   const updatePreferences = useMutation({
     mutationFn: async (data: any) => {
       const res = await apiRequest('PUT', '/api/daily-outreach/preferences', data);
       return res.json();
+    },
+    onMutate: async (newData: any) => {
+      // Cancel any outgoing refetches to prevent overwriting optimistic update
+      await queryClient.cancelQueries({ queryKey: ['/api/daily-outreach/preferences'] });
+      
+      // Snapshot the previous value
+      const previousPreferences = queryClient.getQueryData<OutreachPreferences>(['/api/daily-outreach/preferences']);
+      
+      // Create baseline preferences if cache is empty (cold start scenario)
+      const baselinePreferences: OutreachPreferences = previousPreferences || {
+        enabled: false,
+        scheduleDays: ['monday', 'tuesday', 'wednesday'],
+        scheduleTime: '09:00',
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        minContactsRequired: 5,
+        vacationMode: false,
+        vacationStartDate: null,
+        vacationEndDate: null,
+        activeProductId: undefined,
+        activeSenderProfileId: undefined,
+        activeCustomerProfileId: undefined
+      };
+      
+      // Optimistically update the cache immediately
+      queryClient.setQueryData<OutreachPreferences>(['/api/daily-outreach/preferences'], {
+        ...baselinePreferences,
+        ...newData
+      });
+      
+      // Return context with the previous value for rollback
+      return { previousPreferences };
+    },
+    onError: (err, newData, context) => {
+      // Roll back to the previous value on error
+      if (context?.previousPreferences) {
+        queryClient.setQueryData(['/api/daily-outreach/preferences'], context.previousPreferences);
+      }
+      toast({
+        title: 'Error updating settings',
+        description: 'Please try again',
+        variant: 'destructive'
+      });
     },
     onSuccess: () => {
       toast({
         title: 'Settings updated',
         description: 'Your outreach preferences have been saved'
       });
+    },
+    onSettled: () => {
+      // Always refetch after mutation settles to ensure consistency
       refetchPreferences();
       refetchStats();
     }
@@ -335,29 +380,19 @@ export default function StreakPage() {
         setVacationDates({ from: undefined, to: undefined });
       }
       
-      // Set active product
+      // Set active product (only if explicitly saved in preferences)
       if (preferences.activeProductId) {
         setSelectedProductId(preferences.activeProductId);
-      } else if (products.length > 0) {
-        // Default to first product if none selected
-        setSelectedProductId(products[0].id);
       }
 
-      // Set active sender profile
+      // Set active sender profile (only if explicitly saved in preferences)
       if (preferences.activeSenderProfileId) {
         setSelectedSenderProfileId(preferences.activeSenderProfileId);
-      } else if (senderProfiles.length > 0) {
-        // Auto-select default sender profile
-        const defaultProfile = senderProfiles.find(p => p.isDefault) || senderProfiles[0];
-        setSelectedSenderProfileId(defaultProfile.id);
       }
 
-      // Set active customer profile
+      // Set active customer profile (only if explicitly saved in preferences)
       if (preferences.activeCustomerProfileId) {
         setSelectedCustomerProfileId(preferences.activeCustomerProfileId);
-      } else if (customerProfiles.length > 0) {
-        // Auto-select first customer profile if available
-        setSelectedCustomerProfileId(customerProfiles[0].id);
       }
 
       // Mark as initialized
@@ -365,9 +400,16 @@ export default function StreakPage() {
     }
   }, [hasInitialized, preferences, products, senderProfiles, customerProfiles]);
 
+  const isCampaignActive = !!preferences?.enabled && 
+    !!selectedProductId && 
+    !!selectedSenderProfileId && 
+    !!selectedCustomerProfileId;
 
   const handleProductChange = (productId: number) => {
-    // Toggle selection - if already selected, deselect it
+    if (isCampaignActive) {
+      toast({ description: "Pause campaign to change settings", variant: "destructive" });
+      return;
+    }
     if (selectedProductId === productId) {
       setSelectedProductId(null);
     } else {
@@ -376,7 +418,10 @@ export default function StreakPage() {
   };
 
   const handleSenderProfileChange = (profileId: number) => {
-    // Toggle selection - if already selected, deselect it
+    if (isCampaignActive) {
+      toast({ description: "Pause campaign to change settings", variant: "destructive" });
+      return;
+    }
     if (selectedSenderProfileId === profileId) {
       setSelectedSenderProfileId(null);
     } else {
@@ -385,7 +430,10 @@ export default function StreakPage() {
   };
 
   const handleCustomerProfileChange = (profileId: number) => {
-    // Toggle selection - if already selected, deselect it
+    if (isCampaignActive) {
+      toast({ description: "Pause campaign to change settings", variant: "destructive" });
+      return;
+    }
     if (selectedCustomerProfileId === profileId) {
       setSelectedCustomerProfileId(null);
     } else {
@@ -475,7 +523,83 @@ export default function StreakPage() {
         <WeeklyStreakRow />
       </div>
 
-      {/* Activation CTA is now integrated into AdaptiveCampaignBanner carousel */}
+      {/* Adaptive Campaign Banner - Shows intro, setup, or metrics based on status */}
+      {/* Campaign is only "active" when ALL components are configured AND explicitly enabled */}
+      <AdaptiveCampaignBanner
+        isActivated={isCampaignActive}
+        stats={stats}
+        hasSenderProfile={!!selectedSenderProfileId}
+        hasProduct={!!selectedProductId}
+        hasCustomerProfile={!!selectedCustomerProfileId}
+        onStartClick={() => setShowOnboarding(true)}
+      />
+
+      {/* Campaign Setup Row - 4 Components */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {/* 1. Sender Profile Card */}
+        <SenderProfileCard
+          senderProfiles={senderProfiles}
+          selectedSenderProfileId={selectedSenderProfileId}
+          isLoading={senderProfilesLoading}
+          onProfileChange={handleSenderProfileChange}
+          onAddProfile={() => setShowSenderForm(true)}
+          user={user}
+        />
+
+        {/* 2. Product Card */}
+        <ProductCard
+          products={products}
+          selectedProductId={selectedProductId}
+          isLoading={productsLoading}
+          onProductChange={handleProductChange}
+          onAddProduct={() => setShowOnboarding(true)}
+        />
+
+        {/* 3. Customer Profile Card */}
+        <CustomerProfileCard
+          customerProfiles={customerProfiles}
+          selectedCustomerProfileId={selectedCustomerProfileId}
+          isLoading={customerProfilesLoading}
+          onProfileChange={handleCustomerProfileChange}
+          onAddProfile={() => setShowCustomerForm(true)}
+        />
+
+        {/* 4. Activation Card */}
+        {/* Shows campaign control - only "active" when fully configured AND enabled */}
+        <ActivationCard
+          isEnabled={isCampaignActive}
+          daysPerWeek={preferences?.scheduleDays?.length || 3}
+          hasProduct={!!selectedProductId}
+          hasSenderProfile={!!selectedSenderProfileId}
+          hasCustomerProfile={!!selectedCustomerProfileId}
+          onActivate={() => {
+            // Only allow activation when all components are configured
+            if (!selectedProductId || !selectedSenderProfileId || !selectedCustomerProfileId) {
+              toast({
+                title: "Setup Incomplete",
+                description: "Please configure all campaign components before activating",
+                variant: "destructive"
+              });
+              return;
+            }
+            
+            // Save all selected profiles and activate the campaign
+            updatePreferences.mutate({ 
+              enabled: true, // This flag means "campaign is active" in the database
+              scheduleDays: preferences?.scheduleDays || ['monday', 'tuesday', 'wednesday'],
+              activeProductId: selectedProductId,
+              activeSenderProfileId: selectedSenderProfileId,
+              activeCustomerProfileId: selectedCustomerProfileId
+            });
+          }}
+          onDeactivate={() => {
+            // Pause the campaign but keep configuration
+            updatePreferences.mutate({ 
+              enabled: false // Sets campaign to inactive/paused state
+            });
+          }}
+        />
+      </div>
 
       {/* Quick Actions - Only show when product is selected */}
       {selectedProductId && (
@@ -600,94 +724,6 @@ export default function StreakPage() {
         </Card>
       </div>
       )}
-
-      {/* Adaptive Campaign Banner - Shows intro, setup, or metrics based on status */}
-      {/* Campaign is only "active" when ALL components are configured AND explicitly enabled */}
-      <AdaptiveCampaignBanner
-        isActivated={
-          !!preferences?.enabled && // User has explicitly activated the campaign
-          !!selectedProductId && // Product/service is configured
-          !!selectedSenderProfileId && // Sender identity is set
-          !!selectedCustomerProfileId // Target customer is defined
-        }
-        stats={stats}
-        hasSenderProfile={!!selectedSenderProfileId}
-        hasProduct={!!selectedProductId}
-        hasCustomerProfile={!!selectedCustomerProfileId}
-        onStartClick={() => setShowOnboarding(true)}
-      />
-
-      {/* Campaign Setup Row - 4 Components */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {/* 1. Sender Profile Card */}
-        <SenderProfileCard
-          senderProfiles={senderProfiles}
-          selectedSenderProfileId={selectedSenderProfileId}
-          isLoading={senderProfilesLoading}
-          onProfileChange={handleSenderProfileChange}
-          onAddProfile={() => setShowSenderForm(true)}
-          user={user}
-        />
-
-        {/* 2. Product Card */}
-        <ProductCard
-          products={products}
-          selectedProductId={selectedProductId}
-          isLoading={productsLoading}
-          onProductChange={handleProductChange}
-          onAddProduct={() => setShowOnboarding(true)}
-        />
-
-        {/* 3. Customer Profile Card */}
-        <CustomerProfileCard
-          customerProfiles={customerProfiles}
-          selectedCustomerProfileId={selectedCustomerProfileId}
-          isLoading={customerProfilesLoading}
-          onProfileChange={handleCustomerProfileChange}
-          onAddProfile={() => setShowCustomerForm(true)}
-        />
-
-        {/* 4. Activation Card */}
-        {/* Shows campaign control - only "active" when fully configured AND enabled */}
-        <ActivationCard
-          isEnabled={
-            (preferences?.enabled || false) && // Campaign must be explicitly enabled
-            !!selectedProductId && // Product/service must be configured
-            !!selectedSenderProfileId && // Sender identity must be set
-            !!selectedCustomerProfileId // Target customer must be defined
-          }
-          daysPerWeek={preferences?.scheduleDays?.length || 3}
-          hasProduct={!!selectedProductId}
-          hasSenderProfile={!!selectedSenderProfileId}
-          hasCustomerProfile={!!selectedCustomerProfileId}
-          onActivate={() => {
-            // Only allow activation when all components are configured
-            if (!selectedProductId || !selectedSenderProfileId || !selectedCustomerProfileId) {
-              toast({
-                title: "Setup Incomplete",
-                description: "Please configure all campaign components before activating",
-                variant: "destructive"
-              });
-              return;
-            }
-            
-            // Save all selected profiles and activate the campaign
-            updatePreferences.mutate({ 
-              enabled: true, // This flag means "campaign is active" in the database
-              scheduleDays: preferences?.scheduleDays || ['monday', 'tuesday', 'wednesday'],
-              activeProductId: selectedProductId,
-              activeSenderProfileId: selectedSenderProfileId,
-              activeCustomerProfileId: selectedCustomerProfileId
-            });
-          }}
-          onDeactivate={() => {
-            // Pause the campaign but keep configuration
-            updatePreferences.mutate({ 
-              enabled: false // Sets campaign to inactive/paused state
-            });
-          }}
-        />
-      </div>
 
       {/* Settings Section */}
       <div className="grid gap-6 md:grid-cols-2">

@@ -655,12 +655,16 @@ export class PersistentDailyOutreachScheduler {
   }
   
   async disableUserOutreach(userId: number) {
-    // Remove job when user disables outreach
+    // Mark job as disabled instead of deleting (preserves job logs)
     await db
-      .delete(dailyOutreachJobs)
+      .update(dailyOutreachJobs)
+      .set({ 
+        status: 'disabled',
+        updatedAt: new Date()
+      })
       .where(eq(dailyOutreachJobs.userId, userId));
     
-    console.log(`Removed job for user ${userId} (outreach disabled)`);
+    console.log(`Disabled job for user ${userId} (outreach paused)`);
   }
   
   // Get job status for monitoring
