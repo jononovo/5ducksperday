@@ -65,6 +65,9 @@ export default function LandingStealth() {
   
   const buttonRef = useRef<HTMLButtonElement>(null);
   
+  // Image loading state for sequential loading (duck first, then background)
+  const [isDuckLoaded, setIsDuckLoaded] = useState(false);
+  
   // Redirect to /app when user is authenticated (from login flow, not secret code flow)
   // For secret code flow, the questionnaire handles the redirect after completion
   useEffect(() => {
@@ -386,11 +389,14 @@ export default function LandingStealth() {
         </div>
 
         <div className="absolute inset-0 z-0">
-          <img 
-            src={bgImage} 
-            alt="Background" 
-            className="w-full h-full object-cover opacity-40 mix-blend-screen"
-          />
+          {isDuckLoaded && (
+            <img 
+              src={bgImage} 
+              alt="Background" 
+              loading="lazy"
+              className="w-full h-full object-cover opacity-40 mix-blend-screen"
+            />
+          )}
           <div className="absolute inset-0 bg-background/80 backdrop-blur-[2px]" />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background" />
         </div>
@@ -916,6 +922,8 @@ export default function LandingStealth() {
            <motion.img 
             src={duckImage} 
             alt="Fluffy the Duck" 
+            loading="lazy"
+            onLoad={() => setIsDuckLoaded(true)}
             animate={{ 
               y: currentIndex === 0 ? [0, -20, 0] : 0,
               rotate: isHoveringDuck ? [0, -5, 5, 0] : 0
