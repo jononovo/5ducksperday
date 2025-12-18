@@ -26,6 +26,5 @@ export type {
   BadgeConfig,
   NotificationState,
   NotificationStatus,
-  CreditData,
-  EasterEggResult
+  CreditData
 } from "./types";

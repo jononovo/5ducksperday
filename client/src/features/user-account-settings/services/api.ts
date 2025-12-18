@@ -11,7 +11,6 @@ import type {
   UserPreferences,
   UserEmailPreferences,
   NotificationStatus,
-  EasterEggResult,
   CreditData
 } from "../types";
 
@@ -94,12 +93,6 @@ export const userAccountApi = {
   getCredits: async (): Promise<CreditData> => {
     const response = await authorizedFetch("/api/credits");
     if (!response.ok) throw new Error("Failed to fetch credits");
-    return response.json();
-  },
-
-  // Easter egg endpoint
-  claimEasterEgg: async (query: string): Promise<EasterEggResult> => {
-    const response = await apiRequest("POST", "/api/credits/easter-egg", { query });
     return response.json();
   }
 };
