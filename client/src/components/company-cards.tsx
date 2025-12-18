@@ -150,7 +150,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
     <Card
       className={cn(
         "rounded-none md:rounded-lg transition-all duration-200 cursor-pointer",
-        "hover:shadow-md hover:border-gray-300 dark:hover:border-gray-600",
+        "hover:shadow-md hover:border-gray-300 dark:hover:border-gray-600 hover:bg-amber-50/30 dark:hover:bg-amber-900/10",
         isSelected && "border-blue-400 dark:border-blue-600",
         !isSelected && "border-border"
       )}
