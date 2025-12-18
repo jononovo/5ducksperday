@@ -99,7 +99,7 @@ export function useFormFlow<T extends Record<string, string>>(
       case "section-complete":
         return "Keep Going";
       case "final-complete":
-        return "Start Selling!";
+        return "Let's find prospects";
       default:
         if (currentStep === totalSteps - 1) return "Finish";
         return "Continue";

@@ -150,7 +150,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
     <Card
       className={cn(
         "rounded-none md:rounded-lg transition-all duration-200 cursor-pointer",
-        "hover:shadow-sm",
+        "bg-[hsl(40,10%,96%)] dark:bg-[hsl(40,10%,8%)] hover:bg-white dark:hover:bg-gray-950 hover:shadow-md hover:border-gray-300 dark:hover:border-gray-600",
         isSelected && "border-blue-400 dark:border-blue-600",
         !isSelected && "border-border"
       )}
@@ -641,7 +641,7 @@ export default function CompanyCards({
   }, [companies, sortedContactsMap]);
 
   return (
-    <div className="w-full space-y-1">
+    <div className="w-full space-y-1 bg-background">
       {/* View Mode Toggle */}
       <div className="flex items-center justify-between -mt-1 mb-2">
         <div className="flex items-center gap-2">

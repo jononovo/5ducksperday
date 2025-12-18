@@ -2289,7 +2289,7 @@ export default function Home() {
 
           {/* Companies Analysis Section - Moved to top */}
           {currentResults && currentResults.length > 0 ? (
-            <Card className={`w-full rounded-none md:rounded-lg border-0 transition-all duration-300 ${emailDrawer.isOpen ? 'shadow-none' : ''}`} data-testid="search-results-card">
+            <Card className={`w-full rounded-none md:rounded-lg border-0 transition-all duration-300 bg-background ${emailDrawer.isOpen ? 'shadow-none' : ''}`} data-testid="search-results-card">
               
               {/* Email Search Progress - with reduced padding */}
               {emailOrchestration.isSearching && (

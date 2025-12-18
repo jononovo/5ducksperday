@@ -1,7 +1,7 @@
 import confetti from "canvas-confetti";
 
 export function fireSectionConfetti(): void {
-  const duration = 2000;
+  const duration = 1000;
   const end = Date.now() + duration;
 
   const frame = () => {
