@@ -46,6 +46,7 @@ import type { Company, Contact } from "@shared/schema";
 import { ContactWithCompanyInfo } from "@/lib/results-analysis/prospect-filtering";
 import { ContactActionColumn } from "@/components/contact-action-column";
 import { ComprehensiveSearchButton } from "@/components/comprehensive-email-search";
+import { ContactRow } from "@/components/contact-row";
 import { cn } from "@/lib/utils";
 import { useRef } from "react";
 
@@ -253,115 +254,28 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
                 <div
                   key={`${company.id}-contact-${contact.id}`}
                   className={cn(
-                    "group flex items-center p-2 rounded-md cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200",
-                    // Hide contacts beyond index 2 unless showAllContacts is true
-                    index > 2 && !showAllContacts && "hidden",
-                    selectedEmailContact?.id === contact.id 
-                      ? contact.email 
-                        ? "border-l-4 border-dashed border-yellow-400/40 border-4 border-yellow-400/20 border-dashed shadow-md" 
-                        : "border-l-4 border-dotted border-gray-400 border-4 border-gray-300/50 border-dotted shadow-md"
-                      : "",
-                    selectedContacts.has(contact.id) && "bg-blue-50/30 dark:bg-blue-950/10"
+                    index > 2 && !showAllContacts && "hidden"
                   )}
-                  onClick={() => onContactClick?.(contact, company)}
-                  onMouseEnter={() => onContactHover?.(contact.id)}
-                  onMouseLeave={() => onContactLeave?.()}
                 >
-                  <div className={cn("transition-all duration-300 ease-out overflow-hidden", shouldShowCheckbox?.(contact.id) ? "w-6 mr-1" : "w-0 mr-0")}>
-                    <Checkbox 
-                      checked={selectedContacts.has(contact.id)}
-                      onCheckedChange={() => onToggleContactSelection(null, contact.id)}
-                      onClick={(e) => e.stopPropagation()}
-                      aria-label={`Select ${contact.name}`}
-                      className="mt-0.5"
-                    />
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1">
-                        <div className="font-medium text-sm">
-                          {contact.name}
-                        </div>
-                        <div className="text-xs text-muted-foreground mt-0.5">
-                          {contact.role || "No role specified"}
-                        </div>
-                        <div className="text-xs mt-1 flex items-center gap-1.5">
-                          {contact.email ? (
-                            <>
-                              <span className="text-gray-600">{contact.email}</span>
-                              {contact.linkedinUrl && (
-                                <a
-                                  href={contact.linkedinUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="text-gray-400 hover:text-blue-500 transition-colors"
-                                  data-testid={`linkedin-link-${contact.id}`}
-                                >
-                                  <SiLinkedin className="h-3 w-3" />
-                                </a>
-                              )}
-                            </>
-                          ) : (
-                            handleComprehensiveEmailSearch && (
-                              <ComprehensiveSearchButton
-                                contact={contact}
-                                onSearch={handleComprehensiveEmailSearch}
-                                isPending={pendingComprehensiveSearchIds?.has(contact.id)}
-                                displayMode="text"
-                              />
-                            )
-                          )}
-                          {contact.alternativeEmails && contact.alternativeEmails.length > 0 && (
-                            <div className="mt-0.5 space-y-0.5">
-                              {contact.alternativeEmails.map((altEmail, index) => (
-                                <div key={index} className="text-xs text-muted-foreground/70 italic">
-                                  {altEmail}
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        {contact.probability && (
-                          <TooltipProvider delayDuration={300}>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <span>
-                                  <Badge
-                                    variant="secondary"
-                                    className="text-xs cursor-help"
-                                  >
-                                    {contact.probability}%
-                                  </Badge>
-                                </span>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Score reflects the contact's affinity to the target role/designation searched.</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        )}
-                        
-                        <ContactActionColumn
-                          contact={contact}
-                          handleContactView={(id) => {
-                            setLocation(`/contacts/${id}`);
-                          }}
-                          handleEnrichContact={handleEnrichContact}
-                          handleHunterSearch={handleHunterSearch}
-                          handleApolloSearch={handleApolloSearch}
-                          pendingContactIds={pendingContactIds}
-                          pendingHunterIds={pendingHunterIds}
-                          pendingApolloIds={pendingApolloIds}
-                          standalone={true}
-                        />
-                      </div>
-                    </div>
-                  </div>
+                  <ContactRow
+                    contact={contact}
+                    isSelected={selectedContacts.has(contact.id)}
+                    onToggleSelection={(id) => onToggleContactSelection(null, id)}
+                    onClick={() => onContactClick?.(contact, company)}
+                    onHover={onContactHover}
+                    onLeave={onContactLeave}
+                    showCheckbox={shouldShowCheckbox?.(contact.id) ?? false}
+                    isHighlighted={selectedEmailContact?.id === contact.id}
+                    handleContactView={(id) => setLocation(`/contacts/${id}`)}
+                    handleEnrichContact={handleEnrichContact}
+                    handleHunterSearch={handleHunterSearch}
+                    handleApolloSearch={handleApolloSearch}
+                    handleComprehensiveEmailSearch={handleComprehensiveEmailSearch}
+                    pendingContactIds={pendingContactIds}
+                    pendingHunterIds={pendingHunterIds}
+                    pendingApolloIds={pendingApolloIds}
+                    pendingComprehensiveSearchIds={pendingComprehensiveSearchIds}
+                  />
                 </div>
               ))}
               

@@ -2206,7 +2206,7 @@ export default function Home() {
                             setCurrentQuery(suggestion);
                             setInputHasChanged(true);
                           }}
-                          className="px-3 py-1.5 text-sm bg-gray-200 hover:bg-gray-300 rounded-full transition-colors hover:shadow-sm"
+                          className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-full transition-colors hover:shadow-sm"
                           data-testid={`button-suggestion-${suggestion.toLowerCase().replace(/\s+/g, '-').slice(0, 30)}`}
                         >
                           {suggestion}
@@ -2348,6 +2348,7 @@ export default function Home() {
             pendingContactIds={pendingContactIds}
             pendingHunterIds={pendingHunterIds}
             pendingApolloIds={pendingApolloIds}
+            pendingComprehensiveSearchIds={pendingComprehensiveSearchIds}
             isVisible={!!(currentResults && currentResults.length > 0 && companiesViewMode !== 'slides')}
             onEnrichProspects={handleEnrichProspects}
             onSelectAll={handleSelectAllContacts}
@@ -2357,6 +2358,7 @@ export default function Home() {
             onHunterSearch={handleHunterSearch}
             onApolloSearch={handleApolloSearch}
             onContactFeedback={handleContactFeedback}
+            handleComprehensiveEmailSearch={handleComprehensiveEmailSearch}
           />
             </div>
 
