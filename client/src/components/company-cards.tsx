@@ -641,7 +641,7 @@ export default function CompanyCards({
   }, [companies, sortedContactsMap]);
 
   return (
-    <div className="w-full space-y-1">
+    <div className="w-full space-y-1 bg-background">
       {/* View Mode Toggle */}
       <div className="flex items-center justify-between -mt-1 mb-2">
         <div className="flex items-center gap-2">
