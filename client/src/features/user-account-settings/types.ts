@@ -90,10 +90,3 @@ export interface CreditData {
   totalUsed: number;
   monthlyAllowance: number;
 }
-
-// Easter egg types
-export interface EasterEggResult {
-  success: boolean;
-  message?: string;
-  creditsAwarded?: number;
-}

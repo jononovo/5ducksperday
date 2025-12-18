@@ -11,7 +11,6 @@ import type {
   UserPreferences,
   UserEmailPreferences,
   NotificationStatus,
-  EasterEggResult,
   CreditData
 } from "../types";
 
@@ -41,7 +40,8 @@ export const userAccountApi = {
   },
 
   updateProfile: async (data: ProfileFormData): Promise<UserProfile> => {
-    return apiRequest("PUT", "/api/user/profile", data);
+    const response = await apiRequest("PUT", "/api/user/profile", data);
+    return response.json();
   },
 
   // User preferences endpoints
@@ -63,7 +63,8 @@ export const userAccountApi = {
   },
 
   updateEmailPreferences: async (preferences: Partial<UserEmailPreferences>): Promise<UserEmailPreferences> => {
-    return apiRequest("PUT", "/api/email-preferences", preferences);
+    const response = await apiRequest("PUT", "/api/email-preferences", preferences);
+    return response.json();
   },
 
   // Notification endpoints
@@ -93,10 +94,5 @@ export const userAccountApi = {
     const response = await authorizedFetch("/api/credits");
     if (!response.ok) throw new Error("Failed to fetch credits");
     return response.json();
-  },
-
-  // Easter egg endpoint
-  claimEasterEgg: async (query: string): Promise<EasterEggResult> => {
-    return apiRequest("POST", "/api/credits/easter-egg", { query });
   }
 };
