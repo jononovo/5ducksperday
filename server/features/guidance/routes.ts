@@ -20,8 +20,6 @@ export function registerGuidanceRoutes(app: Express) {
           completedQuests: [],
           completedChallenges: {},
           currentQuestId: null,
-          currentChallengeIndex: 0,
-          currentStepIndex: 0,
           settings: {}
         });
       }
@@ -35,8 +33,6 @@ export function registerGuidanceRoutes(app: Express) {
           completedQuests: [],
           completedChallenges: {},
           currentQuestId: null,
-          currentChallengeIndex: 0,
-          currentStepIndex: 0,
           settings: {}
         });
       }
@@ -45,8 +41,6 @@ export function registerGuidanceRoutes(app: Express) {
         completedQuests: progress.completedQuests || [],
         completedChallenges: progress.completedChallenges || {},
         currentQuestId: progress.currentQuestId,
-        currentChallengeIndex: progress.currentChallengeIndex || 0,
-        currentStepIndex: progress.currentStepIndex || 0,
         settings: progress.settings || {}
       });
     } catch (error) {
@@ -67,7 +61,7 @@ export function registerGuidanceRoutes(app: Express) {
         return res.json({ success: true });
       }
       
-      const { completedQuests, completedChallenges, currentQuestId, currentChallengeIndex, currentStepIndex, settings } = req.body;
+      const { completedQuests, completedChallenges, currentQuestId, settings } = req.body;
       
       // Get existing progress to detect newly completed challenges
       const existingProgress = await storage.getUserGuidanceProgress(userId);
@@ -109,8 +103,6 @@ export function registerGuidanceRoutes(app: Express) {
         completedQuests,
         completedChallenges,
         currentQuestId,
-        currentChallengeIndex,
-        currentStepIndex,
         newlyCompleted,
         creditsAwarded
       });
@@ -119,8 +111,6 @@ export function registerGuidanceRoutes(app: Express) {
         completedQuests,
         completedChallenges,
         currentQuestId,
-        currentChallengeIndex,
-        currentStepIndex,
         settings
       });
       
@@ -130,8 +120,6 @@ export function registerGuidanceRoutes(app: Express) {
         completedQuests: updated.completedQuests || [],
         completedChallenges: updated.completedChallenges || {},
         currentQuestId: updated.currentQuestId,
-        currentChallengeIndex: updated.currentChallengeIndex || 0,
-        currentStepIndex: updated.currentStepIndex || 0,
         settings: updated.settings || {},
         creditsAwarded
       });
