@@ -133,7 +133,7 @@ export default function LandingPage() {
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-            <Link href="/outreach">
+            <Link href="/app">
               <Button variant="outline">
                 Login
               </Button>

@@ -723,7 +723,7 @@ export default function Home() {
     isAutomatedSearchRef
   });
 
-  // Mutation for saving and navigating to outreach
+  // Mutation for saving list
   const saveAndNavigateMutation = useMutation({
     mutationFn: async () => {
       if (!currentQuery || !currentResults) return null;
@@ -750,25 +750,13 @@ export default function Home() {
       queryClient.invalidateQueries({ queryKey: ["/api/lists"] });
       toast({
         title: "List Saved",
-        description: "Starting outreach process with your search results.",
+        description: "Your search results have been saved. Click on any contact to compose an email.",
       });
       setIsSaved(true);
       
-      // Navigate to outreach page with the new list ID
+      // Update the current list ID so the email drawer can reference it
       if (data && data.listId) {
-        const outreachState = {
-          selectedListId: data.listId.toString(),
-          selectedContactId: null,
-          emailPrompt: "",
-          emailContent: "",
-          toEmail: "",
-          emailSubject: "",
-          currentCompanyIndex: 0
-        };
-        localStorage.setItem('outreachState', JSON.stringify(outreachState));
-        
-        // Navigate to the outreach page
-        setLocation("/outreach");
+        setCurrentListId(data.listId);
       }
     },
     onError: (error) => {

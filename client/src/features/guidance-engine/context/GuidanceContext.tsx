@@ -27,7 +27,7 @@ interface GuidanceProviderProps {
   autoStartForNewUsers?: boolean;
 }
 
-const GUIDANCE_ENABLED_ROUTES = ["/app", "/quests", "/contacts", "/campaigns", "/outreach", "/replies", "/account", "/strategy"];
+const GUIDANCE_ENABLED_ROUTES = ["/app", "/quests", "/contacts", "/campaigns", "/replies", "/account", "/strategy"];
 
 function isGuidanceEnabledRoute(location: string): boolean {
   return GUIDANCE_ENABLED_ROUTES.some(route => location === route || location.startsWith(route + "/"));
