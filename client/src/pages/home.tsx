@@ -326,7 +326,6 @@ export default function Home() {
       console.log('Found pending search query:', pendingQuery);
       setCurrentQuery(pendingQuery);
       setIsFromLandingPage(true); // Set flag when coming from landing page
-      setHasShownEmailTooltip(false); // Reset tooltip flag for new session
       localStorage.removeItem('pendingSearchQuery');
       // Clear any existing search state AND list ID when starting fresh search
       localStorage.removeItem('searchState');
@@ -1295,9 +1294,12 @@ export default function Home() {
       // Load persisted search metrics if available
       if (list.totalContacts !== null || list.totalEmails !== null || list.searchDurationSeconds !== null) {
         setMainSearchMetrics({
+          query: list.prompt,
+          totalCompanies: companiesWithContacts.length,
           totalContacts: list.totalContacts ?? 0,
           totalEmails: list.totalEmails ?? 0,
-          duration: list.searchDurationSeconds ? list.searchDurationSeconds * 1000 : 0,
+          searchDuration: list.searchDurationSeconds ? list.searchDurationSeconds * 1000 : 0,
+          companies: companiesWithContacts,
           sourceBreakdown: list.sourceBreakdown ?? { Perplexity: 0, Apollo: 0, Hunter: 0 }
         });
         console.log('Loaded persisted search metrics:', {
