@@ -410,9 +410,16 @@ export default function StreakPage() {
     }
   }, [hasInitialized, preferences, products, senderProfiles, customerProfiles]);
 
+  const isCampaignActive = !!preferences?.enabled && 
+    !!selectedProductId && 
+    !!selectedSenderProfileId && 
+    !!selectedCustomerProfileId;
 
   const handleProductChange = (productId: number) => {
-    // Toggle selection - if already selected, deselect it
+    if (isCampaignActive) {
+      toast({ description: "Pause campaign to change settings", variant: "destructive" });
+      return;
+    }
     if (selectedProductId === productId) {
       setSelectedProductId(null);
     } else {
@@ -421,7 +428,10 @@ export default function StreakPage() {
   };
 
   const handleSenderProfileChange = (profileId: number) => {
-    // Toggle selection - if already selected, deselect it
+    if (isCampaignActive) {
+      toast({ description: "Pause campaign to change settings", variant: "destructive" });
+      return;
+    }
     if (selectedSenderProfileId === profileId) {
       setSelectedSenderProfileId(null);
     } else {
@@ -430,7 +440,10 @@ export default function StreakPage() {
   };
 
   const handleCustomerProfileChange = (profileId: number) => {
-    // Toggle selection - if already selected, deselect it
+    if (isCampaignActive) {
+      toast({ description: "Pause campaign to change settings", variant: "destructive" });
+      return;
+    }
     if (selectedCustomerProfileId === profileId) {
       setSelectedCustomerProfileId(null);
     } else {
@@ -523,12 +536,7 @@ export default function StreakPage() {
       {/* Adaptive Campaign Banner - Shows intro, setup, or metrics based on status */}
       {/* Campaign is only "active" when ALL components are configured AND explicitly enabled */}
       <AdaptiveCampaignBanner
-        isActivated={
-          !!preferences?.enabled && // User has explicitly activated the campaign
-          !!selectedProductId && // Product/service is configured
-          !!selectedSenderProfileId && // Sender identity is set
-          !!selectedCustomerProfileId // Target customer is defined
-        }
+        isActivated={isCampaignActive}
         stats={stats}
         hasSenderProfile={!!selectedSenderProfileId}
         hasProduct={!!selectedProductId}
@@ -569,12 +577,7 @@ export default function StreakPage() {
         {/* 4. Activation Card */}
         {/* Shows campaign control - only "active" when fully configured AND enabled */}
         <ActivationCard
-          isEnabled={
-            (preferences?.enabled || false) && // Campaign must be explicitly enabled
-            !!selectedProductId && // Product/service must be configured
-            !!selectedSenderProfileId && // Sender identity must be set
-            !!selectedCustomerProfileId // Target customer must be defined
-          }
+          isEnabled={isCampaignActive}
           daysPerWeek={preferences?.scheduleDays?.length || 3}
           hasProduct={!!selectedProductId}
           hasSenderProfile={!!selectedSenderProfileId}
