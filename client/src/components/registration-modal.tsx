@@ -9,7 +9,7 @@ import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 
 export function RegistrationModal() {
-  const { closeModal, isOpenedFromProtectedRoute, initialPage } = useRegistrationModal();
+  const { closeModal, isOpenedFromProtectedRoute, initialPage, setIsNewUser } = useRegistrationModal();
   const [currentPage, setCurrentPage] = useState<RegistrationPage>(initialPage);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -56,7 +56,9 @@ export function RegistrationModal() {
 
   const handleGoogleSignIn = async () => {
     try {
-      await signInWithGoogle();
+      const { isNewUser } = await signInWithGoogle();
+      // Set isNewUser so the callback knows whether to show questionnaire
+      setIsNewUser(isNewUser);
       closeModal();
     } catch (error) {
       // Error handling is already done in the signInWithGoogle function
@@ -150,6 +152,8 @@ export function RegistrationModal() {
         // Register user with Firebase authentication
         console.log("Attempting registration with:", { email, name });
         
+        // Mark as new user before auth completes
+        setIsNewUser(true);
         await registerWithEmail(email, password, name);
         
         console.log("Registration successful with Firebase");
@@ -161,6 +165,8 @@ export function RegistrationModal() {
         if (error.code === 'auth/email-already-in-use') {
           try {
             console.log("Email exists, attempting login with:", { email });
+            // Mark as existing user (not new)
+            setIsNewUser(false);
             await signInWithEmail(email, password);
             toast({
               title: "Welcome back!",
@@ -196,6 +202,8 @@ export function RegistrationModal() {
         // Sign in with Firebase authentication
         console.log("Attempting login with:", { email });
         
+        // Mark as existing user (not new)
+        setIsNewUser(false);
         await signInWithEmail(email, password);
         
         console.log("Login successful with Firebase");

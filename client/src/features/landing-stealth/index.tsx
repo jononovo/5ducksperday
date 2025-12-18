@@ -256,9 +256,17 @@ export default function LandingStealth() {
           // Store access code in localStorage for backend sync
           localStorage.setItem('accessCode', code.toLowerCase());
           setCode("");
-          // Set callback to show questionnaire after registration
-          setRegistrationSuccessCallback(() => {
-            setShowQuestionnaire(true);
+          // Set callback to show questionnaire for new users, redirect for existing users
+          // Default to false (redirect) if isNewUser is undefined - only show questionnaire when explicitly true
+          setRegistrationSuccessCallback((isNewUser) => {
+            if (isNewUser === true) {
+              // New user from secret code flow - show onboarding questionnaire
+              setShowQuestionnaire(true);
+            } else {
+              // Existing user logging in or undefined - redirect to app immediately
+              setIsSecretCodeFlow(false);
+              window.location.href = "/app";
+            }
           });
           openModal();
         }, 2000);

@@ -11,7 +11,8 @@ type RegistrationModalContextType = {
   closeModal: () => void;
   openForProtectedRoute: () => void;
   isOpenedFromProtectedRoute: boolean;
-  setRegistrationSuccessCallback: (callback: () => void) => void;
+  setRegistrationSuccessCallback: (callback: (isNewUser?: boolean) => void) => void;
+  setIsNewUser: (isNewUser: boolean) => void;
 };
 
 const RegistrationModalContext = createContext<RegistrationModalContextType>({
@@ -23,6 +24,7 @@ const RegistrationModalContext = createContext<RegistrationModalContextType>({
   openForProtectedRoute: () => {},
   isOpenedFromProtectedRoute: false,
   setRegistrationSuccessCallback: () => {},
+  setIsNewUser: () => {},
 });
 
 export const useRegistrationModal = () => useContext(RegistrationModalContext);
@@ -36,7 +38,8 @@ export const RegistrationModalProvider = ({ children }: RegistrationModalProvide
   const [isOpen, setIsOpen] = useState(false);
   const [initialPage, setInitialPage] = useState<RegistrationPage>("main");
   const [isOpenedFromProtectedRoute, setIsOpenedFromProtectedRoute] = useState(false);
-  const [onSuccessCallback, setOnSuccessCallback] = useState<(() => void) | null>(null);
+  const [onSuccessCallback, setOnSuccessCallback] = useState<((isNewUser?: boolean) => void) | null>(null);
+  const [pendingIsNewUser, setPendingIsNewUser] = useState<boolean | null>(null);
   const { user } = useAuth();
 
   // Clean up obsolete localStorage key from previous first-time visitor logic
@@ -68,8 +71,12 @@ export const RegistrationModalProvider = ({ children }: RegistrationModalProvide
     setInitialPage("main");
   };
 
-  const setRegistrationSuccessCallback = (callback: () => void) => {
+  const setRegistrationSuccessCallback = (callback: (isNewUser?: boolean) => void) => {
     setOnSuccessCallback(() => callback);
+  };
+
+  const setIsNewUser = (isNewUser: boolean) => {
+    setPendingIsNewUser(isNewUser);
   };
 
   // Trigger callback when user becomes authenticated after registration
@@ -77,11 +84,12 @@ export const RegistrationModalProvider = ({ children }: RegistrationModalProvide
     if (user && onSuccessCallback) {
       // Small delay to ensure registration flow is complete
       setTimeout(() => {
-        onSuccessCallback();
+        onSuccessCallback(pendingIsNewUser ?? undefined);
         setOnSuccessCallback(null); // Clear after use
+        setPendingIsNewUser(null); // Clear after use
       }, 100);
     }
-  }, [user, onSuccessCallback]);
+  }, [user, onSuccessCallback, pendingIsNewUser]);
 
 
 
@@ -95,7 +103,8 @@ export const RegistrationModalProvider = ({ children }: RegistrationModalProvide
         closeModal,
         openForProtectedRoute,
         isOpenedFromProtectedRoute,
-        setRegistrationSuccessCallback
+        setRegistrationSuccessCallback,
+        setIsNewUser
       }}
     >
       {children}

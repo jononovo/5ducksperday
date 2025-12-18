@@ -14,6 +14,7 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   updateProfile,
+  getAdditionalUserInfo,
   GoogleAuthProvider,
   type User as FirebaseUser,
   type AuthCredential 
@@ -24,7 +25,7 @@ type AuthContextType = {
   isLoading: boolean;
   error: Error | null;
   logoutMutation: UseMutationResult<void, Error, void>;
-  signInWithGoogle: () => Promise<void>;
+  signInWithGoogle: () => Promise<{ isNewUser: boolean }>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
   registerWithEmail: (email: string, password: string, username?: string) => Promise<void>;
 };
@@ -205,7 +206,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = async (): Promise<{ isNewUser: boolean }> => {
     try {
       console.log('Starting Google sign-in process', {
         environment: import.meta.env.MODE,
@@ -235,6 +236,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log('Calling signInWithPopup...');
       const result = await signInWithPopup(firebaseAuth, firebaseGoogleProvider);
 
+      // Check if this is a new user
+      const additionalUserInfo = getAdditionalUserInfo(result);
+      const isNewUser = additionalUserInfo?.isNewUser ?? false;
+
       // Get the OAuth credential from the result
       const credential = GoogleAuthProvider.credentialFromResult(result);
       
@@ -249,6 +254,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         hasAccessToken: !!credential?.accessToken,
         credentialType: credential?.providerId || 'none',
         scopes: tokenResult.claims.scope,
+        isNewUser,
         timestamp: new Date().toISOString()
       });
 
@@ -258,11 +264,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       console.log('Google sign-in successful, syncing with backend', {
         email: result.user.email.split('@')[0] + '@...',
-        displayName: result.user.displayName
+        displayName: result.user.displayName,
+        isNewUser
       });
 
       // Pass the OAuth credential to syncWithBackend
       await syncWithBackend(result.user, credential);
+      
+      return { isNewUser };
 
     } catch (error: any) {
       console.error("Google sign-in error:", {
