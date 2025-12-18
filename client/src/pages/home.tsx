@@ -326,7 +326,6 @@ export default function Home() {
       console.log('Found pending search query:', pendingQuery);
       setCurrentQuery(pendingQuery);
       setIsFromLandingPage(true); // Set flag when coming from landing page
-      setHasShownEmailTooltip(false); // Reset tooltip flag for new session
       localStorage.removeItem('pendingSearchQuery');
       // Clear any existing search state AND list ID when starting fresh search
       localStorage.removeItem('searchState');
