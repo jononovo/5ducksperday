@@ -127,14 +127,16 @@ export class SearchJobService {
       // Fetch a joke at the start of the search (runs in parallel with initialization)
       const joke = await fetchRandomJoke();
       const hasJoke = joke !== null;
-      const isEmailOrContactSearch = job.searchType === 'emails' || job.searchType === 'contacts';
+      const isContactSearch = job.searchType === 'contacts';
+      const isEmailSearch = job.searchType === 'emails';
       
       // Calculate total phases based on actual workflow:
       // Companies-only: Finding companies (1) + Saving companies (2) + Completed = 3
-      // With contacts/emails: Finding companies + Saving companies + Finding contacts + Finding emails + Completed = 5
+      // Contacts: Finding companies + Saving companies + Finding contacts + Completed = 4
+      // Emails: Finding companies + Saving companies + Finding contacts + Finding emails + Completed = 5
       // Note: Jokes are NOT separate phases - they temporarily override phase labels
       // Note: Processing credits happens silently (not shown on progress bar)
-      const totalPhases = isEmailOrContactSearch ? 5 : 3;
+      const totalPhases = isEmailSearch ? 5 : (isContactSearch ? 4 : 3);
       let currentPhase = 1;
       
       await this.updateJobProgress(job.id, {
@@ -290,8 +292,8 @@ export class SearchJobService {
         
         console.log(`[SearchJobService] Updated job with enriched data and ${contacts.length} contacts`);
         
-        // Phase 4: Find emails for contacts if searchType is 'emails' or 'contacts'
-        if ((job.searchType === 'emails' || job.searchType === 'contacts') && contacts.length > 0) {
+        // Phase 4: Find emails for contacts only if searchType is 'emails'
+        if (job.searchType === 'emails' && contacts.length > 0) {
           currentPhase++;
           
           // Show punchline as temporary phase label override (if available)
@@ -332,7 +334,7 @@ export class SearchJobService {
 
       // Deduct credits silently (not shown on progress bar as it's instantaneous)
       if (job.source !== 'cron' && savedCompanies.length > 0) {
-        const creditType = isEmailOrContactSearch ? 'email_search' : 'company_search';
+        const creditType = isEmailSearch ? 'email_search' : (isContactSearch ? 'company_and_contacts' : 'company_search');
         await CreditService.deductCredits(
           job.userId,
           creditType as any,
