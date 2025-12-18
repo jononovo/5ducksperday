@@ -31,8 +31,8 @@ export function RegistrationModal() {
                        window.location.hostname === 'localhost' ||
                        window.location.hostname === '0.0.0.0';
   
-  // Allow modal on stealth page for testing the onboarding flow
-  const isStealthPage = window.location.pathname === '/s';
+  // Allow modal on specific pages for testing or dedicated auth page
+  const isAllowedPage = window.location.pathname === '/s' || window.location.pathname === '/auth';
 
   // If user is already logged in, we'll close the modal
   // but we don't return early to avoid React hooks errors
@@ -230,8 +230,8 @@ export function RegistrationModal() {
   };
 
   // Don't render the modal if user is already authenticated or in development mode
-  // Exception: Allow modal on stealth page for testing
-  if (user || (isDevelopment && !isStealthPage)) {
+  // Exception: Allow modal on specific pages (stealth page and auth page)
+  if (user || (isDevelopment && !isAllowedPage)) {
     return null;
   }
 

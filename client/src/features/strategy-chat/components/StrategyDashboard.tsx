@@ -37,7 +37,7 @@ import {
   Trash2
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { useLocation } from "wouter";
+import { useRegistrationModal } from "@/hooks/use-registration-modal";
 import { SEOHead } from "@/components/ui/seo-head";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { UniqueStrategyPage } from "./UniqueStrategyPage";
@@ -49,19 +49,19 @@ import type { StrategicProfile } from '../types';
 
 export default function StrategyDashboard() {
   const { user } = useAuth();
-  const [, navigate] = useLocation();
+  const { openForProtectedRoute } = useRegistrationModal();
   const { setState } = useStrategyOverlay();
   const [selectedProduct, setSelectedProduct] = useState<StrategicProfile | null>(null);
   const [showUniqueStrategy, setShowUniqueStrategy] = useState(false);
   const [productToDelete, setProductToDelete] = useState<StrategicProfile | null>(null);
   const { toast } = useToast();
 
-  // Redirect to login if not authenticated
+  // Open registration modal if not authenticated
   useEffect(() => {
     if (!user) {
-      navigate("/auth");
+      openForProtectedRoute();
     }
-  }, [user, navigate]);
+  }, [user, openForProtectedRoute]);
 
   const { data: products = [], isLoading, error } = useQuery<StrategicProfile[]>({
     queryKey: ['/api/products'],

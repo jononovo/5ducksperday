@@ -2,9 +2,10 @@ import { Footer } from "@/components/footer";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { InfoIcon, Award, Sparkles, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link } from "wouter";
+import { useRegistrationModal } from "@/hooks/use-registration-modal";
 
 export default function Levels() {
+  const { openModal } = useRegistrationModal();
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-950 dark:to-blue-950">
       <div className="container mx-auto py-12 px-4 flex-1">
@@ -21,11 +22,12 @@ export default function Levels() {
             Someone who thinks they are better than others, usually because they have some capacity that most don't.
           </p>
           <div className="flex justify-center gap-3 mb-8">
-            <Link href="/auth">
-              <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
-                Start Your Journey <ChevronRight size={16} className="ml-1" />
-              </Button>
-            </Link>
+            <Button 
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+              onClick={openModal}
+            >
+              Start Your Journey <ChevronRight size={16} className="ml-1" />
+            </Button>
           </div>
         </div>
 
