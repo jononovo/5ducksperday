@@ -2,15 +2,11 @@ import type { ContactWithCompanyInfo } from "@/lib/results-analysis/prospect-fil
 
 export interface TopProspectsCardProps {
   prospects: ContactWithCompanyInfo[];
-  selectedContacts: Set<number>;
   pendingContactIds: Set<number>;
   pendingHunterIds: Set<number>;
   pendingApolloIds: Set<number>;
   pendingComprehensiveSearchIds?: Set<number>;
   isVisible: boolean;
-  onEnrichProspects: (prospects: ContactWithCompanyInfo[]) => void;
-  onSelectAll: (checked: boolean) => void;
-  onCheckboxChange: (contactId: number) => void;
   onContactView: (contactId: number) => void;
   onEnrichContact: (contactId: number) => void;
   onHunterSearch: (contactId: number) => void;
