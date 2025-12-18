@@ -9,20 +9,20 @@ import { useTheme } from "@/hooks/use-theme";
 import { ProfileForm, type UserProfile, type SubscriptionStatus } from "@/features/user-account-settings";
 
 export default function AccountPage() {
-  const { user } = useAuth();
+  const { user, authReady } = useAuth();
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
 
-  // Fetch user profile data
+  // Fetch user profile data - wait for authReady to ensure session is established
   const { data: profile, isLoading } = useQuery<UserProfile>({
     queryKey: ["/api/user/profile"],
-    enabled: !!user,
+    enabled: authReady && !!user,
   });
 
-  // Fetch subscription status
+  // Fetch subscription status - wait for authReady to ensure session is established
   const { data: subscriptionStatus } = useQuery<SubscriptionStatus>({
     queryKey: ["/api/user/subscription-status"],
-    enabled: !!user,
+    enabled: authReady && !!user,
   });
 
   if (!user) {
