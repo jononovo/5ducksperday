@@ -387,7 +387,9 @@ export class SearchJobService {
       // Get the job to check retry count
       const job = await storage.getSearchJobByJobId(jobId);
       if (job) {
-        const shouldRetry = (job.retryCount || 0) < (job.maxRetries || 3);
+        // Check if this is a Perplexity failure - these already have internal retries, so fail immediately
+        const isPerplexityFailure = (error as any)?.isPerplexityFailure === true;
+        const shouldRetry = !isPerplexityFailure && (job.retryCount || 0) < (job.maxRetries || 3);
         
         await storage.updateSearchJob(job.id, {
           status: shouldRetry ? 'pending' : 'failed',
@@ -403,6 +405,8 @@ export class SearchJobService {
 
         if (shouldRetry) {
           console.log(`[SearchJobService] Job ${jobId} will be retried (attempt ${(job.retryCount || 0) + 1}/${job.maxRetries || 3})`);
+        } else if (isPerplexityFailure) {
+          console.log(`[SearchJobService] Job ${jobId} failed after Perplexity retries exhausted - not retrying at job level`);
         }
       }
       

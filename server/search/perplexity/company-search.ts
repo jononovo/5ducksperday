@@ -107,9 +107,11 @@ Format: JSON array with "name" and "website" fields.`
     }
   }
 
-  // All retries exhausted - throw error so job-level retry can kick in
+  // All retries exhausted - throw error with specific marker so job fails immediately
   console.error(`[PERPLEXITY API CALL] All ${maxRetries} attempts failed for company discovery`);
-  throw lastError || new Error('Company discovery failed after all retries');
+  const error = new Error('Company discovery failed after all retries. Please try again.');
+  (error as any).isPerplexityFailure = true;  // Mark for immediate job failure
+  throw error;
 }
 
 // Enrichment - get descriptions (can run in parallel with contact search)
