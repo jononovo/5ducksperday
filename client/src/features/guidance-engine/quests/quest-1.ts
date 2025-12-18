@@ -18,6 +18,7 @@ export const quest1: Quest = {
         once: true,
       },
       startDelay: 7000,
+      setupEvent: "startNewSearch",
       steps: [
         {
           id: "open-search-options",

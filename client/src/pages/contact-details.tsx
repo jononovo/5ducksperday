@@ -37,20 +37,20 @@ export default function ContactDetails() {
   console.log('ContactDetails - Loading contact ID:', contactId);
 
   const { data: contact, isLoading: contactLoading } = useQuery<Contact>({
-    queryKey: ['/api/contacts', contactId],
+    queryKey: [`/api/contacts/${contactId}`],
     enabled: !!contactId,
-    staleTime: 0,
-    gcTime: 0,
-    retry: false,
-    refetchOnMount: true,
-    refetchOnWindowFocus: false
+    staleTime: 0, // Don't use cached data
+    cacheTime: 0, // Don't cache the response
+    retry: false, // Don't retry failed requests
+    refetchOnMount: true, // Always refetch when component mounts
+    refetchOnWindowFocus: false // Don't refetch on window focus
   });
 
   const { data: company, isLoading: companyLoading } = useQuery<Company>({
-    queryKey: ['/api/companies', contact?.companyId],
+    queryKey: [`/api/companies/${contact?.companyId}`],
     enabled: !!contact?.companyId,
     staleTime: 0,
-    gcTime: 0,
+    cacheTime: 0,
     retry: false,
     refetchOnMount: true,
     refetchOnWindowFocus: false
