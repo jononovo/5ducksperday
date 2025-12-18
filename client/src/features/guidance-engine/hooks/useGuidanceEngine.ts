@@ -28,7 +28,12 @@ function loadProgress(): GuidanceState {
 
 function saveProgress(state: GuidanceState) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    const persistedState = {
+      completedQuests: state.completedQuests,
+      completedChallenges: state.completedChallenges,
+      currentQuestId: state.currentQuestId,
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(persistedState));
   } catch (e) {
     console.error("Failed to save guidance progress:", e);
   }
@@ -77,8 +82,6 @@ async function syncToServer(state: GuidanceState): Promise<void> {
     completedQuests: state.completedQuests,
     completedChallenges: state.completedChallenges,
     currentQuestId: state.currentQuestId,
-    currentChallengeIndex: state.currentChallengeIndex,
-    currentStepIndex: state.currentStepIndex,
   };
   console.log("[GuidanceEngine] Syncing to server:", { ...payload, hasAuthToken: !!authToken });
   
@@ -130,14 +133,12 @@ export function useGuidanceEngine(options: UseGuidanceEngineOptions): GuidanceCo
       console.log("[GuidanceEngine] Initializing from server...", { userId, authReady });
       const serverProgress = await fetchServerProgress();
       if (serverProgress) {
-        console.log("[GuidanceEngine] Applying server progress to state");
+        console.log("[GuidanceEngine] Applying server progress to state (completions only)");
         setState((prev) => ({
           ...prev,
           completedQuests: serverProgress.completedQuests || prev.completedQuests,
           completedChallenges: serverProgress.completedChallenges || prev.completedChallenges,
           currentQuestId: serverProgress.currentQuestId ?? prev.currentQuestId,
-          currentChallengeIndex: serverProgress.currentChallengeIndex ?? prev.currentChallengeIndex,
-          currentStepIndex: serverProgress.currentStepIndex ?? prev.currentStepIndex,
         }));
       }
       setIsInitialized(true);
@@ -163,8 +164,6 @@ export function useGuidanceEngine(options: UseGuidanceEngineOptions): GuidanceCo
           completedQuests: serverProgress.completedQuests || prev.completedQuests,
           completedChallenges: serverProgress.completedChallenges || prev.completedChallenges,
           currentQuestId: serverProgress.currentQuestId ?? prev.currentQuestId,
-          currentChallengeIndex: serverProgress.currentChallengeIndex ?? prev.currentChallengeIndex,
-          currentStepIndex: serverProgress.currentStepIndex ?? prev.currentStepIndex,
         }));
       }
     }
