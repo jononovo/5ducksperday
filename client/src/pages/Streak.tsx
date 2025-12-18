@@ -475,7 +475,93 @@ export default function StreakPage() {
         <WeeklyStreakRow />
       </div>
 
-      {/* Activation CTA is now integrated into AdaptiveCampaignBanner carousel */}
+      {/* Adaptive Campaign Banner - Shows intro, setup, or metrics based on status */}
+      {/* Campaign is only "active" when ALL components are configured AND explicitly enabled */}
+      <AdaptiveCampaignBanner
+        isActivated={
+          !!preferences?.enabled && // User has explicitly activated the campaign
+          !!selectedProductId && // Product/service is configured
+          !!selectedSenderProfileId && // Sender identity is set
+          !!selectedCustomerProfileId // Target customer is defined
+        }
+        stats={stats}
+        hasSenderProfile={!!selectedSenderProfileId}
+        hasProduct={!!selectedProductId}
+        hasCustomerProfile={!!selectedCustomerProfileId}
+        onStartClick={() => setShowOnboarding(true)}
+      />
+
+      {/* Campaign Setup Row - 4 Components */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {/* 1. Sender Profile Card */}
+        <SenderProfileCard
+          senderProfiles={senderProfiles}
+          selectedSenderProfileId={selectedSenderProfileId}
+          isLoading={senderProfilesLoading}
+          onProfileChange={handleSenderProfileChange}
+          onAddProfile={() => setShowSenderForm(true)}
+          user={user}
+        />
+
+        {/* 2. Product Card */}
+        <ProductCard
+          products={products}
+          selectedProductId={selectedProductId}
+          isLoading={productsLoading}
+          onProductChange={handleProductChange}
+          onAddProduct={() => setShowOnboarding(true)}
+        />
+
+        {/* 3. Customer Profile Card */}
+        <CustomerProfileCard
+          customerProfiles={customerProfiles}
+          selectedCustomerProfileId={selectedCustomerProfileId}
+          isLoading={customerProfilesLoading}
+          onProfileChange={handleCustomerProfileChange}
+          onAddProfile={() => setShowCustomerForm(true)}
+        />
+
+        {/* 4. Activation Card */}
+        {/* Shows campaign control - only "active" when fully configured AND enabled */}
+        <ActivationCard
+          isEnabled={
+            (preferences?.enabled || false) && // Campaign must be explicitly enabled
+            !!selectedProductId && // Product/service must be configured
+            !!selectedSenderProfileId && // Sender identity must be set
+            !!selectedCustomerProfileId // Target customer must be defined
+          }
+          daysPerWeek={preferences?.scheduleDays?.length || 3}
+          hasProduct={!!selectedProductId}
+          hasSenderProfile={!!selectedSenderProfileId}
+          hasCustomerProfile={!!selectedCustomerProfileId}
+          onActivate={() => {
+            // Only allow activation when all components are configured
+            if (!selectedProductId || !selectedSenderProfileId || !selectedCustomerProfileId) {
+              toast({
+                title: "Setup Incomplete",
+                description: "Please configure all campaign components before activating",
+                variant: "destructive"
+              });
+              return;
+            }
+            
+            // Save all selected profiles and activate the campaign
+            updatePreferences.mutate({ 
+              enabled: true, // This flag means "campaign is active" in the database
+              scheduleDays: preferences?.scheduleDays || ['monday', 'tuesday', 'wednesday'],
+              activeProductId: selectedProductId,
+              activeSenderProfileId: selectedSenderProfileId,
+              activeCustomerProfileId: selectedCustomerProfileId
+            });
+          }}
+          onDeactivate={() => {
+            // Pause the campaign but keep configuration
+            updatePreferences.mutate({ 
+              enabled: false // Sets campaign to inactive/paused state
+            });
+          }}
+        />
+      </div>
 
       {/* Quick Actions - Only show when product is selected */}
       {selectedProductId && (
@@ -600,94 +686,6 @@ export default function StreakPage() {
         </Card>
       </div>
       )}
-
-      {/* Adaptive Campaign Banner - Shows intro, setup, or metrics based on status */}
-      {/* Campaign is only "active" when ALL components are configured AND explicitly enabled */}
-      <AdaptiveCampaignBanner
-        isActivated={
-          !!preferences?.enabled && // User has explicitly activated the campaign
-          !!selectedProductId && // Product/service is configured
-          !!selectedSenderProfileId && // Sender identity is set
-          !!selectedCustomerProfileId // Target customer is defined
-        }
-        stats={stats}
-        hasSenderProfile={!!selectedSenderProfileId}
-        hasProduct={!!selectedProductId}
-        hasCustomerProfile={!!selectedCustomerProfileId}
-        onStartClick={() => setShowOnboarding(true)}
-      />
-
-      {/* Campaign Setup Row - 4 Components */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {/* 1. Sender Profile Card */}
-        <SenderProfileCard
-          senderProfiles={senderProfiles}
-          selectedSenderProfileId={selectedSenderProfileId}
-          isLoading={senderProfilesLoading}
-          onProfileChange={handleSenderProfileChange}
-          onAddProfile={() => setShowSenderForm(true)}
-          user={user}
-        />
-
-        {/* 2. Product Card */}
-        <ProductCard
-          products={products}
-          selectedProductId={selectedProductId}
-          isLoading={productsLoading}
-          onProductChange={handleProductChange}
-          onAddProduct={() => setShowOnboarding(true)}
-        />
-
-        {/* 3. Customer Profile Card */}
-        <CustomerProfileCard
-          customerProfiles={customerProfiles}
-          selectedCustomerProfileId={selectedCustomerProfileId}
-          isLoading={customerProfilesLoading}
-          onProfileChange={handleCustomerProfileChange}
-          onAddProfile={() => setShowCustomerForm(true)}
-        />
-
-        {/* 4. Activation Card */}
-        {/* Shows campaign control - only "active" when fully configured AND enabled */}
-        <ActivationCard
-          isEnabled={
-            (preferences?.enabled || false) && // Campaign must be explicitly enabled
-            !!selectedProductId && // Product/service must be configured
-            !!selectedSenderProfileId && // Sender identity must be set
-            !!selectedCustomerProfileId // Target customer must be defined
-          }
-          daysPerWeek={preferences?.scheduleDays?.length || 3}
-          hasProduct={!!selectedProductId}
-          hasSenderProfile={!!selectedSenderProfileId}
-          hasCustomerProfile={!!selectedCustomerProfileId}
-          onActivate={() => {
-            // Only allow activation when all components are configured
-            if (!selectedProductId || !selectedSenderProfileId || !selectedCustomerProfileId) {
-              toast({
-                title: "Setup Incomplete",
-                description: "Please configure all campaign components before activating",
-                variant: "destructive"
-              });
-              return;
-            }
-            
-            // Save all selected profiles and activate the campaign
-            updatePreferences.mutate({ 
-              enabled: true, // This flag means "campaign is active" in the database
-              scheduleDays: preferences?.scheduleDays || ['monday', 'tuesday', 'wednesday'],
-              activeProductId: selectedProductId,
-              activeSenderProfileId: selectedSenderProfileId,
-              activeCustomerProfileId: selectedCustomerProfileId
-            });
-          }}
-          onDeactivate={() => {
-            // Pause the campaign but keep configuration
-            updatePreferences.mutate({ 
-              enabled: false // Sets campaign to inactive/paused state
-            });
-          }}
-        />
-      </div>
 
       {/* Settings Section */}
       <div className="grid gap-6 md:grid-cols-2">
