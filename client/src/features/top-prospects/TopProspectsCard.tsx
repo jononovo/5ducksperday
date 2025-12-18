@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -5,9 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { UserCircle, Banknote, Mail, Star, ThumbsUp, ThumbsDown, MessageSquare } from "lucide-react";
+import { UserCircle, Banknote, Mail, Star, ThumbsUp, ThumbsDown, MessageSquare, ChevronDown, ChevronUp } from "lucide-react";
 import { ContactActionColumn } from "@/components/contact-action-column";
 import type { TopProspectsCardProps } from "./types";
+
+const INITIAL_VISIBLE_COUNT = 5;
 
 export function TopProspectsCard({
   prospects,
@@ -25,6 +28,8 @@ export function TopProspectsCard({
   onApolloSearch,
   onContactFeedback,
 }: TopProspectsCardProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  
   if (!isVisible || prospects.length === 0) return null;
 
   const isContactSelected = (contactId: number) => selectedContacts.has(contactId);
@@ -36,6 +41,10 @@ export function TopProspectsCard({
   const handleSelectAllContacts = (checked: boolean) => {
     onSelectAll(checked);
   };
+  
+  const visibleProspects = isExpanded ? prospects : prospects.slice(0, INITIAL_VISIBLE_COUNT);
+  const remainingCount = prospects.length - INITIAL_VISIBLE_COUNT;
+  const hasMoreProspects = remainingCount > 0;
 
   return (
     <Card className="w-full rounded-none md:rounded-lg">
@@ -91,7 +100,7 @@ export function TopProspectsCard({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {prospects.map((contact) => (
+              {visibleProspects.map((contact) => (
                 <TableRow key={contact.id} className="group" data-testid={`row-prospect-${contact.id}`}>
                   <TableCell className="w-10 hidden">
                     <Checkbox 
@@ -226,6 +235,30 @@ export function TopProspectsCard({
               ))}
             </TableBody>
           </Table>
+          
+          {/* Expand/Collapse button - styled like company cards */}
+          {hasMoreProspects && (
+            <div className="px-4 pb-3 pt-1">
+              <Button
+                variant="ghost"
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="w-full text-xs text-muted-foreground hover:text-gray-600 dark:hover:text-gray-400 hover:bg-accent/50 transition-all py-2 rounded-md"
+                data-testid="button-toggle-prospects"
+              >
+                {isExpanded ? (
+                  <>
+                    <ChevronUp className="h-3 w-3 mr-1" />
+                    Show fewer prospects
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown className="h-3 w-3 mr-1" />
+                    +{remainingCount} more prospects available
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
