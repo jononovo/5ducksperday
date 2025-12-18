@@ -2,7 +2,7 @@ import { User } from '@shared/schema';
 import { EmailNotificationContent } from '../types';
 
 export function buildNeedMoreContactsEmail(user: User, appUrl: string): EmailNotificationContent {
-  const searchUrl = `${appUrl}/search`;
+  const searchUrl = `${appUrl}/app`;
   
   const html = `
     <!DOCTYPE html>
