@@ -412,12 +412,6 @@ export default function CompanyTable({
                       handleContactView={(id) => {
                         setLocation(`/contacts/${id}`);
                       }}
-                      handleEnrichContact={handleEnrichContact}
-                      handleHunterSearch={handleHunterSearch}
-                      handleApolloSearch={handleApolloSearch}
-                      pendingContactIds={pendingContactIds}
-                      pendingHunterIds={pendingHunterIds}
-                      pendingApolloIds={pendingApolloIds}
                       className="py-1"
                     />
                   </TableRow>

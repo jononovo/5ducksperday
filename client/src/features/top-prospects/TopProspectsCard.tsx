@@ -9,15 +9,9 @@ const INITIAL_VISIBLE_COUNT = 5;
 
 export function TopProspectsCard({
   prospects,
-  pendingContactIds,
-  pendingHunterIds,
-  pendingApolloIds,
   pendingComprehensiveSearchIds,
   isVisible,
   onContactView,
-  onEnrichContact,
-  onHunterSearch,
-  onApolloSearch,
   onContactFeedback,
   handleComprehensiveEmailSearch,
 }: TopProspectsCardProps) {
@@ -52,14 +46,8 @@ export function TopProspectsCard({
               showCompanyName={true}
               showFeedback={true}
               handleContactView={onContactView}
-              handleEnrichContact={onEnrichContact}
-              handleHunterSearch={onHunterSearch}
-              handleApolloSearch={onApolloSearch}
               handleComprehensiveEmailSearch={handleComprehensiveEmailSearch}
               onContactFeedback={onContactFeedback}
-              pendingContactIds={pendingContactIds}
-              pendingHunterIds={pendingHunterIds}
-              pendingApolloIds={pendingApolloIds}
               pendingComprehensiveSearchIds={pendingComprehensiveSearchIds}
             />
           ))}

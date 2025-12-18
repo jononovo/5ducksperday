@@ -267,13 +267,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
                     showCheckbox={shouldShowCheckbox?.(contact.id) ?? false}
                     isHighlighted={selectedEmailContact?.id === contact.id}
                     handleContactView={(id) => setLocation(`/contacts/${id}`)}
-                    handleEnrichContact={handleEnrichContact}
-                    handleHunterSearch={handleHunterSearch}
-                    handleApolloSearch={handleApolloSearch}
                     handleComprehensiveEmailSearch={handleComprehensiveEmailSearch}
-                    pendingContactIds={pendingContactIds}
-                    pendingHunterIds={pendingHunterIds}
-                    pendingApolloIds={pendingApolloIds}
                     pendingComprehensiveSearchIds={pendingComprehensiveSearchIds}
                   />
                 </div>

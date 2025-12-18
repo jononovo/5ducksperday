@@ -2232,15 +2232,9 @@ export default function Home() {
           {/* Top Prospects Section - Modular component */}
           <TopProspectsCard
             prospects={getTopProspects()}
-            pendingContactIds={pendingContactIds}
-            pendingHunterIds={pendingHunterIds}
-            pendingApolloIds={pendingApolloIds}
             pendingComprehensiveSearchIds={pendingComprehensiveSearchIds}
             isVisible={!!(currentResults && currentResults.length > 0 && companiesViewMode !== 'slides')}
             onContactView={handleContactView}
-            onEnrichContact={handleEnrichContact}
-            onHunterSearch={handleHunterSearch}
-            onApolloSearch={handleApolloSearch}
             onContactFeedback={handleContactFeedback}
             handleComprehensiveEmailSearch={handleComprehensiveEmailSearch}
           />

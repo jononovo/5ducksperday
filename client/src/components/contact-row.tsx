@@ -24,14 +24,8 @@ export interface ContactRowProps {
   isHighlighted?: boolean;
   hasEmail?: boolean;
   handleContactView?: (contactId: number) => void;
-  handleEnrichContact?: (contactId: number) => void;
-  handleHunterSearch?: (contactId: number) => void;
-  handleApolloSearch?: (contactId: number) => void;
   handleComprehensiveEmailSearch?: (contactId: number) => void;
   onContactFeedback?: (contactId: number, feedback: string) => void;
-  pendingContactIds?: Set<number>;
-  pendingHunterIds?: Set<number>;
-  pendingApolloIds?: Set<number>;
   pendingComprehensiveSearchIds?: Set<number>;
 }
 
@@ -47,14 +41,8 @@ export function ContactRow({
   showFeedback = false,
   isHighlighted = false,
   handleContactView,
-  handleEnrichContact,
-  handleHunterSearch,
-  handleApolloSearch,
   handleComprehensiveEmailSearch,
   onContactFeedback,
-  pendingContactIds,
-  pendingHunterIds,
-  pendingApolloIds,
   pendingComprehensiveSearchIds,
 }: ContactRowProps) {
   return (
@@ -157,12 +145,6 @@ export function ContactRow({
             <ContactActionColumn
               contact={contact}
               handleContactView={handleContactView ? (id) => handleContactView(id) : undefined}
-              handleEnrichContact={handleEnrichContact}
-              handleHunterSearch={handleHunterSearch}
-              handleApolloSearch={handleApolloSearch}
-              pendingContactIds={pendingContactIds}
-              pendingHunterIds={pendingHunterIds}
-              pendingApolloIds={pendingApolloIds}
               standalone={true}
             />
 
