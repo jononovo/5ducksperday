@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext, useEffect, useRef } from "react";
+import { createContext, ReactNode, useContext, useEffect, useRef, useState } from "react";
 import {
   useQuery,
   useMutation,
@@ -23,6 +23,7 @@ import {
 type AuthContextType = {
   user: SelectUser | null;
   isLoading: boolean;
+  authReady: boolean;
   error: Error | null;
   logoutMutation: UseMutationResult<void, Error, void>;
   signInWithGoogle: () => Promise<{ isNewUser: boolean }>;
@@ -37,6 +38,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   
   // Track ongoing sync operations to prevent duplicate user creation
   const syncPromiseRef = useRef<Promise<void> | null>(null);
+  
+  // Track whether Firebase auth has completed its initial check
+  const [authReady, setAuthReady] = useState(false);
   
   // Check test mode status
   const { data: testModeStatus } = useQuery({
@@ -433,6 +437,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Skip Firebase auth monitoring in AI test mode
     if (isAITestMode) {
       console.log('AI Test Mode enabled - skipping Firebase auth monitoring');
+      setAuthReady(true);
       return;
     }
 
@@ -440,6 +445,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (!firebaseAuth) {
       console.warn('Firebase Auth not initialized in useEffect');
+      setAuthReady(true);
       return;
     }
 
@@ -456,6 +462,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         queryClient.setQueryData(["/api/user"], null);
       }
+      
+      // Mark auth as ready after first auth state check completes
+      setAuthReady(true);
     });
 
     return () => unsubscribe();
@@ -476,6 +485,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user: finalUser,
         isLoading: isLoading && !isAITestMode, // Never loading in test mode
+        authReady: isAITestMode ? true : authReady, // Always ready in test mode
         error: isAITestMode ? null : error, // No errors in test mode
         logoutMutation,
         signInWithGoogle,

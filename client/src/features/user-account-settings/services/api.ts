@@ -15,12 +15,27 @@ import type {
   CreditData
 } from "../types";
 
+/**
+ * Helper to make authenticated GET requests with both session cookie and Firebase token
+ * This ensures requests work even when returning to an idle tab
+ */
+async function authorizedFetch(url: string): Promise<Response> {
+  const headers: HeadersInit = {};
+  const authToken = localStorage.getItem('authToken');
+  if (authToken) {
+    headers['Authorization'] = `Bearer ${authToken}`;
+  }
+  
+  return fetch(url, {
+    credentials: 'include',
+    headers
+  });
+}
+
 export const userAccountApi = {
   // Profile endpoints
   getProfile: async (): Promise<UserProfile> => {
-    const response = await fetch("/api/user/profile", {
-      credentials: 'include'
-    });
+    const response = await authorizedFetch("/api/user/profile");
     if (!response.ok) throw new Error("Failed to fetch profile");
     return response.json();
   },
@@ -31,9 +46,7 @@ export const userAccountApi = {
 
   // User preferences endpoints
   getPreferences: async (): Promise<UserPreferences> => {
-    const response = await fetch("/api/user/preferences", {
-      credentials: 'include'
-    });
+    const response = await authorizedFetch("/api/user/preferences");
     if (!response.ok) throw new Error("Failed to fetch preferences");
     return response.json();
   },
@@ -63,27 +76,21 @@ export const userAccountApi = {
   },
 
   getNotificationStatus: async (): Promise<NotificationStatus> => {
-    const response = await fetch("/api/notifications/status", {
-      credentials: 'include'
-    });
+    const response = await authorizedFetch("/api/notifications/status");
     if (!response.ok) throw new Error("Failed to fetch notification status");
     return response.json();
   },
 
   // Subscription endpoints
   getSubscriptionStatus: async (): Promise<SubscriptionStatus> => {
-    const response = await fetch("/api/user/subscription-status", {
-      credentials: 'include'
-    });
+    const response = await authorizedFetch("/api/user/subscription-status");
     if (!response.ok) throw new Error("Failed to fetch subscription status");
     return response.json();
   },
 
   // Credits endpoints
   getCredits: async (): Promise<CreditData> => {
-    const response = await fetch("/api/credits", {
-      credentials: 'include'
-    });
+    const response = await authorizedFetch("/api/credits");
     if (!response.ok) throw new Error("Failed to fetch credits");
     return response.json();
   },
