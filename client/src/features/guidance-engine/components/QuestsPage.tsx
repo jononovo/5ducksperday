@@ -54,20 +54,25 @@ function getChallengeStatus(
   currentChallengeIndex: number,
   challengeIndex: number,
   questStatus: QuestStatus,
-  allChallenges: Challenge[]
+  allChallenges: Challenge[],
+  isActive: boolean
 ): ChallengeStatus {
   if (challenge.steps.length === 0) return "locked";
   
   const questCompletedChallenges = completedChallenges[questId] || [];
-  if (questCompletedChallenges.includes(challenge.id)) return "completed";
-  if (currentQuestId === questId && challengeIndex === currentChallengeIndex) return "in-progress";
-  if (currentQuestId === questId && challengeIndex < currentChallengeIndex) return "completed";
   
-  if (questStatus === "in-progress" && currentQuestId !== questId) {
-    const isFirstIncomplete = allChallenges
-      .slice(0, challengeIndex)
-      .every(c => questCompletedChallenges.includes(c.id));
-    if (isFirstIncomplete) return "available";
+  if (questCompletedChallenges.includes(challenge.id)) return "completed";
+  
+  if (isActive && currentQuestId === questId && challengeIndex === currentChallengeIndex) {
+    return "in-progress";
+  }
+  
+  const isFirstIncomplete = allChallenges
+    .slice(0, challengeIndex)
+    .every(c => questCompletedChallenges.includes(c.id));
+  
+  if (isFirstIncomplete && questStatus !== "locked") {
+    return "available";
   }
   
   return "locked";
@@ -80,6 +85,7 @@ interface QuestCardProps {
   completedChallenges: Record<string, string[]>;
   currentQuestId: string | null;
   currentChallengeIndex: number;
+  isActive: boolean;
   onStartQuest: (questId: string) => void;
   onContinueChallenge: (questId: string, challengeIndex: number) => void;
   onRestartChallenge: (questId: string, challengeIndex: number, challengeName: string) => void;
@@ -92,6 +98,7 @@ function QuestCard({
   completedChallenges,
   currentQuestId,
   currentChallengeIndex,
+  isActive,
   onStartQuest,
   onContinueChallenge,
   onRestartChallenge,
@@ -205,7 +212,8 @@ function QuestCard({
                   currentChallengeIndex,
                   challengeIndex,
                   status,
-                  quest.challenges
+                  quest.challenges,
+                  isActive
                 );
 
                 return (
@@ -432,6 +440,7 @@ export function QuestsPage() {
                 completedChallenges={state.completedChallenges}
                 currentQuestId={state.currentQuestId}
                 currentChallengeIndex={state.currentChallengeIndex}
+                isActive={state.isActive}
                 onStartQuest={handleStartQuest}
                 onContinueChallenge={handleContinueChallenge}
                 onRestartChallenge={handleRestartRequest}
