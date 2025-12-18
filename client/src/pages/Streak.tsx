@@ -380,29 +380,19 @@ export default function StreakPage() {
         setVacationDates({ from: undefined, to: undefined });
       }
       
-      // Set active product
+      // Set active product (only if explicitly saved in preferences)
       if (preferences.activeProductId) {
         setSelectedProductId(preferences.activeProductId);
-      } else if (products.length > 0) {
-        // Default to first product if none selected
-        setSelectedProductId(products[0].id);
       }
 
-      // Set active sender profile
+      // Set active sender profile (only if explicitly saved in preferences)
       if (preferences.activeSenderProfileId) {
         setSelectedSenderProfileId(preferences.activeSenderProfileId);
-      } else if (senderProfiles.length > 0) {
-        // Auto-select default sender profile
-        const defaultProfile = senderProfiles.find(p => p.isDefault) || senderProfiles[0];
-        setSelectedSenderProfileId(defaultProfile.id);
       }
 
-      // Set active customer profile
+      // Set active customer profile (only if explicitly saved in preferences)
       if (preferences.activeCustomerProfileId) {
         setSelectedCustomerProfileId(preferences.activeCustomerProfileId);
-      } else if (customerProfiles.length > 0) {
-        // Auto-select first customer profile if available
-        setSelectedCustomerProfileId(customerProfiles[0].id);
       }
 
       // Mark as initialized
