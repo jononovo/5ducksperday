@@ -7,6 +7,7 @@ import { ArrowRight, Map, X, Unlock, Sparkles, ChevronRight, ChevronLeft, Check,
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
+import { useAuth } from "@/hooks/use-auth";
 import confetti from "canvas-confetti";
 import { StealthOnboardingModal } from "./StealthOnboardingModal";
 import { FooterStealth } from "@/components/footer-stealth";
@@ -37,6 +38,7 @@ export default function LandingStealth() {
   const [code, setCode] = useState("");
   const { toast } = useToast();
   const { openModal, openModalForLogin, setRegistrationSuccessCallback, isOpen: isRegistrationModalOpen } = useRegistrationModal();
+  const { user } = useAuth();
   const [isHoveringDuck, setIsHoveringDuck] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentTestimonialIndex, setCurrentTestimonialIndex] = useState(0);
@@ -51,6 +53,9 @@ export default function LandingStealth() {
   // Show questionnaire modal after registration
   const [showQuestionnaire, setShowQuestionnaire] = useState(false);
   
+  // Track if we're in the secret code flow (to delay redirect until questionnaire shows)
+  const [isSecretCodeFlow, setIsSecretCodeFlow] = useState(false);
+  
   // Apply for code flow state
   const [showApplyForm, setShowApplyForm] = useState(false);
   const [applyFormData, setApplyFormData] = useState<ApplyFormData>({
@@ -59,6 +64,14 @@ export default function LandingStealth() {
   });
   
   const buttonRef = useRef<HTMLButtonElement>(null);
+  
+  // Redirect to /app when user is authenticated (from login flow, not secret code flow)
+  // For secret code flow, the questionnaire handles the redirect after completion
+  useEffect(() => {
+    if (user && !showQuestionnaire && !showAccessGranted && !isUnlocking && !isSecretCodeFlow) {
+      window.location.href = "/app";
+    }
+  }, [user, showQuestionnaire, showAccessGranted, isUnlocking, isSecretCodeFlow]);
 
   // Force dark mode on this page regardless of user preference
   useEffect(() => {
@@ -218,6 +231,9 @@ export default function LandingStealth() {
   const handleQuack = () => {
     const validCodes = ["quack", "charlie"];
     if (validCodes.includes(code.toLowerCase())) {
+      // Mark that we're in the secret code flow (prevents auto-redirect to /app)
+      setIsSecretCodeFlow(true);
+      
       // Start unlock animation sequence
       setIsUnlocking(true);
       
@@ -240,9 +256,17 @@ export default function LandingStealth() {
           // Store access code in localStorage for backend sync
           localStorage.setItem('accessCode', code.toLowerCase());
           setCode("");
-          // Set callback to show questionnaire after registration
-          setRegistrationSuccessCallback(() => {
-            setShowQuestionnaire(true);
+          // Set callback to show questionnaire for new users, redirect for existing users
+          // Default to false (redirect) if isNewUser is undefined - only show questionnaire when explicitly true
+          setRegistrationSuccessCallback((isNewUser) => {
+            if (isNewUser === true) {
+              // New user from secret code flow - show onboarding questionnaire
+              setShowQuestionnaire(true);
+            } else {
+              // Existing user logging in or undefined - redirect to app immediately
+              setIsSecretCodeFlow(false);
+              window.location.href = "/app";
+            }
           });
           openModal();
         }, 2000);
@@ -260,6 +284,7 @@ export default function LandingStealth() {
   const handleOnboardingComplete = () => {
     // Close the questionnaire and navigate to /app
     setShowQuestionnaire(false);
+    setIsSecretCodeFlow(false);
     window.location.href = "/app";
   };
   
@@ -268,6 +293,7 @@ export default function LandingStealth() {
     setShowApplyForm(false);
     setCode("");
     setShowQuestionnaire(false);
+    setIsSecretCodeFlow(false);
   };
   
   const [isSubmitting, setIsSubmitting] = useState(false);
