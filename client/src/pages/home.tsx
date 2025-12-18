@@ -1294,9 +1294,12 @@ export default function Home() {
       // Load persisted search metrics if available
       if (list.totalContacts !== null || list.totalEmails !== null || list.searchDurationSeconds !== null) {
         setMainSearchMetrics({
+          query: list.prompt,
+          totalCompanies: companiesWithContacts.length,
           totalContacts: list.totalContacts ?? 0,
           totalEmails: list.totalEmails ?? 0,
-          duration: list.searchDurationSeconds ? list.searchDurationSeconds * 1000 : 0,
+          searchDuration: list.searchDurationSeconds ? list.searchDurationSeconds * 1000 : 0,
+          companies: companiesWithContacts,
           sourceBreakdown: list.sourceBreakdown ?? { Perplexity: 0, Apollo: 0, Hunter: 0 }
         });
         console.log('Loaded persisted search metrics:', {
