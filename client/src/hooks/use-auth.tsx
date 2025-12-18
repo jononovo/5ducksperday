@@ -157,6 +157,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       console.log('Starting email registration process', {
         email: email.split('@')[0] + '@...',
+        username: username || 'not provided',
         timestamp: new Date().toISOString()
       });
 
@@ -174,7 +175,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       console.log('Email registration successful, syncing with backend');
-      await syncWithBackend(result.user);
+      // Pass the username explicitly since Firebase token won't have displayName yet
+      await syncWithBackend(result.user, null, username);
 
     } catch (error: any) {
       console.error("Email registration error:", {
@@ -311,7 +313,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   // Function to get Firebase ID token and sync with backend
-  const syncWithBackend = async (firebaseUser: FirebaseUser, credential?: AuthCredential | null) => {
+  const syncWithBackend = async (firebaseUser: FirebaseUser, credential?: AuthCredential | null, explicitUsername?: string) => {
     // Prevent duplicate sync calls that cause duplicate user creation
     // This happens when both onAuthStateChanged and signInWithGoogle call syncWithBackend simultaneously
     if (syncPromiseRef.current) {
@@ -330,10 +332,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const planSource = localStorage.getItem('planSource');
         const joinWaitlist = localStorage.getItem('joinWaitlist');
         const accessCode = localStorage.getItem('accessCode');
+        
+        // Use explicit username if provided (for fresh registrations where Firebase token doesn't have displayName yet)
+        // Fall back to Firebase displayName, then email prefix
+        const usernameToSync = explicitUsername || firebaseUser.displayName || firebaseUser.email?.split('@')[0];
 
         console.log('Making backend sync request', {
           endpoint: '/api/google-auth',
           domain: window.location.hostname,
+          username: usernameToSync,
           selectedPlan,
           planSource,
           joinWaitlist,
@@ -349,7 +356,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           credentials: 'include', // Essential for session cookies to be set/received
           body: JSON.stringify({
             email: firebaseUser.email,
-            username: firebaseUser.displayName || firebaseUser.email?.split('@')[0],
+            username: usernameToSync,
             firebaseUid: firebaseUser.uid,
             selectedPlan,
             planSource,
