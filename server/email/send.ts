@@ -37,7 +37,7 @@ export async function sendEmail(options: SendEmailOptions): Promise<boolean> {
       html: options.content.html,
       text: options.content.text,
       trackingSettings: {
-        clickTracking: { enable: true },
+        clickTracking: { enable: false },
         openTracking: { enable: true }
       }
     });

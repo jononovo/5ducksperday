@@ -239,7 +239,7 @@ class AutoSendCampaignService {
         html: emailContent.content,
         text: emailContent.content.replace(/<[^>]*>/g, ''), // Strip HTML for text version
         trackingSettings: {
-          clickTracking: { enable: campaign.trackEmails || true },
+          clickTracking: { enable: false },
           openTracking: { enable: campaign.trackEmails || true }
         },
         customArgs: {
@@ -351,7 +351,7 @@ class AutoSendCampaignService {
         html: resolvedBody,
         text: resolvedBody.replace(/<[^>]*>/g, ''), // Strip HTML for text version
         trackingSettings: {
-          clickTracking: { enable: campaign.trackEmails || true },
+          clickTracking: { enable: false },
           openTracking: { enable: campaign.trackEmails || true }
         },
         customArgs: {
