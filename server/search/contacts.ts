@@ -8,12 +8,9 @@
 import { Express, Request, Response } from "express";
 import { storage } from "../storage";
 import { getUserId } from "./utils";
-import { hunterSearch } from "./providers/hunter";
-import { apolloSearch } from "./providers/apollo";
 import { searchContactDetails } from "./enrichment/contact-details";
 import { findKeyDecisionMakers } from "./contacts/finder";
 import { CreditService } from "../features/billing/credits/service";
-import type { Contact } from "@shared/schema";
 
 export function registerContactRoutes(app: Express, requireAuth: any) {
   
@@ -31,54 +28,6 @@ export function registerContactRoutes(app: Express, requireAuth: any) {
       console.error('Error fetching contacts:', error);
       res.status(500).json({
         message: error instanceof Error ? error.message : "Failed to fetch contacts"
-      });
-    }
-  });
-  
-  // Hunter.io email finder endpoint
-  app.post("/api/contacts/:contactId/hunter", requireAuth, hunterSearch);
-  
-  // Apollo.io email finder endpoint
-  app.post("/api/contacts/:contactId/apollo", requireAuth, apolloSearch);
-  
-  
-  // Mark comprehensive search as complete (even if no email was found)
-  app.post("/api/contacts/:contactId/comprehensive-search-complete", requireAuth, async (req: Request, res: Response) => {
-    try {
-      const contactId = parseInt(req.params.contactId);
-      const userId = getUserId(req);
-      
-      const contact = await storage.getContact(contactId, userId);
-      if (!contact) {
-        res.status(404).json({ message: "Contact not found" });
-        return;
-      }
-
-      // Add 'comprehensive_search' to completedSearches array if not already there
-      // Apply -1 point penalty only if no email found and not already marked
-      const completedSearches = contact.completedSearches || [];
-      if (!completedSearches.includes('comprehensive_search')) {
-        completedSearches.push('comprehensive_search');
-        
-        // Apply -1 point penalty since comprehensive search found no email
-        const newProbability = Math.max(0, (contact.probability || 0) - 1);
-        
-        const updatedContact = await storage.updateContact(contactId, {
-          probability: newProbability,
-          completedSearches: completedSearches,
-          lastValidated: new Date()
-        });
-        
-        console.log(`[ComprehensiveSearch] Marked ${contact.name} as comprehensively searched (no email found). Score: ${contact.probability || 0} → ${newProbability}`);
-        
-        res.json(updatedContact);
-      } else {
-        res.json(contact);
-      }
-    } catch (error) {
-      console.error('Error marking comprehensive search as complete:', error);
-      res.status(500).json({
-        message: error instanceof Error ? error.message : "Failed to mark search as complete"
       });
     }
   });
@@ -169,6 +118,10 @@ export function registerContactRoutes(app: Express, requireAuth: any) {
       }
       console.log('Contact data from database:', { id: contact.id, name: contact.name, companyId: contact.companyId });
 
+      if (!contact.companyId) {
+        res.status(400).json({ message: "Contact has no associated company" });
+        return;
+      }
       const company = await storage.getCompany(contact.companyId, userId);
       if (!company) {
         res.status(404).json({ message: "Company not found" });
@@ -217,6 +170,7 @@ export function registerContactRoutes(app: Express, requireAuth: any) {
       }
       
       const updatedContact = await storage.updateContact(contactId, updateData);
+      
       console.log('Perplexity search completed:', {
         success: true,
         emailFound: !!updatedContact?.email,

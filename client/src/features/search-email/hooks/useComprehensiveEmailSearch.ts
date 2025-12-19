@@ -1,13 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import type { Contact } from '@shared/schema';
-import { 
-  searchViaApollo, 
-  searchViaPerplexity, 
-  searchViaHunter,
-  markSearchComplete 
-} from '../services/api';
-import { useEmailSearchBilling } from './useEmailSearchBilling';
+import { consolidatedEmailSearch } from '../services/api';
 import type { 
   SearchContext, 
   UseComprehensiveEmailSearchOptions,
@@ -19,9 +13,7 @@ export function useComprehensiveEmailSearch(
 ): ComprehensiveEmailSearchResult {
   const [pendingSearchIds, setPendingSearchIds] = useState<Set<number>>(new Set());
   const { toast } = useToast();
-  const { onContactUpdate, onSearchComplete, enableBilling = true } = options;
-  
-  const { checkSufficientCredits, billForEmailSearch } = useEmailSearchBilling();
+  const { onContactUpdate, onSearchComplete } = options;
 
   const handleComprehensiveEmailSearch = useCallback(async (
     contactId: number,
@@ -39,11 +31,6 @@ export function useComprehensiveEmailSearch(
       return;
     }
     
-    if (enableBilling) {
-      const hasCredits = await checkSufficientCredits();
-      if (!hasCredits) return;
-    }
-    
     if (contact.completedSearches?.includes('comprehensive_search')) {
       console.log('[search-email] Comprehensive search already attempted, allowing retry');
     }
@@ -51,83 +38,50 @@ export function useComprehensiveEmailSearch(
     setPendingSearchIds(prev => new Set(prev).add(contactId));
     
     try {
-      let foundEmail = false;
-      let updatedContact: Contact | null = null;
-      let sourceProvider = '';
-
-      if (!contact.completedSearches?.includes('apollo_search')) {
-        updatedContact = await searchViaApollo(contactId, searchContext);
-        if (updatedContact?.email) {
-          foundEmail = true;
-          sourceProvider = 'Apollo';
-        }
-      }
-
-      if (!foundEmail && !contact.completedSearches?.includes('contact_enrichment')) {
-        updatedContact = await searchViaPerplexity(contactId);
-        if (updatedContact?.email) {
-          foundEmail = true;
-          sourceProvider = 'Perplexity';
-        }
-      }
-
-      if (!foundEmail && !contact.completedSearches?.includes('hunter_search')) {
-        updatedContact = await searchViaHunter(contactId);
-        if (updatedContact?.email) {
-          foundEmail = true;
-          sourceProvider = 'Hunter';
-        }
-      }
-
-      if (foundEmail && updatedContact) {
-        setPendingSearchIds(prev => {
-          const next = new Set(prev);
-          next.delete(contactId);
-          return next;
-        });
-        
-        if (enableBilling) {
-          await billForEmailSearch(contactId, true);
-        }
-        
+      // Single consolidated API call - server handles waterfall and billing
+      const result = await consolidatedEmailSearch(contactId, searchContext);
+      
+      if (result.emailFound && result.contact) {
         toast({
           title: "Email Found!",
-          description: `Found email for ${contact.name}`,
+          description: `Found email for ${contact.name} via ${result.source}`,
           variant: "default",
         });
         
-        onContactUpdate?.(updatedContact);
+        onContactUpdate?.(result.contact);
         onSearchComplete?.(contactId, true);
-        return;
+      } else {
+        toast({
+          title: "Search Complete",
+          description: `No email found for ${contact.name}. All search methods exhausted.`,
+          variant: "default",
+        });
+        
+        if (result.contact) {
+          onContactUpdate?.(result.contact);
+        }
+        onSearchComplete?.(contactId, false);
       }
-
-      const markedContact = await markSearchComplete(contactId);
       
-      if (markedContact) {
-        onContactUpdate?.(markedContact);
-      }
-      onSearchComplete?.(contactId, false);
-      
-      toast({
-        title: "Search Complete",
-        description: `No email found for ${contact.name}. All search methods exhausted.`,
-        variant: "default",
-      });
-      
-    } catch (error) {
+    } catch (error: any) {
       console.error('[search-email] Comprehensive search error:', error);
       
-      const markedContact = await markSearchComplete(contactId);
-      if (markedContact) {
-        onContactUpdate?.(markedContact);
+      // Handle insufficient credits error
+      if (error?.message?.includes('402') || error?.status === 402) {
+        toast({
+          title: "Insufficient Credits",
+          description: "Please add more credits to continue searching for emails.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Search Error",
+          description: "Failed to complete email search. Please try again.",
+          variant: "destructive",
+        });
       }
-      onSearchComplete?.(contactId, false);
       
-      toast({
-        title: "Search Error",
-        description: "Failed to complete email search. Please try again.",
-        variant: "destructive",
-      });
+      onSearchComplete?.(contactId, false);
     } finally {
       setPendingSearchIds(prev => {
         const next = new Set(prev);
@@ -135,7 +89,7 @@ export function useComprehensiveEmailSearch(
         return next;
       });
     }
-  }, [pendingSearchIds, toast, onContactUpdate, onSearchComplete, enableBilling, checkSufficientCredits, billForEmailSearch]);
+  }, [pendingSearchIds, toast, onContactUpdate, onSearchComplete]);
 
   return {
     handleComprehensiveEmailSearch,

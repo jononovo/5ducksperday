@@ -165,6 +165,7 @@ export async function apolloSearch(req: Request, res: Response) {
       }
 
       const updatedContact = await storage.updateContact(contactId, updateData);
+      
       console.log('Apollo search completed:', {
         success: true,
         emailFound: !!updatedContact?.email,

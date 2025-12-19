@@ -9,6 +9,7 @@ import { registerCompanyRoutes } from "./companies";
 import { registerContactRoutes } from "./contacts";
 import { registerOrchestratorRoutes } from "./orchestrator";
 import { registerTestingRoutes } from "./testing";
+import { registerSearchEmailRoutes } from "../features/search-email";
 
 /**
  * Register all search-related routes
@@ -20,8 +21,11 @@ export function registerSearchRoutes(app: Express, requireAuth: any) {
   // Register company search routes
   registerCompanyRoutes(app, requireAuth);
   
-  // Register contact and email provider routes  
+  // Register contact routes  
   registerContactRoutes(app, requireAuth);
+  
+  // Register consolidated email search routes (Find Email button)
+  registerSearchEmailRoutes(app, requireAuth);
   
   // Register orchestrator routes
   registerOrchestratorRoutes(app, requireAuth);

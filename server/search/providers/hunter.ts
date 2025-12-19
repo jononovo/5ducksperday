@@ -125,6 +125,7 @@ export async function hunterSearch(req: Request, res: Response) {
       }
 
       const updatedContact = await storage.updateContact(contactId, updateData);
+      
       console.log('Hunter search completed:', {
         success: true,
         emailFound: !!updatedContact?.email,
