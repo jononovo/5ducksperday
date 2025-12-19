@@ -9,7 +9,6 @@ export { ProfileForm } from "./components/ProfileForm";
 // Hooks
 export { useProfile } from "./hooks/useProfile";
 export { usePreferences, useEmailPreferences } from "./hooks/usePreferences";
-export { useNotifications } from "./hooks/useNotifications";
 
 // Services
 export { userAccountApi } from "./services/api";
@@ -22,9 +21,5 @@ export type {
   UserPreferences,
   UserEmailPreferences,
   EmailPreference,
-  NotificationConfig,
-  BadgeConfig,
-  NotificationState,
-  NotificationStatus,
   CreditData
 } from "./types";

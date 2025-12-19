@@ -10,7 +10,6 @@ import type {
   SubscriptionStatus,
   UserPreferences,
   UserEmailPreferences,
-  NotificationStatus,
   CreditData
 } from "../types";
 
@@ -64,21 +63,6 @@ export const userAccountApi = {
 
   updateEmailPreferences: async (preferences: Partial<UserEmailPreferences>): Promise<UserEmailPreferences> => {
     const response = await apiRequest("PUT", "/api/email-preferences", preferences);
-    return response.json();
-  },
-
-  // Notification endpoints
-  triggerNotification: async (trigger: string): Promise<any> => {
-    return apiRequest("POST", "/api/notifications/trigger", { trigger });
-  },
-
-  markNotificationShown: async (data: { notificationId?: number; badgeId?: number }): Promise<any> => {
-    return apiRequest("POST", "/api/notifications/mark-shown", data);
-  },
-
-  getNotificationStatus: async (): Promise<NotificationStatus> => {
-    const response = await authorizedFetch("/api/notifications/status");
-    if (!response.ok) throw new Error("Failed to fetch notification status");
     return response.json();
   },
 

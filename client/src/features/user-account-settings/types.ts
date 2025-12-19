@@ -46,42 +46,6 @@ export interface UserEmailPreferences {
   updatedAt?: Date;
 }
 
-// Notification types
-export interface NotificationConfig {
-  id: number;
-  type: 'welcome' | 'achievement' | 'feature_unlock' | 'milestone';
-  trigger: string;
-  title: string;
-  description: string;
-  badge?: string;
-  emoji?: string;
-  buttonText?: string;
-}
-
-export interface BadgeConfig {
-  id: number;
-  type: 'welcome' | 'achievement' | 'milestone' | 'special';
-  trigger: string;
-  title: string;
-  description: string;
-  badge: string;
-  emoji?: string;
-  buttonText?: string;
-}
-
-export interface NotificationState {
-  isOpen: boolean;
-  notification: NotificationConfig | null;
-  badge: BadgeConfig | null;
-}
-
-export interface NotificationStatus {
-  notifications: number[] | null;
-  badges: number[] | null;
-  isWaitlistMember: boolean;
-  hasHatchlingBadge?: boolean;
-}
-
 // Credit types (related to user account)
 export interface CreditData {
   balance: number;
