@@ -193,12 +193,17 @@ export function EmailDrawer({
   );
 
   const renderExpandedView = () => (
-    <div 
-      className="fixed inset-0 z-50 bg-background"
-      data-testid="expanded-drawer"
-    >
-      <div className="h-full overflow-y-auto">
-        <div className="max-w-3xl mx-auto">
+    <>
+      <div 
+        className="fixed inset-0 z-40 bg-black/20"
+        onClick={onRestore}
+        data-testid="expanded-drawer-backdrop"
+      />
+      <div 
+        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-2xl max-h-[85vh] bg-background border rounded-lg shadow-2xl overflow-hidden"
+        data-testid="expanded-drawer"
+      >
+        <div className="h-full overflow-y-auto">
           {renderHeader()}
           <div className="p-4">
             <EmailComposer
@@ -212,7 +217,7 @@ export function EmailDrawer({
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 
   if (viewState === 'minimized') {
