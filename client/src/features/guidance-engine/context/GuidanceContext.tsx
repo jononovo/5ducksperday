@@ -60,7 +60,6 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
   const [completedChallengeName, setCompletedChallengeName] = useState("");
   const [completedChallengeMessage, setCompletedChallengeMessage] = useState("");
   const [completedChallengeCredits, setCompletedChallengeCredits] = useState<number>(0);
-  const previousLocation = useRef<string | null>(null);
   const previousStepKey = useRef<string | null>(null);
   const shownChallengeCompletionRef = useRef<string | null>(null);
   const advanceDelayTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -106,27 +105,8 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
     }
   }, [state.isActive, currentStep, state.currentQuestId, state.currentChallengeIndex, state.currentStepIndex, location, navigate]);
 
-  // Track route changes and auto-resume guidance when navigating between enabled routes
-  useEffect(() => {
-    const prevLoc = previousLocation.current;
-    previousLocation.current = location;
-
-    if (!prevLoc) return;
-
-    const isNowOnEnabled = isOnEnabledRoute;
-
-    // Only auto-resume when user actually NAVIGATES to an enabled route, not when closing guidance
-    // Don't auto-resume when visiting /quests - that's for viewing quests, not doing them
-    if (prevLoc !== location && isNowOnEnabled && state.currentQuestId && !state.isActive) {
-      if (location === "/quests" || location.startsWith("/quests/")) {
-        return;
-      }
-      const timer = setTimeout(() => {
-        engine.resumeGuidance();
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-  }, [location, isOnEnabledRoute, state.currentQuestId, state.isActive, engine]);
+  // Auto-resume on navigation removed - guidance should only start via explicit triggers
+  // Users can manually resume by clicking Fluffy if they want to continue a paused challenge
 
   useEffect(() => {
     if (!autoStartForNewUsers) return;
