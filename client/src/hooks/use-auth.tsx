@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   
   // Track ongoing sync operations to prevent duplicate user creation
-  const syncPromiseRef = useRef<Promise<{ isNewUser: boolean }> | null>(null);
+  const syncPromiseRef = useRef<Promise<void> | null>(null);
   
   // Track whether Firebase auth has completed its initial check
   const [authReady, setAuthReady] = useState(false);
@@ -269,21 +269,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log('Google sign-in successful, syncing with backend', {
         email: result.user.email.split('@')[0] + '@...',
         displayName: result.user.displayName,
-        firebaseIsNewUser: isNewUser
+        isNewUser
       });
 
-      // Pass the OAuth credential to syncWithBackend and get the backend's isNewUser
-      // The backend's isNewUser is authoritative - it checks our database, not Firebase's records
-      const backendResult = await syncWithBackend(result.user, credential);
-      const backendIsNewUser = backendResult?.isNewUser ?? false;
+      // Pass the OAuth credential to syncWithBackend
+      await syncWithBackend(result.user, credential);
       
-      console.log('Using backend isNewUser for onboarding decision', {
-        firebaseIsNewUser: isNewUser,
-        backendIsNewUser,
-        using: backendIsNewUser
-      });
-      
-      return { isNewUser: backendIsNewUser };
+      return { isNewUser };
 
     } catch (error: any) {
       console.error("Google sign-in error:", {
@@ -404,12 +396,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         console.log('Successfully synced with backend');
         
-        let isNewUserFromBackend = false;
         try {
-          const userData = await safeJsonParse(createRes);
-          isNewUserFromBackend = userData.isNewUser === true;
-          console.log('Backend sync response:', { isNewUser: isNewUserFromBackend, userId: userData.id });
-          queryClient.setQueryData(["/api/user"], userData);
+          const user = await safeJsonParse(createRes);
+          queryClient.setQueryData(["/api/user"], user);
           
           // Clean up localStorage after successful sync
           if (selectedPlan) {
@@ -426,8 +415,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           console.error('Error parsing user data from sync response:', parseError);
           throw new Error('Failed to parse user data from backend response');
         }
-
-        return { isNewUser: isNewUserFromBackend };
 
       } catch (error) {
         console.error("Error syncing with backend:", {
