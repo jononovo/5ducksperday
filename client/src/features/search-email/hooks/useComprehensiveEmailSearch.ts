@@ -7,7 +7,6 @@ import {
   searchViaHunter,
   markSearchComplete 
 } from '../services/api';
-import { useEmailSearchBilling } from './useEmailSearchBilling';
 import type { 
   SearchContext, 
   UseComprehensiveEmailSearchOptions,
@@ -19,9 +18,7 @@ export function useComprehensiveEmailSearch(
 ): ComprehensiveEmailSearchResult {
   const [pendingSearchIds, setPendingSearchIds] = useState<Set<number>>(new Set());
   const { toast } = useToast();
-  const { onContactUpdate, onSearchComplete, enableBilling = true } = options;
-  
-  const { checkSufficientCredits, billForEmailSearch } = useEmailSearchBilling();
+  const { onContactUpdate, onSearchComplete } = options;
 
   const handleComprehensiveEmailSearch = useCallback(async (
     contactId: number,
@@ -37,11 +34,6 @@ export function useComprehensiveEmailSearch(
         variant: "default",
       });
       return;
-    }
-    
-    if (enableBilling) {
-      const hasCredits = await checkSufficientCredits();
-      if (!hasCredits) return;
     }
     
     if (contact.completedSearches?.includes('comprehensive_search')) {
@@ -86,9 +78,7 @@ export function useComprehensiveEmailSearch(
           return next;
         });
         
-        if (enableBilling) {
-          await billForEmailSearch(contactId, true);
-        }
+        // Billing is now handled server-side when email is found
         
         toast({
           title: "Email Found!",
@@ -135,7 +125,7 @@ export function useComprehensiveEmailSearch(
         return next;
       });
     }
-  }, [pendingSearchIds, toast, onContactUpdate, onSearchComplete, enableBilling, checkSufficientCredits, billForEmailSearch]);
+  }, [pendingSearchIds, toast, onContactUpdate, onSearchComplete]);
 
   return {
     handleComprehensiveEmailSearch,

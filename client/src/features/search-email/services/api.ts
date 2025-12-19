@@ -1,6 +1,6 @@
-import { apiRequest, queryClient } from '@/lib/queryClient';
+import { apiRequest } from '@/lib/queryClient';
 import type { Contact } from '@shared/schema';
-import type { SearchContext, BillingResult } from '../types';
+import type { SearchContext } from '../types';
 
 export async function searchViaApollo(
   contactId: number,
@@ -71,55 +71,3 @@ export async function markSearchComplete(contactId: number): Promise<Contact | n
     return null;
   }
 }
-
-export async function checkCredits(): Promise<{ balance: number; isBlocked: boolean }> {
-  try {
-    const response = await apiRequest("GET", "/api/credits");
-    return await response.json();
-  } catch (error) {
-    console.error('[search-email] Credit check failed:', error);
-    return { balance: 0, isBlocked: true };
-  }
-}
-
-export async function deductCreditsForEmailSearch(
-  contactId: number,
-  emailFound: boolean
-): Promise<BillingResult> {
-  try {
-    if (!emailFound) {
-      return { 
-        success: true, 
-        charged: false, 
-        message: "No email found - no credits deducted" 
-      };
-    }
-
-    const response = await apiRequest("POST", "/api/credits/deduct-individual-email", {
-      contactId,
-      searchType: 'comprehensive',
-      emailFound: true
-    });
-    
-    const result = await response.json();
-    
-    queryClient.invalidateQueries({ queryKey: ['/api/credits'] });
-    
-    return {
-      success: result.success,
-      charged: result.charged,
-      newBalance: result.newBalance,
-      isBlocked: result.isBlocked,
-      message: result.message
-    };
-  } catch (error) {
-    console.error('[search-email] Credit deduction failed:', error);
-    return {
-      success: false,
-      charged: false,
-      message: error instanceof Error ? error.message : 'Credit deduction failed'
-    };
-  }
-}
-
-export const CREDIT_COST_EMAIL_SEARCH = 20;

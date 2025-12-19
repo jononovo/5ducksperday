@@ -1,5 +1,4 @@
 export { useComprehensiveEmailSearch } from './hooks/useComprehensiveEmailSearch';
-export { useEmailSearchBilling } from './hooks/useEmailSearchBilling';
 
 export { ComprehensiveSearchButton } from '@/components/comprehensive-email-search';
 
@@ -7,10 +6,7 @@ export {
   searchViaApollo,
   searchViaPerplexity,
   searchViaHunter,
-  markSearchComplete,
-  checkCredits,
-  deductCreditsForEmailSearch,
-  CREDIT_COST_EMAIL_SEARCH
+  markSearchComplete
 } from './services/api';
 
 export type {
@@ -18,7 +14,5 @@ export type {
   ComprehensiveSearchButtonProps,
   SearchState,
   UseComprehensiveEmailSearchOptions,
-  ComprehensiveEmailSearchResult,
-  BillingResult,
-  EmailSearchBillingOptions
+  ComprehensiveEmailSearchResult
 } from './types';

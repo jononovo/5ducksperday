@@ -217,10 +217,18 @@ export function registerContactRoutes(app: Express, requireAuth: any) {
       }
       
       const updatedContact = await storage.updateContact(contactId, updateData);
+      
+      // Deduct credits for successful email discovery (server-side billing)
+      if (emailFound) {
+        await CreditService.deductCredits(userId, 'individual_email', true);
+        console.log(`[Perplexity] Deducted 20 credits for successful email discovery for contact ${contactId}`);
+      }
+      
       console.log('Perplexity search completed:', {
         success: true,
         emailFound: !!updatedContact?.email,
-        contactId
+        contactId,
+        creditsCharged: emailFound
       });
 
       res.json(updatedContact);
