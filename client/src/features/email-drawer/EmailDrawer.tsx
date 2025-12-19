@@ -200,7 +200,7 @@ export function EmailDrawer({
         data-testid="expanded-drawer-backdrop"
       />
       <div 
-        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-2xl max-h-[85vh] bg-background border rounded-lg shadow-2xl overflow-hidden"
+        className="fixed top-[5%] left-1/2 -translate-x-1/2 z-50 w-full max-w-3xl max-h-[90vh] bg-background border rounded-lg shadow-2xl overflow-hidden"
         data-testid="expanded-drawer"
       >
         <div className="h-full overflow-y-auto">
