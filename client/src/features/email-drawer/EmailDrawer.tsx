@@ -78,22 +78,6 @@ export function EmailDrawer({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <button
-            onClick={() => onModeChange('campaign')}
-            className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors group ${
-              mode === 'campaign'
-                ? 'bg-muted/30 text-muted-foreground hover:bg-primary/10 hover:text-primary'
-                : 'text-muted-foreground/60 hover:text-foreground hover:bg-muted'
-            }`}
-            data-testid="button-campaign-tab"
-          >
-            <Megaphone className={`h-3.5 w-3.5 transition-colors ${
-              mode === 'campaign' 
-                ? 'text-muted-foreground group-hover:text-primary' 
-                : ''
-            }`} />
-            Create Campaign
-          </button>
-          <button
             onClick={() => onModeChange('compose')}
             className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors group ${
               mode === 'compose'
@@ -108,6 +92,22 @@ export function EmailDrawer({
                 : ''
             }`} />
             Compose
+          </button>
+          <button
+            onClick={() => onModeChange('campaign')}
+            className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors group ${
+              mode === 'campaign'
+                ? 'bg-muted/30 text-muted-foreground hover:bg-primary/10 hover:text-primary'
+                : 'text-muted-foreground/60 hover:text-foreground hover:bg-muted'
+            }`}
+            data-testid="button-campaign-tab"
+          >
+            <Megaphone className={`h-3.5 w-3.5 transition-colors ${
+              mode === 'campaign' 
+                ? 'text-muted-foreground group-hover:text-primary' 
+                : ''
+            }`} />
+            Campaign
           </button>
         </div>
         {renderWindowControls()}
