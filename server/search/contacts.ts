@@ -203,25 +203,38 @@ export function registerContactRoutes(app: Express, requireAuth: any) {
       }
       
       // NO EMAIL FOUND - mark comprehensive search as complete
-      const finalContact = await storage.getContact(contactId, userId);
-      const completedSearches = finalContact?.completedSearches || [];
+      const currentContact = await storage.getContact(contactId, userId);
+      if (!currentContact) {
+        res.status(404).json({ message: "Contact not found" });
+        return;
+      }
+      
+      const completedSearches = currentContact.completedSearches || [];
       if (!completedSearches.includes('comprehensive_search')) {
         completedSearches.push('comprehensive_search');
         
         // Apply -1 point penalty since no email found
-        const newProbability = Math.max(0, (finalContact?.probability || 0) - 1);
+        const newProbability = Math.max(0, (currentContact.probability || 0) - 1);
         
-        updatedContact = await storage.updateContact(contactId, {
+        const updated = await storage.updateContact(contactId, {
           probability: newProbability,
           completedSearches: completedSearches,
           lastValidated: new Date()
         });
         
         console.log(`[ConsolidatedSearch] No email found for ${contact.name}. All sources exhausted.`);
+        res.json({ 
+          contact: updated || currentContact, 
+          emailFound: false, 
+          source: null 
+        });
+        return;
       }
       
+      // Already marked as comprehensive search - return current contact
+      console.log(`[ConsolidatedSearch] Contact ${contact.name} already has comprehensive_search marked.`);
       res.json({ 
-        contact: updatedContact || finalContact, 
+        contact: currentContact, 
         emailFound: false, 
         source: null 
       });
