@@ -323,7 +323,8 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
 
   const handleChallengeCompleteClose = useCallback(() => {
     setShowChallengeComplete(false);
-  }, []);
+    engine.pauseGuidance();
+  }, [engine]);
 
   const handleNextChallenge = useCallback(() => {
     setShowChallengeComplete(false);
