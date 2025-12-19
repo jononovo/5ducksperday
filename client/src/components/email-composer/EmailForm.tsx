@@ -36,7 +36,8 @@ export default function EmailForm({
   generationType,
   creatingCampaign,
   isMergeViewMode,
-  getDisplayValue
+  getDisplayValue,
+  isExpanded
 }: EmailFormProps) {
   const emailSubjectRef = useRef<HTMLInputElement>(null);
   const emailContentRef = useRef<HTMLTextAreaElement>(null);
@@ -79,7 +80,7 @@ export default function EmailForm({
             handleTextareaResize();
           }}
           className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 border-0 rounded-none md:border md:rounded-b-md px-3 md:px-3 pb-12 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50"
-          style={{ minHeight: '160px', maxHeight: '400px' }}
+          style={{ minHeight: isExpanded ? '400px' : '160px', maxHeight: isExpanded ? '600px' : '400px' }}
           data-testid="textarea-email-content"
         />
         <div className="absolute bottom-2 right-2 flex items-center gap-2">

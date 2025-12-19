@@ -105,4 +105,5 @@ export interface EmailFormProps {
   creatingCampaign: boolean;
   isMergeViewMode: boolean;
   getDisplayValue: (current: string, original: string) => string;
+  isExpanded?: boolean;
 }
