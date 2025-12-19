@@ -67,22 +67,12 @@ export const CREDIT_COSTS: Record<SearchType, number> = {
 
 export const MONTHLY_CREDIT_ALLOWANCE = 250;
 
-// Stripe configuration with environment-based price selection
-export const STRIPE_CONFIG = {
-  // Use environment variable for product ID, fallback to provided production product
-  get UGLY_DUCKLING_PRODUCT_ID() {
-    return process.env.STRIPE_PRODUCT_ID || 'prod_SXlmpPTIOgmmjo';
-  },
-  // Use environment variable for price ID, fallback to provided production price
-  get UGLY_DUCKLING_PRICE_ID() {
-    return process.env.STRIPE_PRICE_ID || 'price_1RcgF4K7jbIybp9HaHIZlv2W';
-  },
-  PLAN_CREDIT_ALLOWANCES: {
-    'ugly-duckling': 5000, // 2000 base + 3000 bonus
-    'duckin-awesome': 15000, // 5000 base + 10000 bonus
-    'free': 250 // Default free credits
-  }
-} as const;
+// Re-export STRIPE_CONFIG from stripe module (single source of truth)
+export { STRIPE_CONFIG } from '../stripe/types';
+
+// Generic action type alias for non-search billable actions
+// Use this when adding new billable features beyond search
+export type ActionType = SearchType;
 
 export interface NotificationConfig {
   id: number;

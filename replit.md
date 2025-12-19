@@ -33,6 +33,27 @@ The platform is built with a React SPA frontend (TypeScript, Vite, Tailwind, sha
 - **Daily Outreach** (`server/features/daily-outreach/`): User-to-prospect prospecting emails via Gmail OAuth. AI-generated personalized content, per-user scheduling, autopilot windows. Tables: `daily_outreach_jobs`, `daily_outreach_batches`, `daily_outreach_items`.
 - These systems are intentionally separate due to different delivery channels (SendGrid vs Gmail), content generation (templates vs AI), and compliance requirements (system notifications vs marketing outreach).
 
+**Generic Credit System (Billing API):**
+- **Location**: `server/features/billing/credits/`
+- **Core Service**: `CreditService` handles all credit operations (check balance, deduct, top-up)
+- **Usage Pattern**:
+  ```typescript
+  // 1. Check balance before action
+  const credits = await CreditService.getUserCredits(userId);
+  if (credits.isBlocked || credits.currentBalance < REQUIRED_AMOUNT) {
+    return res.status(402).json({ message: "Insufficient credits" });
+  }
+  
+  // 2. Perform the billable action...
+  
+  // 3. Deduct credits on success
+  await CreditService.deductCredits(userId, 'action_type', true);
+  ```
+- **Action Types**: Defined in `credits/types.ts` as `SearchType`. Use `ActionType` alias for non-search features.
+- **Adding New Billable Actions**: Add new value to `SearchType` union and cost to `CREDIT_COSTS` record.
+- **One-Time Rewards**: Use `CreditRewardService.awardOneTimeCredits(userId, amount, rewardKey, description)` for idempotent credit awards.
+- **Stripe Config**: Single source of truth in `server/features/billing/stripe/types.ts` (re-exported from credits/types.ts).
+
 **Credit Reward & Progress Tracking System:**
 - **Unified Progress Table**: `user_progress` stores all progress across features using namespace scoping (e.g., `form`, `challenge`, `easter-egg`). Fields: `userId`, `namespace`, `completedMilestones` (string array), `metadata` (JSON).
 - **Unified Service**: `CreditRewardService` (`server/features/billing/rewards/service.ts`) provides `awardOneTimeCredits()` for all credit rewards across features.
