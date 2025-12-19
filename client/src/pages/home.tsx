@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, lazy, Suspense } from "react";
+import { useState, useEffect, useRef, lazy, Suspense, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -927,8 +927,8 @@ export default function Home() {
 
   
 
-  // Get top prospects from all companies
-  const getTopProspects = (): ContactWithCompanyInfo[] => {
+  // Memoized top prospects - only recalculates when currentResults changes
+  const topProspects = useMemo((): ContactWithCompanyInfo[] => {
     if (!currentResults) return [];
 
     const allContacts: ContactWithCompanyInfo[] = [];
@@ -938,12 +938,11 @@ export default function Home() {
       }
     });
 
-    // Use the filtering logic
     return filterTopProspects(allContacts, {
       maxPerCompany: 3,
       minProbability: 50
     });
-  };
+  }, [currentResults]);
 
   // Updated navigation handlers
   const handleContactView = (contactId: number) => {
@@ -2243,7 +2242,7 @@ export default function Home() {
 
           {/* Top Prospects Section - Modular component */}
           <TopProspectsCard
-            prospects={getTopProspects()}
+            prospects={topProspects}
             pendingComprehensiveSearchIds={pendingComprehensiveSearchIds}
             isVisible={!!(currentResults && currentResults.length > 0 && companiesViewMode !== 'slides')}
             onContactView={handleContactView}

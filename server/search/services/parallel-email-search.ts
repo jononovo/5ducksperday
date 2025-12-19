@@ -261,14 +261,17 @@ export async function parallelTieredEmailSearch(
   }
   
   // Mark contacts as comprehensively searched if no email found
+  // Apply -1 point penalty only if not already marked (to prevent double penalty)
   for (const contact of topContacts) {
     const hasResult = results.find(r => r.contactId === contact.id && r.email);
-    if (!hasResult) {
+    if (!hasResult && !contact.completedSearches?.includes('comprehensive_search')) {
+      const newProbability = Math.max(0, (contact.probability || 0) - 1);
       await storage.updateContact(contact.id, {
+        probability: newProbability,
         completedSearches: [...(contact.completedSearches || []), 'comprehensive_search'],
         lastValidated: new Date()
       });
-      console.log(`[Parallel Search] Marked ${contact.name} as comprehensively searched (no email found)`);
+      console.log(`[Parallel Search] Marked ${contact.name} as comprehensively searched (no email found). Score: ${contact.probability || 0} → ${newProbability}`);
     }
   }
   

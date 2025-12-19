@@ -55,14 +55,21 @@ export function registerContactRoutes(app: Express, requireAuth: any) {
       }
 
       // Add 'comprehensive_search' to completedSearches array if not already there
+      // Apply -1 point penalty only if no email found and not already marked
       const completedSearches = contact.completedSearches || [];
       if (!completedSearches.includes('comprehensive_search')) {
         completedSearches.push('comprehensive_search');
         
+        // Apply -1 point penalty since comprehensive search found no email
+        const newProbability = Math.max(0, (contact.probability || 0) - 1);
+        
         const updatedContact = await storage.updateContact(contactId, {
+          probability: newProbability,
           completedSearches: completedSearches,
           lastValidated: new Date()
         });
+        
+        console.log(`[ComprehensiveSearch] Marked ${contact.name} as comprehensively searched (no email found). Score: ${contact.probability || 0} → ${newProbability}`);
         
         res.json(updatedContact);
       } else {
