@@ -1,10 +1,11 @@
-import { X, Mail, ChevronLeft, ChevronRight, Megaphone } from "lucide-react";
+import { X, Mail, ChevronLeft, ChevronRight, Megaphone, Minus, Maximize2, Minimize2 } from "lucide-react";
 import { EmailComposer } from "@/components/email-composer";
 import type { EmailDrawerProps } from "./types";
 
 export function EmailDrawer({
   open,
   mode,
+  viewState,
   selectedContact,
   selectedCompany,
   selectedCompanyContacts,
@@ -16,6 +17,9 @@ export function EmailDrawer({
   onModeChange,
   onContactChange,
   onResizeStart,
+  onMinimize,
+  onExpand,
+  onRestore,
 }: EmailDrawerProps) {
   if (!open) return null;
 
@@ -35,12 +39,43 @@ export function EmailDrawer({
     return selectedCompanyContacts.findIndex(c => c.id === selectedContact?.id) + 1;
   };
 
+  const renderWindowControls = () => (
+    <div className="flex items-center gap-0.5">
+      <button
+        onClick={onMinimize}
+        className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+        aria-label="Minimize"
+        data-testid="button-minimize-drawer"
+      >
+        <Minus className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
+      </button>
+      <button
+        onClick={viewState === 'expanded' ? onRestore : onExpand}
+        className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+        aria-label={viewState === 'expanded' ? "Restore" : "Expand"}
+        data-testid="button-expand-drawer"
+      >
+        {viewState === 'expanded' ? (
+          <Minimize2 className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
+        ) : (
+          <Maximize2 className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
+        )}
+      </button>
+      <button
+        onClick={onClose}
+        className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+        aria-label="Close email panel"
+        data-testid="button-close-drawer"
+      >
+        <X className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
+      </button>
+    </div>
+  );
+
   const renderHeader = () => (
     <div className="sticky top-0 bg-background px-4 py-1.5 z-10">
-      {/* Top row - Tabs and close */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          {/* Campaign Tab */}
           <button
             onClick={() => onModeChange('campaign')}
             className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors group ${
@@ -57,7 +92,6 @@ export function EmailDrawer({
             }`} />
             Create Campaign
           </button>
-          {/* Compose Tab */}
           <button
             onClick={() => onModeChange('compose')}
             className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors group ${
@@ -75,17 +109,9 @@ export function EmailDrawer({
             Compose
           </button>
         </div>
-        <button
-          onClick={onClose}
-          className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-colors"
-          aria-label="Close email panel"
-          data-testid="button-close-drawer"
-        >
-          <X className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-        </button>
+        {renderWindowControls()}
       </div>
       
-      {/* Contact row with navigation - Only show in compose mode */}
       {mode === 'compose' && selectedContact && (
         <div className="flex items-center justify-between mt-0.5">
           <p className="text-sm truncate flex-1 min-w-0" data-testid="text-contact-info">
@@ -93,7 +119,6 @@ export function EmailDrawer({
             <span className="text-xs text-muted-foreground"> • {selectedCompany?.name}</span>
           </p>
           
-          {/* Contact navigation */}
           {selectedCompanyContacts.length > 1 && (
             <div className="flex items-center gap-1 flex-shrink-0 ml-2">
               <button
@@ -120,16 +145,90 @@ export function EmailDrawer({
     </div>
   );
 
+  const renderMinimizedBar = () => (
+    <div 
+      className="fixed bottom-4 right-4 z-50 bg-background border rounded-lg shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
+      onClick={onRestore}
+      data-testid="minimized-drawer-bar"
+    >
+      <div className="flex items-center gap-3 px-4 py-2">
+        <div className="flex items-center gap-2">
+          {mode === 'campaign' ? (
+            <Megaphone className="h-4 w-4 text-muted-foreground" />
+          ) : (
+            <Mail className="h-4 w-4 text-muted-foreground" />
+          )}
+          <span className="text-sm font-medium truncate max-w-[200px]">
+            {mode === 'campaign' ? 'Campaign' : (selectedContact?.name || 'New Email')}
+          </span>
+        </div>
+        <div className="flex items-center gap-0.5 ml-2">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onRestore();
+            }}
+            className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            aria-label="Restore"
+            data-testid="button-restore-minimized"
+          >
+            <Maximize2 className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
+            className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            aria-label="Close"
+            data-testid="button-close-minimized"
+          >
+            <X className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderExpandedView = () => (
+    <div 
+      className="fixed inset-0 z-50 bg-background"
+      data-testid="expanded-drawer"
+    >
+      <div className="h-full overflow-y-auto">
+        <div className="max-w-3xl mx-auto">
+          {renderHeader()}
+          <div className="p-4">
+            <EmailComposer
+              selectedContact={selectedContact}
+              selectedCompany={selectedCompany}
+              onContactChange={onContactChange}
+              drawerMode={mode}
+              currentListId={currentListId}
+              currentQuery={currentQuery}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (viewState === 'minimized') {
+    return renderMinimizedBar();
+  }
+
+  if (viewState === 'expanded') {
+    return renderExpandedView();
+  }
+
   return (
     <>
-      {/* Desktop & Tablet: Drawer Container - keeps column aligned */}
       <div 
         className={`duplicate-full-height-drawer-to-keep-column-aligned ${
           open ? 'hidden md:block md:relative md:h-full' : 'hidden md:block md:relative w-0'
         }`} 
         style={{ ...(open && typeof window !== 'undefined' && window.innerWidth >= 768 ? { width: `${width}px` } : {}) }}
       >
-        {/* Actual Email Drawer with dynamic height - Absolute positioned on desktop */}
         <div 
           className={`${!isResizing ? 'email-drawer-transition' : ''} ${
             open 
@@ -142,7 +241,6 @@ export function EmailDrawer({
           }}
           data-testid="drawer-email"
         >
-          {/* Resize Handle - Only show on desktop */}
           {open && (
             <div
               onMouseDown={onResizeStart}
@@ -156,7 +254,6 @@ export function EmailDrawer({
           <div className="overflow-y-auto max-h-[calc(100vh-2.5rem)] md:max-h-screen pb-4" style={{ minWidth: open ? '320px' : '0' }}>
             {renderHeader()}
             
-            {/* Email Composer */}
             <div className="p-4">
               <EmailComposer
                 selectedContact={selectedContact}
@@ -171,7 +268,6 @@ export function EmailDrawer({
         </div>
       </div>
 
-      {/* Mobile: Separate drawer instance without wrapper since it's fixed positioned */}
       <div 
         className={`md:hidden email-drawer-transition ${
           open 
@@ -184,7 +280,6 @@ export function EmailDrawer({
             <div className="flex flex-col min-h-full pb-24">
               {renderHeader()}
               
-              {/* Email Composer for mobile */}
               <div className="p-4">
                 <EmailComposer
                   selectedContact={selectedContact}

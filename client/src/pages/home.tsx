@@ -1673,6 +1673,7 @@ export default function Home() {
       <EmailDrawer
         open={emailDrawer.isOpen}
         mode={emailDrawer.mode}
+        viewState={emailDrawer.viewState}
         selectedContact={emailDrawer.selectedContact}
         selectedCompany={emailDrawer.selectedCompany}
         selectedCompanyContacts={emailDrawer.selectedCompanyContacts}
@@ -1684,6 +1685,9 @@ export default function Home() {
         onModeChange={emailDrawer.setMode}
         onContactChange={handleEmailContactChange}
         onResizeStart={emailDrawer.handleMouseDown}
+        onMinimize={emailDrawer.minimize}
+        onExpand={emailDrawer.expand}
+        onRestore={emailDrawer.restore}
       />
       
       {/* Search Management Drawer */}
