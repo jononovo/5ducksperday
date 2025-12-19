@@ -279,16 +279,16 @@ export function EmailDrawer({
       <div 
         className={`md:hidden email-drawer-transition ${
           open 
-            ? 'fixed top-[2.5rem] right-0 bottom-auto max-h-[calc(100vh-2.5rem)] w-[90%] sm:w-[400px] z-50' 
+            ? 'fixed top-[2.5rem] right-0 h-[90vh] w-[95%] z-50' 
             : 'fixed w-0 right-0 top-[2.5rem]'
         } overflow-hidden border-l border-t border-b rounded-tl-lg rounded-bl-lg bg-background shadow-xl`}
       >
         {open && (
-          <div className="overflow-y-auto max-h-[calc(100vh-2.5rem)]" style={{ minWidth: '320px' }}>
+          <div className="overflow-y-auto h-full" style={{ minWidth: '320px' }}>
             <div className="flex flex-col min-h-full pb-24">
               {renderHeader()}
               
-              <div className="p-4">
+              <div className="px-0 py-4">
                 <EmailComposer
                   selectedContact={selectedContact}
                   selectedCompany={selectedCompany}
