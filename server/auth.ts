@@ -603,6 +603,7 @@ export function setupAuth(app: Express) {
       // Try to find user by email
       console.log(`[/api/google-auth] Looking up user by email: ${email.split('@')[0]}@...`);
       let user = null;
+      let isNewUser = false;
       
       try {
         user = await storage.getUserByEmail(email);
@@ -631,6 +632,7 @@ export function setupAuth(app: Express) {
             username: username || email.split('@')[0],
             password: '',  // Not used for Google auth
           });
+          isNewUser = true;
           console.log(`[/api/google-auth] Successfully created new user: id=${user.id}`);
           
           // Award registration credits using unified system (non-blocking)
@@ -729,8 +731,8 @@ export function setupAuth(app: Express) {
             details: err instanceof Error ? err.message : "Session creation failed"
           });
         }
-        console.log(`[/api/google-auth] Successfully authenticated user ${user.id}`);
-        res.json(user);
+        console.log(`[/api/google-auth] Successfully authenticated user ${user.id}, isNewUser=${isNewUser}`);
+        res.json({ ...user, isNewUser });
       });
     } catch (err) {
       console.error('[/api/google-auth] Unexpected error in authentication flow:', {
