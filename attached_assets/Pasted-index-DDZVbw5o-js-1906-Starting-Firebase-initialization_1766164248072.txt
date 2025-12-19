@@ -1,0 +1,153 @@
+index-DDZVbw5o.js:1906 Starting Firebase initialization... {timestamp: '2025-12-19T17:07:17.066Z', domain: '5-ducks-50-staging-jononovo.replit.app'}
+index-DDZVbw5o.js:1906 Raw environment variables: {apiKey: '....aDbuzU', projectId: 'fire-5-ducks', appId: '....b133e8', mode: 'production', dev: false, …}
+index-DDZVbw5o.js:1906 Firebase Configuration: {hasApiKey: true, hasProjectId: true, hasAppId: true, authDomain: 'auth.5ducks.ai', environment: 'production', …}
+index-DDZVbw5o.js:1908 Firebase initialized successfully: {domain: '5-ducks-50-staging-jononovo.replit.app', isAuth: true, isProvider: true, authDomain: 'auth.5ducks.ai', timestamp: '2025-12-19T17:07:17.068Z'}
+index-DDZVbw5o.js:2049 [GuidanceEngine] Waiting for auth to be ready before initializing...
+index-DDZVbw5o.js:2049 [GuidanceEngine] Skipping server sync - not yet initialized
+index-DDZVbw5o.js:1908 Setting up Firebase auth state listener
+index-DDZVbw5o.js:1908 Firebase auth state changed: undefined
+index-DDZVbw5o.js:2049 [GuidanceEngine] Initializing from server... {userId: null, authReady: true}
+index-DDZVbw5o.js:2049 [GuidanceEngine] Fetching server progress... {hasAuthToken: false}
+index-DDZVbw5o.js:2049 [GuidanceEngine] Skipping server sync - not yet initialized
+index-DDZVbw5o.js:1908 Firebase persistence set to LOCAL
+index-DDZVbw5o.js:49  GET https://5-ducks-50-staging-jononovo.replit.app/api/user 401 (Unauthorized)
+(anonymous) @ index-DDZVbw5o.js:49
+o @ index-DDZVbw5o.js:49
+y @ index-DDZVbw5o.js:49
+start @ index-DDZVbw5o.js:49
+fetch @ index-DDZVbw5o.js:49
+hu @ index-DDZVbw5o.js:49
+onSubscribe @ index-DDZVbw5o.js:49
+subscribe @ index-DDZVbw5o.js:49
+(anonymous) @ index-DDZVbw5o.js:49
+NP @ index-DDZVbw5o.js:39
+Bm @ index-DDZVbw5o.js:41
+Tl @ index-DDZVbw5o.js:41
+PC @ index-DDZVbw5o.js:41
+As @ index-DDZVbw5o.js:39
+LL @ index-DDZVbw5o.js:41
+zs @ index-DDZVbw5o.js:41
+aN @ index-DDZVbw5o.js:41
+C @ index-DDZVbw5o.js:26
+L @ index-DDZVbw5o.js:26
+index-DDZVbw5o.js:2049 [GuidanceEngine] Fetch response status: 200
+index-DDZVbw5o.js:2049 [GuidanceEngine] Server progress received: {completedQuests: Array(0), completedChallenges: {…}, currentQuestId: null, settings: {…}}
+index-DDZVbw5o.js:2049 [GuidanceEngine] Applying server progress to state (completions only)
+index-DDZVbw5o.js:2049 [GuidanceEngine] Initialization complete, isInitialized=true, userId= null
+index-DDZVbw5o.js:2049 [GuidanceEngine] State changed, scheduling sync in 1s: {completedChallenges: {…}, completedQuests: Array(0), userId: null}
+index-DDZVbw5o.js:1908 User signed out, removed auth token
+index-DDZVbw5o.js:2049 [GuidanceEngine] Debounce complete, triggering sync now
+index-DDZVbw5o.js:2049 [GuidanceEngine] Syncing to server: {completedQuests: Array(0), completedChallenges: {…}, currentQuestId: null, hasAuthToken: false}
+index-DDZVbw5o.js:2049 [GuidanceEngine] Sync response status: 200
+index-DDZVbw5o.js:2049 [GuidanceEngine] Sync successful, server response: {success: true}
+index-DDZVbw5o.js:1908 Starting Google sign-in process {environment: 'production', domain: '5-ducks-50-staging-jononovo.replit.app', origin: 'https://5-ducks-50-staging-jononovo.replit.app'}
+index-DDZVbw5o.js:1908 Calling signInWithPopup...
+index-DDZVbw5o.js:1726 Cross-Origin-Opener-Policy policy would block the window.closed call.
+t @ index-DDZVbw5o.js:1726
+setTimeout
+t @ index-DDZVbw5o.js:1726
+pollUserCancellation @ index-DDZVbw5o.js:1726
+onExecution @ index-DDZVbw5o.js:1726
+await in onExecution
+(anonymous) @ index-DDZVbw5o.js:1711
+await in (anonymous)
+execute @ index-DDZVbw5o.js:1711
+executeNotNull @ index-DDZVbw5o.js:1726
+$K @ index-DDZVbw5o.js:1726
+p @ index-DDZVbw5o.js:1908
+L @ index-DDZVbw5o.js:2019
+r4 @ index-DDZVbw5o.js:38
+i4 @ index-DDZVbw5o.js:38
+o4 @ index-DDZVbw5o.js:38
+JS @ index-DDZVbw5o.js:38
+hP @ index-DDZVbw5o.js:38
+(anonymous) @ index-DDZVbw5o.js:38
+Ub @ index-DDZVbw5o.js:41
+Lj @ index-DDZVbw5o.js:38
+wg @ index-DDZVbw5o.js:38
+gb @ index-DDZVbw5o.js:38
+w4 @ index-DDZVbw5o.js:38
+index-DDZVbw5o.js:1726 Cross-Origin-Opener-Policy policy would block the window.closed call.
+t @ index-DDZVbw5o.js:1726
+setTimeout
+t @ index-DDZVbw5o.js:1726
+pollUserCancellation @ index-DDZVbw5o.js:1726
+onExecution @ index-DDZVbw5o.js:1726
+await in onExecution
+(anonymous) @ index-DDZVbw5o.js:1711
+await in (anonymous)
+execute @ index-DDZVbw5o.js:1711
+executeNotNull @ index-DDZVbw5o.js:1726
+$K @ index-DDZVbw5o.js:1726
+p @ index-DDZVbw5o.js:1908
+L @ index-DDZVbw5o.js:2019
+r4 @ index-DDZVbw5o.js:38
+i4 @ index-DDZVbw5o.js:38
+o4 @ index-DDZVbw5o.js:38
+JS @ index-DDZVbw5o.js:38
+hP @ index-DDZVbw5o.js:38
+(anonymous) @ index-DDZVbw5o.js:38
+Ub @ index-DDZVbw5o.js:41
+Lj @ index-DDZVbw5o.js:38
+wg @ index-DDZVbw5o.js:38
+gb @ index-DDZVbw5o.js:38
+w4 @ index-DDZVbw5o.js:38
+index-DDZVbw5o.js:1908 Google sign-in error: {error: 'Firebase: Error (auth/popup-closed-by-user).', code: 'auth/popup-closed-by-user', domain: '5-ducks-50-staging-jononovo.replit.app', environment: 'production'}
+p @ index-DDZVbw5o.js:1908
+await in p
+L @ index-DDZVbw5o.js:2019
+r4 @ index-DDZVbw5o.js:38
+i4 @ index-DDZVbw5o.js:38
+o4 @ index-DDZVbw5o.js:38
+JS @ index-DDZVbw5o.js:38
+hP @ index-DDZVbw5o.js:38
+(anonymous) @ index-DDZVbw5o.js:38
+Ub @ index-DDZVbw5o.js:41
+Lj @ index-DDZVbw5o.js:38
+wg @ index-DDZVbw5o.js:38
+gb @ index-DDZVbw5o.js:38
+w4 @ index-DDZVbw5o.js:38
+index-DDZVbw5o.js:2019 Google sign-in failed: FirebaseError: Firebase: Error (auth/popup-closed-by-user).
+    at g1 (index-DDZVbw5o.js:751:758)
+    at Hn (index-DDZVbw5o.js:751:68)
+    at index-DDZVbw5o.js:1726:1487
+L @ index-DDZVbw5o.js:2019
+await in L
+r4 @ index-DDZVbw5o.js:38
+i4 @ index-DDZVbw5o.js:38
+o4 @ index-DDZVbw5o.js:38
+JS @ index-DDZVbw5o.js:38
+hP @ index-DDZVbw5o.js:38
+(anonymous) @ index-DDZVbw5o.js:38
+Ub @ index-DDZVbw5o.js:41
+Lj @ index-DDZVbw5o.js:38
+wg @ index-DDZVbw5o.js:38
+gb @ index-DDZVbw5o.js:38
+w4 @ index-DDZVbw5o.js:38
+index-DDZVbw5o.js:2019 Attempting registration with: {email: '1@test.com', name: 'jontest1'}
+index-DDZVbw5o.js:1908 Starting email registration process {email: '1@...', username: 'jontest1', timestamp: '2025-12-19T17:09:40.309Z'}
+index-DDZVbw5o.js:1908 Firebase auth state changed: 1@test.com
+index-DDZVbw5o.js:1908 Making backend sync request {endpoint: '/api/google-auth', domain: '5-ducks-50-staging-jononovo.replit.app', username: '1', selectedPlan: null, planSource: null, …}
+index-DDZVbw5o.js:1908 Auth token set successfully: {uid: 'TM6OHQWR8ThFWCyjrJrkkqcVP5i2', email: '1@...', timestamp: '2025-12-19T17:09:40.859Z'}
+index-DDZVbw5o.js:1908 Email registration successful, syncing with backend
+index-DDZVbw5o.js:1908 Sync already in progress, waiting for it to complete
+index-DDZVbw5o.js:1908 Successfully synced with backend
+index-DDZVbw5o.js:1908 Cleaned up access code from localStorage
+index-DDZVbw5o.js:2019 Registration successful with Firebase
+index-DDZVbw5o.js:2049 [GuidanceEngine] Initializing from server... {userId: 26, authReady: true}
+index-DDZVbw5o.js:2049 [GuidanceEngine] Fetching server progress... {hasAuthToken: true}
+index-DDZVbw5o.js:2049 [GuidanceEngine] User changed from null to 26 - re-fetching progress
+index-DDZVbw5o.js:2049 [GuidanceEngine] Fetching server progress... {hasAuthToken: true}
+index-DDZVbw5o.js:2049 [GuidanceEngine] State changed, scheduling sync in 1s: {completedChallenges: {…}, completedQuests: Array(0), userId: 26}
+index-DDZVbw5o.js:2049 [GuidanceEngine] Fetch response status: 200
+index-DDZVbw5o.js:2049 [GuidanceEngine] Server progress received: {completedQuests: Array(0), completedChallenges: {…}, currentQuestId: null, settings: {…}}
+index-DDZVbw5o.js:2049 [GuidanceEngine] Applying server progress to state (completions only)
+index-DDZVbw5o.js:2049 [GuidanceEngine] Initialization complete, isInitialized=true, userId= 26
+index-DDZVbw5o.js:2049 [GuidanceEngine] State changed, scheduling sync in 1s: {completedChallenges: {…}, completedQuests: Array(0), userId: 26}
+index-DDZVbw5o.js:2049 [GuidanceEngine] Fetch response status: 200
+index-DDZVbw5o.js:2049 [GuidanceEngine] Server progress received: {completedQuests: Array(0), completedChallenges: {…}, currentQuestId: null, settings: {…}}
+index-DDZVbw5o.js:2049 [GuidanceEngine] State changed, scheduling sync in 1s: {completedChallenges: {…}, completedQuests: Array(0), userId: 26}
+index-DDZVbw5o.js:2049 [GuidanceEngine] Debounce complete, triggering sync now
+index-DDZVbw5o.js:2049 [GuidanceEngine] Syncing to server: {completedQuests: Array(0), completedChallenges: {…}, currentQuestId: null, hasAuthToken: true}
+index-DDZVbw5o.js:2049 [GuidanceEngine] Sync response status: 200
+index-DDZVbw5o.js:2049 [GuidanceEngine] Sync successful, server response: {completedQuests: Array(0), completedChallenges: {…}, currentQuestId: null, settings: {…}, creditsAwarded: Array(0)}
