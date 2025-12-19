@@ -53,12 +53,7 @@ import { useRef } from "react";
 interface CompanyCardsProps {
   companies: Array<Company & { contacts?: ContactWithCompanyInfo[] }>;
   handleCompanyView: (companyId: number) => void;
-  handleHunterSearch?: (contactId: number) => void;
-  handleApolloSearch?: (contactId: number) => void;
-  handleEnrichContact?: (contactId: number) => void;
   handleComprehensiveEmailSearch?: (contactId: number) => void;
-  pendingHunterIds?: Set<number>;
-  pendingApolloIds?: Set<number>;
   pendingContactIds?: Set<number>;
   pendingComprehensiveSearchIds?: Set<number>;
   onContactClick?: (contact: ContactWithCompanyInfo, company: Company) => void;
@@ -85,12 +80,7 @@ interface CompanyCardProps {
   onCompanyCheckboxChange?: () => void;
   shouldShowCompanyCheckbox?: boolean;
   handleCompanyView: (companyId: number) => void;
-  handleHunterSearch?: (contactId: number) => void;
-  handleApolloSearch?: (contactId: number) => void;
-  handleEnrichContact?: (contactId: number) => void;
   handleComprehensiveEmailSearch?: (contactId: number) => void;
-  pendingHunterIds?: Set<number>;
-  pendingApolloIds?: Set<number>;
   pendingContactIds?: Set<number>;
   pendingComprehensiveSearchIds?: Set<number>;
   onContactClick?: (contact: ContactWithCompanyInfo, company: Company) => void;
@@ -117,12 +107,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
   onCompanyCheckboxChange,
   shouldShowCompanyCheckbox,
   handleCompanyView,
-  handleHunterSearch,
-  handleApolloSearch,
-  handleEnrichContact,
   handleComprehensiveEmailSearch,
-  pendingHunterIds,
-  pendingApolloIds,
   pendingContactIds,
   pendingComprehensiveSearchIds,
   onContactClick,
@@ -312,12 +297,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
 export default function CompanyCards({ 
   companies, 
   handleCompanyView,
-  handleHunterSearch,
-  handleApolloSearch,
-  handleEnrichContact,
   handleComprehensiveEmailSearch,
-  pendingHunterIds,
-  pendingApolloIds,
   pendingContactIds,
   pendingComprehensiveSearchIds,
   onContactClick,
@@ -722,12 +702,7 @@ export default function CompanyCards({
               onCompanyCheckboxChange={() => onCompanySelectionChange?.(company)}
               shouldShowCompanyCheckbox={shouldShowCompanyCheckbox(company.id)}
               handleCompanyView={handleCompanyView}
-              handleHunterSearch={handleHunterSearch}
-              handleApolloSearch={handleApolloSearch}
-              handleEnrichContact={handleEnrichContact}
               handleComprehensiveEmailSearch={handleComprehensiveEmailSearch}
-              pendingHunterIds={pendingHunterIds}
-              pendingApolloIds={pendingApolloIds}
               pendingContactIds={pendingContactIds}
               pendingComprehensiveSearchIds={pendingComprehensiveSearchIds}
               onContactClick={handleContactCardClick}
@@ -763,12 +738,7 @@ export default function CompanyCards({
               onCompanyCheckboxChange={() => onCompanySelectionChange?.(companies[currentSlideIndex])}
               shouldShowCompanyCheckbox={shouldShowCompanyCheckbox(companies[currentSlideIndex].id)}
               handleCompanyView={handleCompanyView}
-              handleHunterSearch={handleHunterSearch}
-              handleApolloSearch={handleApolloSearch}
-              handleEnrichContact={handleEnrichContact}
               handleComprehensiveEmailSearch={handleComprehensiveEmailSearch}
-              pendingHunterIds={pendingHunterIds}
-              pendingApolloIds={pendingApolloIds}
               pendingContactIds={pendingContactIds}
               pendingComprehensiveSearchIds={pendingComprehensiveSearchIds}
               onContactClick={handleContactCardClick}
