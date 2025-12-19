@@ -20,7 +20,7 @@ import { SelectionToolbar } from "@/components/SelectionToolbar";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
-import { useNotifications } from "@/features/user-account-settings";
+import { useNotifications } from "@/hooks/use-notifications";
 import { useStrategyOverlay } from "@/features/strategy-chat";
 import { NotificationToast } from "@/components/ui/notification-toast";
 import { ExtendSearchButton } from "@/features/search-extension";
@@ -479,8 +479,8 @@ export default function Home() {
         
         // Toast removed - redundant with welcome notification system
         
-        // Trigger welcome notification
-        await triggerNotification('registration_complete');
+        // Trigger welcome notification (client-side)
+        triggerNotification('registration_complete');
       } catch (error) {
         console.error('Failed to handle registration success:', error);
       }

@@ -1,102 +1,73 @@
-import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { useState, useCallback } from "react";
+import { getBadgeByTrigger, BadgeConfig } from "@/features/gamification";
 
-interface NotificationConfig {
-  id: number;
-  type: 'welcome' | 'achievement' | 'feature_unlock' | 'milestone';
-  trigger: string;
-  title: string;
-  description: string;
-  badge?: string;
-  emoji?: string;
-  buttonText?: string;
-}
-
-interface BadgeConfig {
-  id: number;
-  type: 'welcome' | 'achievement' | 'milestone' | 'special';
-  trigger: string;
-  title: string;
-  description: string;
-  badge: string;
-  emoji?: string;
-  buttonText?: string;
-}
+const SHOWN_BADGES_KEY = "5ducks_shown_badges";
 
 interface NotificationState {
   isOpen: boolean;
-  notification: NotificationConfig | null;
   badge: BadgeConfig | null;
+}
+
+function getShownBadges(): string[] {
+  try {
+    const stored = localStorage.getItem(SHOWN_BADGES_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
+function markBadgeAsShown(trigger: string): void {
+  try {
+    const shown = getShownBadges();
+    if (!shown.includes(trigger)) {
+      shown.push(trigger);
+      localStorage.setItem(SHOWN_BADGES_KEY, JSON.stringify(shown));
+    }
+  } catch (error) {
+    console.error("Failed to save badge state:", error);
+  }
+}
+
+function hasBadgeBeenShown(trigger: string): boolean {
+  return getShownBadges().includes(trigger);
 }
 
 export function useNotifications() {
   const [notificationState, setNotificationState] = useState<NotificationState>({
     isOpen: false,
-    notification: null,
     badge: null
   });
-  const queryClient = useQueryClient();
 
-  const triggerNotification = async (trigger: string): Promise<boolean> => {
-    try {
-      const response = await apiRequest("POST", "/api/notifications/trigger", { trigger });
-      
-      if (response.status === 409) {
-        // Notification already shown, silently ignore
-        console.log('Notification already shown for trigger:', trigger);
-        return false;
-      }
-      
-      const result = await response.json();
-      
-      if (result.shouldShow && (result.notification || result.badge)) {
-        setNotificationState({
-          isOpen: true,
-          notification: result.notification || null,
-          badge: result.badge || null
-        });
-        return true;
-      }
-      return false;
-    } catch (error) {
-      console.error('Failed to trigger notification:', error);
+  const triggerNotification = useCallback((trigger: string): boolean => {
+    if (hasBadgeBeenShown(trigger)) {
+      console.log("Badge already shown for trigger:", trigger);
       return false;
     }
-  };
 
-  const closeNotification = async () => {
+    const badge = getBadgeByTrigger(trigger);
+    if (!badge) {
+      console.log("No badge found for trigger:", trigger);
+      return false;
+    }
+
+    setNotificationState({
+      isOpen: true,
+      badge
+    });
+    return true;
+  }, []);
+
+  const closeNotification = useCallback(() => {
     if (notificationState.badge) {
-      try {
-        await apiRequest("POST", "/api/notifications/mark-shown", {
-          badgeId: notificationState.badge.id
-        });
-        
-        // Refresh credits and notification status
-        queryClient.invalidateQueries({ queryKey: ["/api/credits"] });
-        queryClient.invalidateQueries({ queryKey: ["/api/notifications/status"] });
-      } catch (error) {
-        console.error('Failed to award badge:', error);
-      }
-    } else if (notificationState.notification) {
-      try {
-        await apiRequest("POST", "/api/notifications/mark-shown", {
-          notificationId: notificationState.notification.id
-        });
-        
-        // Refresh notification status
-        queryClient.invalidateQueries({ queryKey: ["/api/notifications/status"] });
-      } catch (error) {
-        console.error('Failed to mark notification as shown:', error);
-      }
+      markBadgeAsShown(notificationState.badge.trigger);
     }
     
     setNotificationState({
       isOpen: false,
-      notification: null,
       badge: null
     });
-  };
+  }, [notificationState.badge]);
 
   return {
     notificationState,

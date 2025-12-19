@@ -26,11 +26,23 @@ interface SubscriptionStatus {
   currentPlan: string | null;
 }
 
-interface NotificationStatus {
-  notifications: number[];
-  badges: number[];
-  isWaitlistMember: boolean;
-  hasHatchlingBadge: boolean;
+const WAITLIST_STORAGE_KEY = '5ducks_waitlist_plans';
+
+function getStoredWaitlistPlans(): string[] {
+  try {
+    const stored = localStorage.getItem(WAITLIST_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveWaitlistPlans(plans: string[]) {
+  try {
+    localStorage.setItem(WAITLIST_STORAGE_KEY, JSON.stringify(plans));
+  } catch {
+    // Ignore storage errors
+  }
 }
 
 export function CreditUpgradeDropdown() {
@@ -41,25 +53,14 @@ export function CreditUpgradeDropdown() {
   const { data: subscriptionStatus } = useQuery<SubscriptionStatus>({
     queryKey: ['/api/stripe/subscription-status'],
   });
-
-  const { data: notificationStatus } = useQuery<NotificationStatus>({
-    queryKey: ['/api/notifications/status'],
-  });
   
   const { toast } = useToast();
 
   // State management for subscription testing
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [currentPlan, setCurrentPlan] = useState<string | null>(null);
-  const [waitlistPlans, setWaitlistPlans] = useState<string[]>([]);
+  const [waitlistPlans, setWaitlistPlans] = useState<string[]>(() => getStoredWaitlistPlans());
   const [isOpen, setIsOpen] = useState(false);
-
-  // Sync waitlist state with server data
-  React.useEffect(() => {
-    if (notificationStatus?.isWaitlistMember) {
-      setWaitlistPlans(prev => prev.includes('duckin-awesome') ? prev : [...prev, 'duckin-awesome']);
-    }
-  }, [notificationStatus]);
 
   const plans = [
     {
@@ -86,34 +87,15 @@ export function CreditUpgradeDropdown() {
     console.log(`Selected plan: ${planId}`);
     
     if (planId === 'duckin-awesome') {
-      // Waitlist functionality for unavailable plan
+      // Waitlist functionality for unavailable plan - stored locally
       if (!waitlistPlans.includes(planId)) {
-        setWaitlistPlans([...waitlistPlans, planId]);
+        const newWaitlistPlans = [...waitlistPlans, planId];
+        setWaitlistPlans(newWaitlistPlans);
+        saveWaitlistPlans(newWaitlistPlans);
         toast({
           title: "Added to Waitlist",
           description: "We'll notify you when Mama Duck becomes available!",
         });
-        
-        // Track waitlist join in database via notification system
-        try {
-          const authToken = localStorage.getItem('authToken');
-          const response = await fetch('/api/notifications/trigger', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              ...(authToken && { 'Authorization': `Bearer ${authToken}` })
-            },
-            credentials: 'include',
-            body: JSON.stringify({ trigger: 'waitlist_joined' })
-          });
-          
-          if (!response.ok) {
-            console.error('Failed to track waitlist join:', response.status);
-          }
-        } catch (error) {
-          console.error('Failed to track waitlist join:', error);
-          // Don't show error to user - tracking is background operation
-        }
       }
       return;
     }
