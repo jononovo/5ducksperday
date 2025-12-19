@@ -80,14 +80,12 @@ export const RegistrationModalProvider = ({ children }: RegistrationModalProvide
   };
 
   // Trigger callback when user becomes authenticated after registration
+  // Wait for pendingIsNewUser to be explicitly set to avoid race condition with Google auth
   useEffect(() => {
-    if (user && onSuccessCallback) {
-      // Small delay to ensure registration flow is complete
-      setTimeout(() => {
-        onSuccessCallback(pendingIsNewUser ?? undefined);
-        setOnSuccessCallback(null); // Clear after use
-        setPendingIsNewUser(null); // Clear after use
-      }, 100);
+    if (user && onSuccessCallback && pendingIsNewUser !== null) {
+      onSuccessCallback(pendingIsNewUser);
+      setOnSuccessCallback(null);
+      setPendingIsNewUser(null);
     }
   }, [user, onSuccessCallback, pendingIsNewUser]);
 
