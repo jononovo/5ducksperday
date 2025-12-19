@@ -444,6 +444,14 @@ export default function Home() {
         localStorage.removeItem('lastEmailSearchTimestamp');
         localStorage.removeItem('pendingSearchQuery');
         
+        // Clear guidance engine localStorage so new user gets fresh guidance
+        localStorage.removeItem('fluffy-guidance-progress');
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith('fluffy-quest-triggered-')) {
+            localStorage.removeItem(key);
+          }
+        });
+        
         // Clear component state
         setCurrentResults(null);
         setCurrentListId(null);
