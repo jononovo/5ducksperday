@@ -142,18 +142,33 @@ export function useEmailComposerPersistence(
 }
 
 // Helper hook to get just the drawer open state
-export function getEmailComposerDrawerState(): { isOpen: boolean; drawerMode?: 'compose' | 'campaign' } {
+export function getEmailComposerDrawerState(): { isOpen: boolean; drawerMode?: 'compose' | 'campaign'; emailSubject?: string } {
   try {
     const savedState = localStorage.getItem(STORAGE_KEY);
     if (savedState) {
       const parsed = JSON.parse(savedState);
       return {
         isOpen: parsed.isOpen || false,
-        drawerMode: parsed.drawerMode
+        drawerMode: parsed.drawerMode,
+        emailSubject: parsed.emailSubject || parsed.templateSubject || parsed.aiSubject
       };
     }
   } catch (error) {
     console.error('Failed to get drawer state:', error);
   }
   return { isOpen: false };
+}
+
+// Helper to get current email subject from persisted state
+export function getPersistedEmailSubject(): string | undefined {
+  try {
+    const savedState = localStorage.getItem(STORAGE_KEY);
+    if (savedState) {
+      const parsed = JSON.parse(savedState);
+      return parsed.emailSubject || parsed.templateSubject || parsed.aiSubject;
+    }
+  } catch (error) {
+    console.error('Failed to get email subject:', error);
+  }
+  return undefined;
 }

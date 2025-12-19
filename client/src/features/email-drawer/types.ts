@@ -1,10 +1,12 @@
 import type { Contact, Company } from "@shared/schema";
 
 export type DrawerMode = 'compose' | 'campaign';
+export type DrawerViewState = 'normal' | 'minimized' | 'expanded';
 
 export interface EmailDrawerProps {
   open: boolean;
   mode: DrawerMode;
+  viewState: DrawerViewState;
   selectedContact: Contact | null;
   selectedCompany: Company | null;
   selectedCompanyContacts: Contact[];
@@ -12,10 +14,14 @@ export interface EmailDrawerProps {
   isResizing: boolean;
   currentListId: number | null;
   currentQuery: string;
+  emailSubject?: string;
   onClose: () => void;
   onModeChange: (mode: DrawerMode) => void;
   onContactChange: (contact: Contact | null) => void;
   onResizeStart: (e: React.MouseEvent) => void;
+  onMinimize: () => void;
+  onExpand: () => void;
+  onRestore: () => void;
 }
 
 export interface UseEmailDrawerOptions {
@@ -26,6 +32,7 @@ export interface UseEmailDrawerOptions {
 export interface UseEmailDrawerReturn {
   isOpen: boolean;
   mode: DrawerMode;
+  viewState: DrawerViewState;
   selectedContact: Contact | null;
   selectedCompany: Company | null;
   selectedCompanyContacts: Contact[];
@@ -38,4 +45,7 @@ export interface UseEmailDrawerReturn {
   setSelectedContact: (contact: Contact | null) => void;
   setIsResizing: (isResizing: boolean) => void;
   handleMouseDown: (e: React.MouseEvent) => void;
+  minimize: () => void;
+  expand: () => void;
+  restore: () => void;
 }

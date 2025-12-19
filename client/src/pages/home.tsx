@@ -18,6 +18,7 @@ import { SearchManagementDrawer, useSearchManagementDrawer } from "@/features/se
 import { TopProspectsCard } from "@/features/top-prospects";
 import { SelectionToolbar } from "@/components/SelectionToolbar";
 import { useToast } from "@/hooks/use-toast";
+import { getPersistedEmailSubject } from "@/hooks/use-email-composer-persistence";
 import { useAuth } from "@/hooks/use-auth";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
 import { useNotifications } from "@/hooks/use-notifications";
@@ -1673,6 +1674,7 @@ export default function Home() {
       <EmailDrawer
         open={emailDrawer.isOpen}
         mode={emailDrawer.mode}
+        viewState={emailDrawer.viewState}
         selectedContact={emailDrawer.selectedContact}
         selectedCompany={emailDrawer.selectedCompany}
         selectedCompanyContacts={emailDrawer.selectedCompanyContacts}
@@ -1680,10 +1682,14 @@ export default function Home() {
         isResizing={emailDrawer.isResizing}
         currentListId={currentListId}
         currentQuery={currentQuery}
+        emailSubject={emailDrawer.viewState === 'minimized' ? getPersistedEmailSubject() : undefined}
         onClose={emailDrawer.closeDrawer}
         onModeChange={emailDrawer.setMode}
         onContactChange={handleEmailContactChange}
         onResizeStart={emailDrawer.handleMouseDown}
+        onMinimize={emailDrawer.minimize}
+        onExpand={emailDrawer.expand}
+        onRestore={emailDrawer.restore}
       />
       
       {/* Search Management Drawer */}

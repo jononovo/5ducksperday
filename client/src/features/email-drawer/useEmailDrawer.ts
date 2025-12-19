@@ -1,20 +1,19 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Contact, Company } from '@shared/schema';
-import type { DrawerMode, UseEmailDrawerOptions, UseEmailDrawerReturn } from './types';
+import type { DrawerMode, DrawerViewState, UseEmailDrawerOptions, UseEmailDrawerReturn } from './types';
 import { getEmailComposerDrawerState } from '@/hooks/use-email-composer-persistence';
 
 export function useEmailDrawer(options: UseEmailDrawerOptions = {}): UseEmailDrawerReturn {
-  // Check for persisted drawer state on initialization
   const savedDrawerState = getEmailComposerDrawerState();
   const [isOpen, setIsOpen] = useState(savedDrawerState.isOpen || false);
   const [mode, setMode] = useState<DrawerMode>(savedDrawerState.drawerMode || 'compose');
+  const [viewState, setViewState] = useState<DrawerViewState>('normal');
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [selectedCompanyContacts, setSelectedCompanyContacts] = useState<Contact[]>([]);
   const [drawerWidth, setDrawerWidth] = useState(480);
   const [isResizing, setIsResizing] = useState(false);
 
-  // Handle resize logic
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizing) return;
@@ -47,12 +46,14 @@ export function useEmailDrawer(options: UseEmailDrawerOptions = {}): UseEmailDra
     setSelectedCompany(company);
     setSelectedCompanyContacts(companyContacts);
     setIsOpen(true);
+    setViewState('normal');
     options.onOpen?.(contact, company);
   }, [options]);
 
   const closeDrawer = useCallback(() => {
     setIsOpen(false);
     setMode('compose');
+    setViewState('normal');
     setSelectedContact(null);
     setSelectedCompany(null);
     setSelectedCompanyContacts([]);
@@ -65,6 +66,7 @@ export function useEmailDrawer(options: UseEmailDrawerOptions = {}): UseEmailDra
     setSelectedCompany(null);
     setSelectedCompanyContacts([]);
     setIsOpen(true);
+    setViewState('normal');
   }, []);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -72,9 +74,22 @@ export function useEmailDrawer(options: UseEmailDrawerOptions = {}): UseEmailDra
     setIsResizing(true);
   }, []);
 
+  const minimize = useCallback(() => {
+    setViewState('minimized');
+  }, []);
+
+  const expand = useCallback(() => {
+    setViewState('expanded');
+  }, []);
+
+  const restore = useCallback(() => {
+    setViewState('normal');
+  }, []);
+
   return {
     isOpen,
     mode,
+    viewState,
     selectedContact,
     selectedCompany,
     selectedCompanyContacts,
@@ -87,5 +102,8 @@ export function useEmailDrawer(options: UseEmailDrawerOptions = {}): UseEmailDra
     setSelectedContact,
     setIsResizing,
     handleMouseDown,
+    minimize,
+    expand,
+    restore,
   };
 }
