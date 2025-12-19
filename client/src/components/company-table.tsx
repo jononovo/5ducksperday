@@ -46,13 +46,7 @@ import { ComprehensiveSearchButton } from "@/components/comprehensive-email-sear
 interface CompanyTableProps {
   companies: Array<Company & { contacts?: ContactWithCompanyInfo[] }>;
   handleCompanyView: (companyId: number) => void;
-  // Add these props to connect to existing functionality
-  handleHunterSearch?: (contactId: number) => void;
-  handleApolloSearch?: (contactId: number) => void;
-  handleEnrichContact?: (contactId: number) => void;
   handleComprehensiveEmailSearch?: (contactId: number) => void;
-  pendingHunterIds?: Set<number>;
-  pendingApolloIds?: Set<number>;
   pendingContactIds?: Set<number>;
   pendingComprehensiveSearchIds?: Set<number>;
 }
@@ -60,12 +54,7 @@ interface CompanyTableProps {
 export default function CompanyTable({ 
   companies, 
   handleCompanyView,
-  handleHunterSearch,
-  handleApolloSearch,
-  handleEnrichContact,
   handleComprehensiveEmailSearch,
-  pendingHunterIds,
-  pendingApolloIds,
   pendingContactIds,
   pendingComprehensiveSearchIds
 }: CompanyTableProps) {
