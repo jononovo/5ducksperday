@@ -259,6 +259,7 @@ export default function Home() {
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const listMutationInProgressRef = useRef(false);
   const listUpdateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const hasTriggeredWelcomeRef = useRef(false);
   // Ref to store pending metrics to persist after list creation
   const pendingMetricsRef = useRef<{
     totalContacts: number | null;
@@ -426,6 +427,9 @@ export default function Home() {
 
     // Registration success callback setup (only set once)
     const handleRegistrationSuccess = async () => {
+      if (hasTriggeredWelcomeRef.current) return;
+      hasTriggeredWelcomeRef.current = true;
+      
       console.log('Registration success detected, triggering welcome notification');
       
       try {
@@ -443,6 +447,14 @@ export default function Home() {
         localStorage.removeItem('contactSearchConfig');
         localStorage.removeItem('lastEmailSearchTimestamp');
         localStorage.removeItem('pendingSearchQuery');
+        
+        // Clear guidance engine localStorage so new user gets fresh guidance
+        localStorage.removeItem('fluffy-guidance-progress');
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith('fluffy-quest-triggered-')) {
+            localStorage.removeItem(key);
+          }
+        });
         
         // Clear component state
         setCurrentResults(null);
