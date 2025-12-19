@@ -12,7 +12,6 @@ import { hunterSearch } from "./providers/hunter";
 import { apolloSearch } from "./providers/apollo";
 import { searchContactDetails } from "./enrichment/contact-details";
 import { findKeyDecisionMakers } from "./contacts/finder";
-import { CreditService } from "../features/billing/credits/service";
 import type { Contact } from "@shared/schema";
 
 export function registerContactRoutes(app: Express, requireAuth: any) {
@@ -218,17 +217,10 @@ export function registerContactRoutes(app: Express, requireAuth: any) {
       
       const updatedContact = await storage.updateContact(contactId, updateData);
       
-      // Deduct credits for successful email discovery (server-side billing)
-      if (emailFound) {
-        await CreditService.deductCredits(userId, 'individual_email', true);
-        console.log(`[Perplexity] Deducted 20 credits for successful email discovery for contact ${contactId}`);
-      }
-      
       console.log('Perplexity search completed:', {
         success: true,
         emailFound: !!updatedContact?.email,
-        contactId,
-        creditsCharged: emailFound
+        contactId
       });
 
       res.json(updatedContact);

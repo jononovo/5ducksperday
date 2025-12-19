@@ -7,7 +7,6 @@
 import { Request, Response } from "express";
 import { storage } from "../../storage";
 import { getUserId } from "../utils";
-import { CreditService } from "../../features/billing/credits/service";
 
 export async function searchApolloDirect(contact: any, company: any, apiKey: string): Promise<any> {
   try {
@@ -131,17 +130,6 @@ export async function apolloSearch(req: Request, res: Response) {
       name: company.name
     });
 
-    // Pre-search credit check
-    const creditCheck = await CreditService.getUserCredits(userId);
-    if (creditCheck.isBlocked || creditCheck.currentBalance < 20) {
-      res.status(402).json({ 
-        message: "Insufficient credits for email search",
-        balance: creditCheck.currentBalance,
-        required: 20
-      });
-      return;
-    }
-
     // Get the Apollo.io API key from environment variables
     const apolloApiKey = process.env.APOLLO_API_KEY;
     if (!apolloApiKey) {
@@ -178,18 +166,10 @@ export async function apolloSearch(req: Request, res: Response) {
 
       const updatedContact = await storage.updateContact(contactId, updateData);
       
-      // Deduct credits for successful email discovery
-      const emailFound = !!(updateData.email || (updateData.alternativeEmails && updateData.alternativeEmails.length > 0));
-      if (emailFound) {
-        await CreditService.deductCredits(userId, 'individual_email', true);
-        console.log(`[Apollo] Deducted 20 credits for successful email discovery for contact ${contactId}`);
-      }
-      
       console.log('Apollo search completed:', {
         success: true,
         emailFound: !!updatedContact?.email,
-        confidence: searchResult.metadata.confidence,
-        creditsCharged: emailFound
+        confidence: searchResult.metadata.confidence
       });
 
       res.json(updatedContact);
