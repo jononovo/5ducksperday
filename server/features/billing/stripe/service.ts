@@ -1,7 +1,6 @@
 import Stripe from "stripe";
 import { CreditService } from "../credits/service";
-import { STRIPE_CONFIG } from "../credits/types";
-import { StripeCustomerData, CheckoutSessionData, SubscriptionStatus } from "./types";
+import { StripeCustomerData, CheckoutSessionData, SubscriptionStatus, STRIPE_CONFIG } from "./types";
 
 // Lazy initialization to prevent crashes during module loading in production
 let stripe: Stripe | null = null;
