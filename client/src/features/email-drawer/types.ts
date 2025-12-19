@@ -14,6 +14,7 @@ export interface EmailDrawerProps {
   isResizing: boolean;
   currentListId: number | null;
   currentQuery: string;
+  emailSubject?: string;
   onClose: () => void;
   onModeChange: (mode: DrawerMode) => void;
   onContactChange: (contact: Contact | null) => void;

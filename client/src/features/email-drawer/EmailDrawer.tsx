@@ -13,6 +13,7 @@ export function EmailDrawer({
   isResizing,
   currentListId,
   currentQuery,
+  emailSubject,
   onClose,
   onModeChange,
   onContactChange,
@@ -145,24 +146,25 @@ export function EmailDrawer({
     </div>
   );
 
+  const getMinimizedLabel = () => {
+    if (mode === 'campaign') return 'New Campaign';
+    if (emailSubject && emailSubject.trim()) {
+      return emailSubject.length > 30 ? emailSubject.substring(0, 30) + '...' : emailSubject;
+    }
+    return 'New Message';
+  };
+
   const renderMinimizedBar = () => (
     <div 
-      className="fixed bottom-4 right-4 z-50 bg-background border rounded-lg shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
+      className="fixed bottom-0 right-16 z-50 bg-background border border-b-0 rounded-t-lg shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
       onClick={onRestore}
       data-testid="minimized-drawer-bar"
     >
-      <div className="flex items-center gap-3 px-4 py-2">
-        <div className="flex items-center gap-2">
-          {mode === 'campaign' ? (
-            <Megaphone className="h-4 w-4 text-muted-foreground" />
-          ) : (
-            <Mail className="h-4 w-4 text-muted-foreground" />
-          )}
-          <span className="text-sm font-medium truncate max-w-[200px]">
-            {mode === 'campaign' ? 'Campaign' : (selectedContact?.name || 'New Email')}
-          </span>
-        </div>
-        <div className="flex items-center gap-0.5 ml-2">
+      <div className="flex items-center justify-between min-w-[280px] px-3 py-1.5">
+        <span className="text-sm font-medium truncate max-w-[200px] text-foreground">
+          {getMinimizedLabel()}
+        </span>
+        <div className="flex items-center gap-0.5 ml-3">
           <button
             onClick={(e) => {
               e.stopPropagation();
