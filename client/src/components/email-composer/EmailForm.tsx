@@ -59,9 +59,9 @@ export default function EmailForm({
   }, [emailContent]);
 
   return (
-    <>
+    <div className={isMobile ? "flex flex-col h-full" : ""}>
       {/* Email Subject Field */}
-      <div className="relative border-b md:border-b-0 md:mb-6" style={{ marginTop: '-1px' }}>
+      <div className="relative border-b md:border-b-0 md:mb-6 flex-none" style={{ marginTop: '-1px' }}>
         <Type className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
         <Input
           ref={emailSubjectRef}
@@ -74,7 +74,7 @@ export default function EmailForm({
       </div>
 
       {/* Email Content Field */}
-      <div className="relative md:mb-6" style={{ marginTop: '-1px' }}>
+      <div className={`relative md:mb-6 ${isMobile ? 'flex-1 min-h-0 flex flex-col' : ''}`} style={{ marginTop: '-1px' }}>
         <Textarea
           ref={emailContentRef}
           placeholder="Enter or edit the generated email content..."
@@ -83,9 +83,9 @@ export default function EmailForm({
             onContentChange(e.target.value);
             handleTextareaResize();
           }}
-          className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 border-0 rounded-none md:border md:rounded-b-md px-3 md:px-3 pb-12 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50"
+          className={`mobile-input mobile-input-text-fix resize-none transition-all duration-200 border-0 rounded-none md:border md:rounded-b-md px-3 md:px-3 pb-12 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50 ${isMobile ? 'flex-1 min-h-0' : ''}`}
           style={isMobile 
-            ? { minHeight: '40vh', maxHeight: '60vh' }
+            ? { minHeight: '150px' }
             : { minHeight: isExpanded ? '400px' : '160px', maxHeight: isExpanded ? '600px' : '400px' }
           }
           data-testid="textarea-email-content"
@@ -196,6 +196,6 @@ export default function EmailForm({
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 }

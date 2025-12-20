@@ -279,28 +279,28 @@ export function EmailDrawer({
       <div 
         className={`md:hidden email-drawer-transition ${
           open 
-            ? 'fixed top-[2.5rem] right-0 h-[90vh] w-[95%] z-50' 
+            ? 'fixed top-[2.5rem] right-0 h-[85vh] w-[85%] z-50' 
             : 'fixed w-0 right-0 top-[2.5rem]'
-        } overflow-hidden border-l border-t border-b rounded-tl-lg rounded-bl-lg bg-background shadow-xl`}
+        } overflow-hidden border-l border-t border-b rounded-tl-lg rounded-bl-lg bg-background shadow-xl flex flex-col`}
       >
         {open && (
-          <div className="overflow-y-auto h-full" style={{ minWidth: '320px' }}>
-            <div className="flex flex-col min-h-full pb-24">
+          <>
+            <div className="flex-none">
               {renderHeader()}
-              
-              <div className="px-0 py-4">
-                <EmailComposer
-                  selectedContact={selectedContact}
-                  selectedCompany={selectedCompany}
-                  onContactChange={onContactChange}
-                  drawerMode={mode}
-                  currentListId={currentListId}
-                  currentQuery={currentQuery}
-                  isMobile={true}
-                />
-              </div>
             </div>
-          </div>
+            
+            <div className="flex-1 min-h-0 overflow-hidden px-2 py-3">
+              <EmailComposer
+                selectedContact={selectedContact}
+                selectedCompany={selectedCompany}
+                onContactChange={onContactChange}
+                drawerMode={mode}
+                currentListId={currentListId}
+                currentQuery={currentQuery}
+                isMobile={true}
+              />
+            </div>
+          </>
         )}
       </div>
     </>

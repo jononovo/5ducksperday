@@ -1001,7 +1001,7 @@ export function EmailComposer({
   };
 
   return (
-    <div className={drawerMode === 'campaign' ? "space-y-0" : "space-y-0 md:space-y-4"}>
+    <div className={isMobile ? "flex flex-col h-full overflow-y-auto" : (drawerMode === 'campaign' ? "space-y-0" : "space-y-0 md:space-y-4")}>
       {/* Tabs and Prompt grouped together in campaign mode */}
       <div className={drawerMode === 'campaign' ? "relative" : ""}>
         {/* Generation Mode Tabs - Only shown in campaign mode */}
@@ -1106,51 +1106,53 @@ export function EmailComposer({
     </div>
 
     {/* Email Form */}
-    <EmailForm
-      drawerMode={drawerMode}
-      toEmail={toEmail}
-      emailSubject={getCurrentSubject()}
-      originalEmailSubject={getCurrentOriginalSubject()}
-      emailContent={getCurrentContent()}
-      originalEmailContent={getCurrentOriginalContent()}
-      onSubjectChange={(value) => {
-        setCurrentSubject(value);
-        // In compose mode, always sync both values for normal editing
-        // In campaign mode, only update original when in merge view mode (editing raw template)
-        if (drawerMode === 'compose' || isMergeViewMode) {
-          setCurrentOriginalSubject(value);
-        }
-      }}
-      onContentChange={(value) => {
-        setCurrentContent(value);
-        // In compose mode, always sync both values for normal editing
-        // In campaign mode, only update original when in merge view mode (editing raw template)
-        if (drawerMode === 'compose' || isMergeViewMode) {
-          setCurrentOriginalContent(value);
-        }
-      }}
-      gmailStatus={gmailStatus}
-      gmailUserInfo={gmailUserInfo}
-      isGmailButtonHovered={isGmailButtonHovered}
-      onGmailButtonHover={setIsGmailButtonHovered}
-      onGmailConnect={handleGmailConnect}
-      sendEmailMutation={sendEmailMutation}
-      isSent={isSent}
-      selectedContact={selectedContact}
-      selectedCompany={selectedCompany}
-      onSendEmail={handleSendEmail}
-      onManualSend={handleManualSend}
-      campaignRecipients={campaignRecipients || undefined}
-      currentListId={currentListId}
-      currentQuery={currentQuery}
-      onCreateCampaign={handleCreateCampaign}
-      generationType={generationMode}
-      creatingCampaign={createCampaignMutation.isPending}
-      isMergeViewMode={isMergeViewMode}
-      getDisplayValue={getDisplayValue}
-      isExpanded={isExpanded}
-      isMobile={isMobile}
-    />
+    <div className={isMobile ? "flex-1 min-h-0 flex flex-col" : ""}>
+      <EmailForm
+        drawerMode={drawerMode}
+        toEmail={toEmail}
+        emailSubject={getCurrentSubject()}
+        originalEmailSubject={getCurrentOriginalSubject()}
+        emailContent={getCurrentContent()}
+        originalEmailContent={getCurrentOriginalContent()}
+        onSubjectChange={(value) => {
+          setCurrentSubject(value);
+          // In compose mode, always sync both values for normal editing
+          // In campaign mode, only update original when in merge view mode (editing raw template)
+          if (drawerMode === 'compose' || isMergeViewMode) {
+            setCurrentOriginalSubject(value);
+          }
+        }}
+        onContentChange={(value) => {
+          setCurrentContent(value);
+          // In compose mode, always sync both values for normal editing
+          // In campaign mode, only update original when in merge view mode (editing raw template)
+          if (drawerMode === 'compose' || isMergeViewMode) {
+            setCurrentOriginalContent(value);
+          }
+        }}
+        gmailStatus={gmailStatus}
+        gmailUserInfo={gmailUserInfo}
+        isGmailButtonHovered={isGmailButtonHovered}
+        onGmailButtonHover={setIsGmailButtonHovered}
+        onGmailConnect={handleGmailConnect}
+        sendEmailMutation={sendEmailMutation}
+        isSent={isSent}
+        selectedContact={selectedContact}
+        selectedCompany={selectedCompany}
+        onSendEmail={handleSendEmail}
+        onManualSend={handleManualSend}
+        campaignRecipients={campaignRecipients || undefined}
+        currentListId={currentListId}
+        currentQuery={currentQuery}
+        onCreateCampaign={handleCreateCampaign}
+        generationType={generationMode}
+        creatingCampaign={createCampaignMutation.isPending}
+        isMergeViewMode={isMergeViewMode}
+        getDisplayValue={getDisplayValue}
+        isExpanded={isExpanded}
+        isMobile={isMobile}
+      />
+    </div>
 
     {/* Merge Field Controls - Show immediately after EmailForm in Campaign Template mode */}
     {drawerMode === 'campaign' && generationMode === 'merge_field' && (
