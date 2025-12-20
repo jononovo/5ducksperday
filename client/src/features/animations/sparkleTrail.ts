@@ -51,10 +51,10 @@ function playCoinSound(): void {
     
     const now = audioContext.currentTime;
     
-    // Coin chime: ascending notes
-    playTone(880, now, 0.15, 0.12);        // A5
-    playTone(1100, now + 0.08, 0.12, 0.1); // C#6
-    playTone(1320, now + 0.15, 0.2, 0.08); // E6
+    // Coin chime: ascending notes (subtle volume)
+    playTone(880, now, 0.15, 0.04);        // A5
+    playTone(1100, now + 0.08, 0.12, 0.035); // C#6
+    playTone(1320, now + 0.15, 0.2, 0.03); // E6
     
   } catch (e) {
     // Audio not supported, silently fail
