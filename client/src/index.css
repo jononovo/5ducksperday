@@ -251,8 +251,8 @@ input[type="checkbox"]:indeterminate::before {
     --background: 40 15% 95%;
     --foreground: 240 10% 4%;
 
-    --primary: 217 100% 50%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 45 93% 47%;
+    --primary-foreground: 240 10% 4%;
 
     --secondary: 240 5% 96%;
     --secondary-foreground: 240 6% 10%;
@@ -284,8 +284,8 @@ input[type="checkbox"]:indeterminate::before {
     --background: 240 10% 4%;
     --foreground: 0 0% 98%;
 
-    --primary: 217 100% 60%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 45 93% 52%;
+    --primary-foreground: 240 10% 4%;
 
     --secondary: 240 4% 16%;
     --secondary-foreground: 0 0% 98%;
