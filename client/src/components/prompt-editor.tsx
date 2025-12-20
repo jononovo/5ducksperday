@@ -1079,23 +1079,26 @@ export default function PromptEditor({
                 return null;
               })()}
 
-              {/* Search Management Gear Icon */}
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      onClick={onOpenSearchDrawer}
-                      className="flex items-center justify-center p-2 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors cursor-pointer"
-                      aria-label="Search Management"
-                    >
-                      <Settings className="h-4 w-4" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Manage Search Queue</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              {/* Search Management Gear Icon - Admin only */}
+              {user?.isAdmin && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={onOpenSearchDrawer}
+                        className="flex items-center justify-center p-2 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors cursor-pointer"
+                        aria-label="Search Management"
+                        data-testid="button-search-management"
+                      >
+                        <Settings className="h-4 w-4" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Manage Search Queue</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
             </div>
             
             {/* Right side: Search button */}
