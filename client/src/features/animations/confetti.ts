@@ -53,7 +53,7 @@ function fireContinuousBurst(
   frame();
 }
 
-export function fireSectionConfetti(): void {
+export function fireShortConfetti(): void {
   fireContinuousBurst(1000, 3, COLORS.gold, 0.7);
 }
 
@@ -85,7 +85,7 @@ export function fireFinalConfetti(): void {
   frame();
 }
 
-export function fireChallengeConfetti(): void {
+export function fireLongConfetti(): void {
   fireContinuousBurst(2000, 3, COLORS.gold, 0.7);
 }
 
@@ -170,13 +170,13 @@ export function fireCampaignCompleteConfetti(): void {
 export function fireConfetti(preset: ConfettiPreset, options?: ConfettiOptions): void {
   switch (preset) {
     case "sectionComplete":
-      fireSectionConfetti();
+      fireShortConfetti();
       break;
     case "finalComplete":
       fireFinalConfetti();
       break;
     case "challengeComplete":
-      fireChallengeConfetti();
+      fireLongConfetti();
       break;
     case "unlock":
       fireUnlockConfetti();
@@ -198,9 +198,9 @@ export function fireConfetti(preset: ConfettiPreset, options?: ConfettiOptions):
 export function useConfetti() {
   return {
     fire: fireConfetti,
-    fireSectionConfetti,
+    fireShortConfetti,
+    fireLongConfetti,
     fireFinalConfetti,
-    fireChallengeConfetti,
     fireUnlockConfetti,
     fireDailyCompleteConfetti,
     fireCelebrateConfetti,

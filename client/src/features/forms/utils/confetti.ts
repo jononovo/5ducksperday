@@ -1,4 +1,4 @@
 export { 
-  fireSectionConfetti, 
+  fireShortConfetti, 
   fireFinalConfetti 
 } from "@/features/animations";

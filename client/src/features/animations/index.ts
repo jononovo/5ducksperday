@@ -1,8 +1,8 @@
 export {
   fireConfetti,
-  fireSectionConfetti,
+  fireShortConfetti,
+  fireLongConfetti,
   fireFinalConfetti,
-  fireChallengeConfetti,
   fireUnlockConfetti,
   fireDailyCompleteConfetti,
   fireCelebrateConfetti,

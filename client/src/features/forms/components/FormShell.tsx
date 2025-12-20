@@ -4,7 +4,7 @@ import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createPortal } from "react-dom";
 import type { FormShellProps, SlideComponentProps } from "../types";
-import { fireSectionConfetti, fireFinalConfetti } from "@/features/animations";
+import { fireShortConfetti, fireFinalConfetti } from "@/features/animations";
 import { apiRequest } from "@/lib/queryClient";
 import { SlideSingleSelect } from "./SlideSingleSelect";
 import { SlideMultiSelect } from "./SlideMultiSelect";
@@ -43,7 +43,7 @@ export function FormShell<T extends Record<string, string>>({
 
     if (currentSlide?.slideType === "section-complete") {
       confettiFiredRef.current = currentStep;
-      fireSectionConfetti();
+      fireShortConfetti();
       
       const slideId = currentSlide.id;
       if (slideId && !creditClaimedRef.current.has(slideId)) {

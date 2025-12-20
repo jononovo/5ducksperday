@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { createPortal } from "react-dom";
 import { Trophy, ChevronRight, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { fireChallengeConfetti, animateCreditSparkles } from "@/features/animations";
+import { fireShortConfetti, animateCreditSparkles } from "@/features/animations";
 
 interface ChallengeCompleteProps {
   isVisible: boolean;
@@ -26,7 +26,7 @@ export function ChallengeComplete({
 
   useEffect(() => {
     if (isVisible) {
-      fireChallengeConfetti();
+      fireShortConfetti();
       
       if (creditsAwarded && creditsAwarded > 0) {
         const sparkleTimer = setTimeout(() => {
