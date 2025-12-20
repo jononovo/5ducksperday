@@ -26,8 +26,7 @@ import {
   ChevronRight,
   ScrollText,
   Layers,
-  Check,
-  Mail
+  Check
 } from "lucide-react";
 import { SiLinkedin } from "react-icons/si";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -47,6 +46,7 @@ import type { Company, Contact } from "@shared/schema";
 import { ContactWithCompanyInfo } from "@/lib/results-analysis/prospect-filtering";
 import { ContactActionColumn } from "@/components/contact-action-column";
 import { ComprehensiveSearchButton } from "@/components/comprehensive-email-search";
+import { FindKeyEmailsButton } from "@/features/search-email";
 import { ContactRow } from "@/components/contact-row";
 import { cn } from "@/lib/utils";
 import { useRef } from "react";
@@ -696,20 +696,10 @@ export default function CompanyCards({
           </div>
           
           {onFindKeyEmails && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onFindKeyEmails}
-              disabled={isFindingEmails}
-              className={cn(
-                "px-2 h-6 text-[11px] font-medium transition-all",
-                "hover:bg-muted/50 text-gray-400/60 hover:text-gray-500"
-              )}
-              data-testid="find-emails-button"
-            >
-              <Mail className={cn("h-3 w-3 mr-0.5", isFindingEmails && "animate-spin")} />
-              {isFindingEmails ? "Searching..." : "Find Emails"}
-            </Button>
+            <FindKeyEmailsButton
+              onSearch={onFindKeyEmails}
+              isSearching={isFindingEmails}
+            />
           )}
           
           {onShowReport && (
