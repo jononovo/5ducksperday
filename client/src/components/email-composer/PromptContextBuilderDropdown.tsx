@@ -297,7 +297,7 @@ export function PromptContextBuilderDropdown({
         triggerLabel={showTriggerLabel ? getTriggerLabel() : undefined}
         triggerClassName={cn(
           triggerClassName,
-          selectedId && "bg-blue-50 hover:bg-blue-100"
+          selectedId !== null && selectedId !== undefined && "bg-blue-50 hover:bg-blue-100"
         )}
         contentClassName={contentClassName}
         headerIcon={triggerIcon}
