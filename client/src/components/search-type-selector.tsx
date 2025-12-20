@@ -14,6 +14,7 @@ export interface SearchTypeConfig {
   label: string;
   icons: React.ReactNode[];
   estimatedTime: string;
+  creditCost: number;
 }
 
 interface SearchTypeSelectorProps {
@@ -27,7 +28,8 @@ const searchTypeConfigs: SearchTypeConfig[] = [
     type: "companies",
     label: "Only Companies",
     icons: [<Building2 key="company" className="h-3 w-3 md:h-[14px] md:w-[14px] lg:h-[18px] lg:w-[18px]" />],
-    estimatedTime: "7 seconds"
+    estimatedTime: "7 seconds",
+    creditCost: 10
   },
   {
     type: "contacts",
@@ -36,7 +38,8 @@ const searchTypeConfigs: SearchTypeConfig[] = [
       <Building2 key="company" className="h-3 w-3 md:h-[14px] md:w-[14px] lg:h-[18px] lg:w-[18px]" />,
       <Users key="contacts" className="h-3 w-3 md:h-[14px] md:w-[14px] lg:h-[18px] lg:w-[18px]" />
     ],
-    estimatedTime: "12 seconds"
+    estimatedTime: "12 seconds",
+    creditCost: 70
   },
   {
     type: "emails",
@@ -46,13 +49,15 @@ const searchTypeConfigs: SearchTypeConfig[] = [
       <Users key="contacts" className="h-3 w-3 md:h-[14px] md:w-[14px] lg:h-[18px] lg:w-[18px]" />,
       <Mail key="emails" className="h-3 w-3 md:h-[14px] md:w-[14px] lg:h-[18px] lg:w-[18px]" />
     ],
-    estimatedTime: "22 seconds"
+    estimatedTime: "22 seconds",
+    creditCost: 160
   },
   {
     type: "individual_search",
     label: "Find Individual",
     icons: [<UserSearch key="individual-search" className="h-3 w-3 md:h-[14px] md:w-[14px] lg:h-[18px] lg:w-[18px]" />],
-    estimatedTime: "18 seconds"
+    estimatedTime: "18 seconds",
+    creditCost: 100
   }
 ];
 
@@ -86,7 +91,7 @@ export function SearchTypeSelector({ selectedType, onTypeChange, disabled = fals
 
       {/* Search Type Selection Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md rounded-2xl">
           <DialogHeader>
             <DialogTitle>Select Your Search Type</DialogTitle>
           </DialogHeader>
@@ -96,10 +101,10 @@ export function SearchTypeSelector({ selectedType, onTypeChange, disabled = fals
               <div
                 key={config.type}
                 data-testid={`search-type-option-${config.type}`}
-                className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all hover:bg-gray-50 ${
+                className={`flex items-center justify-between py-2 px-3 rounded-lg border cursor-pointer transition-all ${
                   selectedType === config.type 
-                    ? 'border-blue-300 bg-blue-50' 
-                    : 'border-gray-200'
+                    ? 'border-blue-300 bg-blue-50 hover:bg-blue-100' 
+                    : 'border-gray-200 bg-gray-50 hover:bg-gray-100'
                 }`}
                 onClick={() => handleTypeSelect(config.type)}
               >
@@ -113,15 +118,20 @@ export function SearchTypeSelector({ selectedType, onTypeChange, disabled = fals
                       </div>
                     ))}
                   </div>
-                  <span className={`font-medium ${
+                  <span className={`text-base font-medium ${
                     selectedType === config.type ? 'text-blue-900' : 'text-gray-900'
                   }`}>
                     {config.label}
                   </span>
                 </div>
-                <span className="text-xs text-gray-500 font-mono">
-                  {config.estimatedTime}
-                </span>
+                <div className="text-right">
+                  <span className="text-xs text-gray-500 font-mono">
+                    ~{config.estimatedTime}
+                  </span>
+                  <div className="text-[10px] text-gray-400">
+                    {config.creditCost} credits
+                  </div>
+                </div>
               </div>
             ))}
           </div>

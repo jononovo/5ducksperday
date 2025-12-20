@@ -147,13 +147,11 @@ await CreditService.withCreditBilling(
 
 | Action Type | Cost | Use Case |
 |-------------|------|----------|
-| `company_search` | 10 | Company discovery only |
-| `contact_discovery` | 60 | Finding contacts |
-| `company_and_contacts` | 70 | Combined company + contacts |
-| `email_search` | 160 | Email enrichment |
-| `company_contacts_emails` | 240 | Full search workflow |
-| `individual_email` | 20 | Single contact email search |
-| `individual_search` | 180 | Person discovery + email |
+| `company_search` | 10 | Only Companies search |
+| `company_and_contacts` | 70 | Companies + Contacts search |
+| `email_search` | 160 | Full search: companies + contacts + emails |
+| `individual_email` | 20 | Single contact email lookup |
+| `individual_search` | 100 | Find Individual search |
 
 ### Checklist for New Billable Features
 

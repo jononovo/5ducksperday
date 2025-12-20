@@ -188,7 +188,7 @@ export class ContactSearchService {
     if (onProgress) {
       await onProgress(
         `Starting batch search for ${companies.length} companies`,
-        'contact_discovery'
+        'contacts'
       );
     }
 
@@ -207,7 +207,7 @@ export class ContactSearchService {
         if (onProgress) {
           await onProgress(
             `Processed ${company.name} - Found ${result.contacts.length} contacts`,
-            'contact_discovery'
+            'contacts'
           );
         }
         

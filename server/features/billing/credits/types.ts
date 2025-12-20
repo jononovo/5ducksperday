@@ -46,23 +46,17 @@ export interface CreditDeductionResult {
 
 export type SearchType = 
   | 'company_search'
-  | 'contact_discovery'
   | 'email_search'
-  | 'full_search'
   | 'company_and_contacts'
-  | 'company_contacts_emails'
   | 'individual_email'
   | 'individual_search';
 
 export const CREDIT_COSTS: Record<SearchType, number> = {
-  'company_search': 10,
-  'contact_discovery': 60,
-  'email_search': 160,
-  'full_search': 250,
-  'company_and_contacts': 70,   // 10 + 60
-  'company_contacts_emails': 240, // 10 + 60 + 170
-  'individual_email': 20,
-  'individual_search': 100  // Person discovery + email
+  'company_search': 10,           // Only Companies search
+  'email_search': 160,            // Full search: companies + contacts + emails
+  'company_and_contacts': 70,     // Companies + Contacts search
+  'individual_email': 20,         // Single contact email lookup
+  'individual_search': 100        // Find Individual search
 } as const;
 
 export const MONTHLY_CREDIT_ALLOWANCE = 250;
