@@ -50,6 +50,12 @@ The platform is built with a React SPA frontend (TypeScript, Vite, Tailwind, sha
   await CreditService.deductCredits(userId, 'action_type', true);
   ```
 - **Action Types**: Defined in `credits/types.ts` as `SearchType`. Use `ActionType` alias for non-search features.
+- **Credit Costs** (single source of truth in `CREDIT_COSTS`):
+  - `company_search`: 10 credits (Only Companies)
+  - `company_and_contacts`: 70 credits (Companies + Contacts)
+  - `email_search`: 160 credits (Full search: Companies + Contacts + Emails)
+  - `individual_search`: 100 credits (Find Individual)
+  - `individual_email`: 20 credits (Single email lookup)
 - **Adding New Billable Actions**: Add new value to `SearchType` union and cost to `CREDIT_COSTS` record.
 - **One-Time Rewards**: Use `CreditRewardService.awardOneTimeCredits(userId, amount, rewardKey, description)` for idempotent credit awards.
 - **Stripe Config**: Single source of truth in `server/features/billing/stripe/types.ts` (re-exported from credits/types.ts).
