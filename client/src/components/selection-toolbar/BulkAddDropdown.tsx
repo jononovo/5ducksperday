@@ -5,41 +5,68 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Target } from "lucide-react";
 
 interface BulkAddDropdownProps {
+  onAddToPipeline: () => void;
   onSelectList: () => void;
   onSelectCampaign: () => void;
+  isPipelineLoading?: boolean;
 }
 
-export function BulkAddDropdown({ onSelectList, onSelectCampaign }: BulkAddDropdownProps) {
+export function BulkAddDropdown({ 
+  onAddToPipeline,
+  onSelectList, 
+  onSelectCampaign,
+  isPipelineLoading = false
+}: BulkAddDropdownProps) {
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="h-6 px-2 text-[11px] font-medium text-gray-600"
-          title="Add selected to list"
-        >
-          Add to
-          <ChevronDown className="h-3 w-3 ml-1" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <DropdownMenuItem onClick={() => {
-          console.log('[SelectionToolbar] "Contact List" clicked, showing selector');
-          onSelectList();
-        }}>
-          Contact List
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => {
-          console.log('[SelectionToolbar] "Campaign" clicked, showing selector');
-          onSelectCampaign();
-        }}>
-          Campaign
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div className="flex items-center">
+      <Button 
+        variant="outline" 
+        size="sm" 
+        className="h-6 px-2 text-[11px] font-medium text-gray-600 rounded-r-none border-r-0"
+        onClick={onAddToPipeline}
+        disabled={isPipelineLoading}
+        title="Add selected to Pipeline"
+        data-testid="button-add-to-pipeline"
+      >
+        <Target className="h-3 w-3 mr-1" />
+        {isPipelineLoading ? "Adding..." : "Add to Pipeline"}
+      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="h-6 px-1.5 text-[11px] font-medium text-gray-600 rounded-l-none"
+            title="More add options"
+            data-testid="dropdown-add-options"
+          >
+            <ChevronDown className="h-3 w-3" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem 
+            onClick={() => {
+              console.log('[SelectionToolbar] "Contact List" clicked, showing selector');
+              onSelectList();
+            }}
+            data-testid="menu-item-contact-list"
+          >
+            Contact List
+          </DropdownMenuItem>
+          <DropdownMenuItem 
+            onClick={() => {
+              console.log('[SelectionToolbar] "Campaign" clicked, showing selector');
+              onSelectCampaign();
+            }}
+            data-testid="menu-item-campaign"
+          >
+            Campaign
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 }

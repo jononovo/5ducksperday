@@ -296,6 +296,40 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
     setSelectedCampaign("");
   };
 
+  // Get the Pipeline (default list) for quick add
+  const pipelineList = contactLists.find(l => l.isDefault);
+  
+  // Handler for adding directly to Pipeline
+  const handleAddToPipeline = () => {
+    if (!pipelineList) {
+      toast({
+        title: "Pipeline not found",
+        description: "Could not find your Pipeline. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (selectedContactIds.length === 0) {
+      toast({
+        title: "No contacts selected",
+        description: "Please select contacts before adding them to Pipeline.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    console.log('[SelectionToolbar] Adding directly to Pipeline:', {
+      pipelineId: pipelineList.id,
+      contactIds: selectedContactIds
+    });
+    
+    addContactsMutation.mutate({
+      contactListId: pipelineList.id,
+      contactIds: selectedContactIds,
+    });
+  };
+
   // Mobile: Fixed bottom toolbar
   // Desktop: Inline with top buttons
   const isMobile = window.innerWidth < 768;
@@ -342,6 +376,7 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
           <span className="text-primary text-[11px] font-medium">{selectedCount}</span>
           
           <BulkAddDropdown 
+            onAddToPipeline={handleAddToPipeline}
             onSelectList={() => {
               setShowListSelector(true);
               setListSelectorOpen(true); // Automatically open the Select
@@ -350,6 +385,7 @@ export function SelectionToolbar({ selectedCount, onClear, selectedContactIds }:
               setShowCampaignSelector(true);
               setCampaignSelectorOpen(true); // Automatically open the Select
             }}
+            isPipelineLoading={addContactsMutation.isPending}
           />
         </div>
       )}
