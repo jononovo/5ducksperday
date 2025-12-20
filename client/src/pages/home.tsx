@@ -1025,18 +1025,40 @@ export default function Home() {
     });
     
     try {
-      // First fetch the companies
+      // Force refetch to get fresh data from server (includes "5 More" companies)
+      // type: 'all' ensures refetch happens even without active observers
+      await queryClient.refetchQueries({
+        queryKey: [`/api/lists/${list.listId}/companies`],
+        type: 'all',
+        exact: true
+      });
+      
+      // Now get the fresh data from cache
       const companies = await queryClient.fetchQuery({
         queryKey: [`/api/lists/${list.listId}/companies`]
       }) as Company[];
+      
+      console.log('Fetched companies from database:', {
+        listId: list.listId,
+        count: companies.length,
+        expectedCount: list.resultCount
+      });
       
       // Then fetch contacts for each company
       const companiesWithContacts = await Promise.all(
         companies.map(async (company) => {
           try {
+            // Refetch to ensure fresh contact data
+            await queryClient.refetchQueries({
+              queryKey: [`/api/companies/${company.id}/contacts`],
+              type: 'all',
+              exact: true
+            });
+            
             const contacts = await queryClient.fetchQuery({
               queryKey: [`/api/companies/${company.id}/contacts`]
             }) as Contact[];
+            
             // Add companyName and companyId to each contact
             const contactsWithCompanyInfo: ContactWithCompanyInfo[] = contacts.map(contact => ({
               ...contact,
