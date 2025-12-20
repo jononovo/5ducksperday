@@ -18,6 +18,7 @@ export interface SendEmailOptions {
   to: string;
   content: EmailContent;
   fromName?: string;
+  replyTo?: string;
 }
 
 export async function sendEmail(options: SendEmailOptions): Promise<boolean> {
@@ -33,6 +34,7 @@ export async function sendEmail(options: SendEmailOptions): Promise<boolean> {
         email: FROM_EMAIL,
         name: options.fromName || FROM_NAME
       },
+      replyTo: options.replyTo,
       subject: options.content.subject,
       html: options.content.html,
       text: options.content.text,
