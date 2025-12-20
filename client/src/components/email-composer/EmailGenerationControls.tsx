@@ -42,7 +42,9 @@ export function EmailGenerationControls({
   onGenerate,
   isGenerating,
   drawerMode = 'compose',
-  generationMode = 'merge_field'
+  generationMode = 'merge_field',
+  isExpanded = false,
+  isMobile = false
 }: EmailGenerationControlsProps) {
   const [tonePopoverOpen, setTonePopoverOpen] = useState(false);
   const [offerPopoverOpen, setOfferPopoverOpen] = useState(false);
@@ -108,7 +110,7 @@ export function EmailGenerationControls({
           addNewLabel="Add New Product"
           showSource={false}
           showPosition={false}
-          showTriggerLabel={!selectedProductData}  // Hide label when product is selected
+          showTriggerLabel={isExpanded && !isMobile && !selectedProductData}  // Show label only in expanded view
           testIdPrefix="product"
         />
 
@@ -124,7 +126,9 @@ export function EmailGenerationControls({
               data-testid="button-tone-selector"
             >
               <Palette className="w-3 h-3" />
-              <span>{TONE_OPTIONS.find(t => t.id === selectedTone)?.name || 'Casual'}</span>
+              {(isExpanded && !isMobile) && (
+                <span>{TONE_OPTIONS.find(t => t.id === selectedTone)?.name || 'Casual'}</span>
+              )}
             </button>
           </PopoverTrigger>
           <PopoverContent className="w-72 p-0" align="start">
@@ -176,7 +180,7 @@ export function EmailGenerationControls({
               data-testid="button-offer-selector"
             >
               <Gift className="w-3 h-3" />
-              {selectedOfferStrategy !== 'none' && (
+              {(isExpanded && !isMobile) && selectedOfferStrategy !== 'none' && (
                 <span>{OFFER_OPTIONS.find(o => o.id === selectedOfferStrategy)?.name}</span>
               )}
             </button>
@@ -226,7 +230,7 @@ export function EmailGenerationControls({
           onSelect={onSenderProfileSelect}
           triggerIcon={<IdCard className="w-3 h-3" />}
           triggerClassName="text-xs text-muted-foreground"
-          showTriggerLabel={false}
+          showTriggerLabel={isExpanded && !isMobile}
           headerTitle="Sender Profile"
           headerDescription="Sender context for email generation"
           noneDescription="No sender context"

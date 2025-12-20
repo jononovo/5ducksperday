@@ -40,6 +40,8 @@ export interface EmailGenerationControlsProps {
   isGenerating: boolean;
   drawerMode?: 'compose' | 'campaign';
   generationMode?: 'ai_unique' | 'merge_field';
+  isExpanded?: boolean;
+  isMobile?: boolean;
 }
 
 export interface ProductChangeDialogProps {
