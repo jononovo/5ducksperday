@@ -78,22 +78,6 @@ export function EmailDrawer({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <button
-            onClick={() => onModeChange('campaign')}
-            className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors group ${
-              mode === 'campaign'
-                ? 'bg-muted/30 text-muted-foreground hover:bg-primary/10 hover:text-primary'
-                : 'text-muted-foreground/60 hover:text-foreground hover:bg-muted'
-            }`}
-            data-testid="button-campaign-tab"
-          >
-            <Megaphone className={`h-3.5 w-3.5 transition-colors ${
-              mode === 'campaign' 
-                ? 'text-muted-foreground group-hover:text-primary' 
-                : ''
-            }`} />
-            Create Campaign
-          </button>
-          <button
             onClick={() => onModeChange('compose')}
             className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors group ${
               mode === 'compose'
@@ -108,6 +92,22 @@ export function EmailDrawer({
                 : ''
             }`} />
             Compose
+          </button>
+          <button
+            onClick={() => onModeChange('campaign')}
+            className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors group ${
+              mode === 'campaign'
+                ? 'bg-muted/30 text-muted-foreground hover:bg-primary/10 hover:text-primary'
+                : 'text-muted-foreground/60 hover:text-foreground hover:bg-muted'
+            }`}
+            data-testid="button-campaign-tab"
+          >
+            <Megaphone className={`h-3.5 w-3.5 transition-colors ${
+              mode === 'campaign' 
+                ? 'text-muted-foreground group-hover:text-primary' 
+                : ''
+            }`} />
+            Campaign
           </button>
         </div>
         {renderWindowControls()}
@@ -203,9 +203,9 @@ export function EmailDrawer({
         className="fixed top-[5%] left-1/2 -translate-x-1/2 z-50 w-full max-w-3xl h-[90vh] bg-background border rounded-lg shadow-2xl overflow-hidden"
         data-testid="expanded-drawer"
       >
-        <div className="h-full overflow-y-auto">
+        <div className="h-full overflow-y-auto pb-2">
           {renderHeader()}
-          <div className="p-4">
+          <div className="px-4 pt-4 pb-2">
             <EmailComposer
               selectedContact={selectedContact}
               selectedCompany={selectedCompany}
@@ -259,10 +259,10 @@ export function EmailDrawer({
             </div>
           )}
           
-          <div className="overflow-y-auto max-h-[calc(100vh-2.5rem)] md:max-h-screen pb-4" style={{ minWidth: open ? '320px' : '0' }}>
+          <div className="overflow-y-auto max-h-[calc(100vh-2.5rem)] md:max-h-screen pb-2" style={{ minWidth: open ? '320px' : '0' }}>
             {renderHeader()}
             
-            <div className="p-4">
+            <div className="px-4 pt-4 pb-2">
               <EmailComposer
                 selectedContact={selectedContact}
                 selectedCompany={selectedCompany}
@@ -279,27 +279,28 @@ export function EmailDrawer({
       <div 
         className={`md:hidden email-drawer-transition ${
           open 
-            ? 'fixed top-[2.5rem] right-0 bottom-auto max-h-[calc(100vh-2.5rem)] w-[90%] sm:w-[400px] z-50' 
-            : 'fixed w-0 right-0 top-[2.5rem]'
-        } overflow-hidden border-l border-t border-b rounded-tl-lg rounded-bl-lg bg-background shadow-xl`}
+            ? 'fixed bottom-0 right-0 h-[98vh] w-full z-50' 
+            : 'fixed w-0 right-0 bottom-0'
+        } overflow-hidden border-t rounded-t-lg bg-background shadow-xl flex flex-col`}
       >
         {open && (
-          <div className="overflow-y-auto max-h-[calc(100vh-2.5rem)]" style={{ minWidth: '320px' }}>
-            <div className="flex flex-col min-h-full pb-24">
+          <>
+            <div className="flex-none">
               {renderHeader()}
-              
-              <div className="p-4">
-                <EmailComposer
-                  selectedContact={selectedContact}
-                  selectedCompany={selectedCompany}
-                  onContactChange={onContactChange}
-                  drawerMode={mode}
-                  currentListId={currentListId}
-                  currentQuery={currentQuery}
-                />
-              </div>
             </div>
-          </div>
+            
+            <div className="flex-1 min-h-0 overflow-hidden px-2 py-3">
+              <EmailComposer
+                selectedContact={selectedContact}
+                selectedCompany={selectedCompany}
+                onContactChange={onContactChange}
+                drawerMode={mode}
+                currentListId={currentListId}
+                currentQuery={currentQuery}
+                isMobile={true}
+              />
+            </div>
+          </>
         )}
       </div>
     </>

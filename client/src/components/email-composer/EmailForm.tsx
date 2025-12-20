@@ -37,13 +37,17 @@ export default function EmailForm({
   creatingCampaign,
   isMergeViewMode,
   getDisplayValue,
-  isExpanded
+  isExpanded,
+  isMobile
 }: EmailFormProps) {
   const emailSubjectRef = useRef<HTMLInputElement>(null);
   const emailContentRef = useRef<HTMLTextAreaElement>(null);
 
   const handleTextareaResize = () => {
     if (emailContentRef.current) {
+      if (isMobile) {
+        return;
+      }
       emailContentRef.current.style.height = 'auto';
       const scrollHeight = emailContentRef.current.scrollHeight;
       emailContentRef.current.style.height = Math.min(scrollHeight, 400) + 'px';
@@ -55,9 +59,9 @@ export default function EmailForm({
   }, [emailContent]);
 
   return (
-    <>
+    <div className={isMobile ? "flex flex-col h-full" : ""}>
       {/* Email Subject Field */}
-      <div className="relative border-b md:border-b-0 md:mb-6" style={{ marginTop: '-1px' }}>
+      <div className="relative border-b md:border-b-0 md:mb-6 flex-none" style={{ marginTop: '-1px' }}>
         <Type className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
         <Input
           ref={emailSubjectRef}
@@ -70,7 +74,7 @@ export default function EmailForm({
       </div>
 
       {/* Email Content Field */}
-      <div className="relative md:mb-6" style={{ marginTop: '-1px' }}>
+      <div className={`relative ${isMobile ? 'flex-1 min-h-0 flex flex-col' : ''}`} style={{ marginTop: '-1px' }}>
         <Textarea
           ref={emailContentRef}
           placeholder="Enter or edit the generated email content..."
@@ -79,8 +83,11 @@ export default function EmailForm({
             onContentChange(e.target.value);
             handleTextareaResize();
           }}
-          className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 border-0 rounded-none md:border md:rounded-b-md px-3 md:px-3 pb-12 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50"
-          style={{ minHeight: isExpanded ? '400px' : '160px', maxHeight: isExpanded ? '600px' : '400px' }}
+          className={`mobile-input mobile-input-text-fix resize-none transition-all duration-200 border-0 rounded-none md:border md:rounded-b-md px-3 md:px-3 pb-12 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50 ${isMobile ? 'flex-1 min-h-0' : ''}`}
+          style={isMobile 
+            ? { minHeight: '150px' }
+            : { minHeight: isExpanded ? '400px' : '160px', maxHeight: isExpanded ? '600px' : '400px' }
+          }
           data-testid="textarea-email-content"
         />
         <div className="absolute bottom-2 right-2 flex items-center gap-2">
@@ -189,6 +196,6 @@ export default function EmailForm({
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 }

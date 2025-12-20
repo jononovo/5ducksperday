@@ -106,4 +106,5 @@ export interface EmailFormProps {
   isMergeViewMode: boolean;
   getDisplayValue: (current: string, original: string) => string;
   isExpanded?: boolean;
+  isMobile?: boolean;
 }
