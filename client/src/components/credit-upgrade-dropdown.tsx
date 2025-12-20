@@ -82,6 +82,8 @@ export function CreditUpgradeDropdown() {
         <Button
           variant="ghost"
           className="group relative flex items-center text-sm font-medium h-auto p-2 hover:bg-accent hover:text-accent-foreground transition-all overflow-hidden"
+          data-credits-target
+          data-testid="credits-display"
         >
           <Coins className={cn(
             "h-4 w-4 transition-all",

@@ -10,7 +10,7 @@ export { WelcomeScreen } from "./components/WelcomeScreen";
 export { SectionIntro } from "./components/SectionIntro";
 export { SectionComplete } from "./components/SectionComplete";
 export { FinalComplete } from "./components/FinalComplete";
-export { fireSectionConfetti, fireFinalConfetti } from "./utils/confetti";
+export { fireShortConfetti, fireFinalConfetti } from "./utils/confetti";
 
 export { FORM_DEFAULTS, resolveDefault } from "./defaults";
 export { 
