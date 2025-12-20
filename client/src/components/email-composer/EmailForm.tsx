@@ -74,7 +74,7 @@ export default function EmailForm({
       </div>
 
       {/* Email Content Field */}
-      <div className={`relative md:mb-6 ${isMobile ? 'flex-1 min-h-0 flex flex-col' : ''}`} style={{ marginTop: '-1px' }}>
+      <div className={`relative ${isMobile ? 'flex-1 min-h-0 flex flex-col' : ''}`} style={{ marginTop: '-1px' }}>
         <Textarea
           ref={emailContentRef}
           placeholder="Enter or edit the generated email content..."
