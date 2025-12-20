@@ -103,7 +103,7 @@ export function EmailGenerationControls({
             }
           }}
           triggerIcon={<Box className="w-3 h-3" />}
-          triggerClassName="text-xs text-muted-foreground"
+          triggerClassName="text-xs"
           headerTitle="Product Context"
           headerDescription="Insert from your existing product list"
           noneDescription="No specific product context"
@@ -119,8 +119,8 @@ export function EmailGenerationControls({
           <PopoverTrigger asChild>
             <button 
               className={cn(
-                "flex items-center gap-1.5 px-2 py-1 rounded transition-colors text-xs text-muted-foreground",
-                selectedTone ? "bg-yellow-400/20 hover:bg-yellow-400/30" : "hover:bg-yellow-400/20"
+                "flex items-center gap-1.5 px-2 py-1 rounded transition-colors text-xs",
+                selectedTone ? "bg-yellow-400/20 hover:bg-yellow-400/30 text-yellow-700" : "text-muted-foreground hover:bg-yellow-400/20"
               )}
               title="Select email tone"
               data-testid="button-tone-selector"
@@ -173,8 +173,8 @@ export function EmailGenerationControls({
           <PopoverTrigger asChild>
             <button 
               className={cn(
-                "flex items-center gap-1.5 px-2 py-1 rounded transition-colors text-xs text-muted-foreground",
-                selectedOfferStrategy && selectedOfferStrategy !== 'none' ? "bg-yellow-400/20 hover:bg-yellow-400/30" : "hover:bg-yellow-400/20"
+                "flex items-center gap-1.5 px-2 py-1 rounded transition-colors text-xs",
+                selectedOfferStrategy && selectedOfferStrategy !== 'none' ? "bg-yellow-400/20 hover:bg-yellow-400/30 text-yellow-700" : "text-muted-foreground hover:bg-yellow-400/20"
               )}
               title="Select offer strategy"
               data-testid="button-offer-selector"
@@ -229,7 +229,7 @@ export function EmailGenerationControls({
           selectedId={selectedSenderProfile}
           onSelect={onSenderProfileSelect}
           triggerIcon={<IdCard className="w-3 h-3" />}
-          triggerClassName="text-xs text-muted-foreground"
+          triggerClassName="text-xs"
           showTriggerLabel={isExpanded && !isMobile}
           headerTitle="Sender Profile"
           headerDescription="Sender context for email generation"
