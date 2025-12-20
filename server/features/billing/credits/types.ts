@@ -62,7 +62,7 @@ export const CREDIT_COSTS: Record<SearchType, number> = {
   'company_and_contacts': 70,   // 10 + 60
   'company_contacts_emails': 240, // 10 + 60 + 170
   'individual_email': 20,
-  'individual_search': 180  // Person discovery + company + email enrichment
+  'individual_search': 100  // Person discovery + email
 } as const;
 
 export const MONTHLY_CREDIT_ALLOWANCE = 250;
