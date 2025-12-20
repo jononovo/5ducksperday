@@ -321,21 +321,21 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <AuthProvider>
-          <RegistrationModalProvider>
-            <InsufficientCreditsProvider>
+        <InsufficientCreditsProvider>
+          <AuthProvider>
+            <RegistrationModalProvider>
               <StrategyOverlayProvider>
                 <GuidanceProvider autoStartForNewUsers={true}>
                   <Router />
                   <RegistrationModalContainer />
-                  <InsufficientCreditsModal />
-                  <InsufficientCreditsHandlerSetup />
                   <Toaster />
                 </GuidanceProvider>
               </StrategyOverlayProvider>
-            </InsufficientCreditsProvider>
-          </RegistrationModalProvider>
-        </AuthProvider>
+            </RegistrationModalProvider>
+          </AuthProvider>
+          <InsufficientCreditsModal />
+          <InsufficientCreditsHandlerSetup />
+        </InsufficientCreditsProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
