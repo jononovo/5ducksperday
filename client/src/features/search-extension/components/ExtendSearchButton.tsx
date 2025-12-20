@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { cn } from '@/lib/utils';
 
 interface ExtendSearchButtonProps {
   query: string;
@@ -140,23 +141,19 @@ export function ExtendSearchButton({
       <Tooltip>
         <TooltipTrigger asChild>
           <Button 
-            variant="outline" 
+            variant="ghost" 
             size="sm" 
-            className={`flex items-center gap-1 h-8 ${className}`}
+            className={cn(
+              "px-2 h-6 text-[11px] font-medium transition-all",
+              "hover:bg-muted/50 text-gray-400/60 hover:text-gray-500",
+              className
+            )}
             onClick={handleExtendSearch}
             disabled={isExtending}
+            data-testid="extend-search-button"
           >
-            {isExtending ? (
-              <>
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent" />
-                <span className="hidden md:inline">Extending...</span>
-              </>
-            ) : (
-              <>
-                <Plus className="h-4 w-4" />
-                <span className="hidden md:inline">5 More</span>
-              </>
-            )}
+            <Plus className={cn("h-3 w-3 mr-0.5", isExtending && "animate-spin")} />
+            {isExtending ? "Extending..." : "5 More"}
           </Button>
         </TooltipTrigger>
         <TooltipContent side="top">
