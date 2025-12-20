@@ -46,6 +46,7 @@ import type { Company, Contact } from "@shared/schema";
 import { ContactWithCompanyInfo } from "@/lib/results-analysis/prospect-filtering";
 import { ContactActionColumn } from "@/components/contact-action-column";
 import { ComprehensiveSearchButton } from "@/components/comprehensive-email-search";
+import { FindKeyEmailsButton } from "@/features/search-email";
 import { ContactRow } from "@/components/contact-row";
 import { cn } from "@/lib/utils";
 import { useRef } from "react";
@@ -65,6 +66,8 @@ interface CompanyCardsProps {
   onCompanySelectionChange?: (company: Company & { contacts?: ContactWithCompanyInfo[] }) => void;
   topActionsTrailing?: React.ReactNode;
   onShowReport?: () => void;
+  onFindKeyEmails?: () => void;
+  isFindingEmails?: boolean;
 }
 
 // Unified CompanyCard component
@@ -344,7 +347,9 @@ export default function CompanyCards({
   getCompanySelectionState,
   onCompanySelectionChange,
   topActionsTrailing,
-  onShowReport
+  onShowReport,
+  onFindKeyEmails,
+  isFindingEmails
 }: CompanyCardsProps) {
   const [, setLocation] = useLocation();
   
@@ -689,6 +694,13 @@ export default function CompanyCards({
               Slides
             </Button>
           </div>
+          
+          {onFindKeyEmails && (
+            <FindKeyEmailsButton
+              onSearch={onFindKeyEmails}
+              isSearching={isFindingEmails}
+            />
+          )}
           
           {onShowReport && (
             <button

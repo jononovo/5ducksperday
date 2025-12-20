@@ -24,7 +24,6 @@ import { useRegistrationModal } from "@/hooks/use-registration-modal";
 import { useNotifications } from "@/hooks/use-notifications";
 import { useStrategyOverlay } from "@/features/strategy-chat";
 import { NotificationToast } from "@/components/ui/notification-toast";
-import { ExtendSearchButton } from "@/features/search-extension";
 import {
   Search,
   Code2,
@@ -117,8 +116,6 @@ export default function Home() {
   // Track the last executed search query and if input has changed
   const [lastExecutedQuery, setLastExecutedQuery] = useState<string | null>(null);
   const [inputHasChanged, setInputHasChanged] = useState(false);
-  // Track when to highlight the email search button and start selling button
-  const [highlightEmailButton, setHighlightEmailButton] = useState(false);
   // Track current session ID for email search persistence
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   // Tour modal has been removed
@@ -1200,7 +1197,6 @@ export default function Home() {
     setIsSaved(false);
     setInputHasChanged(false);
     setSelectedContacts(new Set());
-    setHighlightEmailButton(false);
     setContactsLoaded(false);
     
     // Expand the search section
@@ -1531,10 +1527,6 @@ export default function Home() {
                       if (selectedSearchType === 'emails') {
                         // Auto-trigger email search for full flow
                         setTimeout(() => emailOrchestration.runEmailSearch(), 500);
-                      } else {
-                        // Standard behavior - highlight email button
-                        setHighlightEmailButton(true);
-                        setTimeout(() => setHighlightEmailButton(false), 25000);
                       }
                     }}
                     hasSearchResults={currentResults ? currentResults.length > 0 : false}
@@ -1624,66 +1616,6 @@ export default function Home() {
                   </div>
                 )}
                 
-                {/* Action buttons menu - Moved here from search results, Hidden in focus mode and active search state */}
-                {currentResults && currentResults.length > 0 && !inputHasChanged && !emailDrawer.isOpen && (
-                  <div className="px-0 py-3 flex items-center justify-between bg-white dark:bg-transparent transition-all duration-300">
-                    <div className="flex items-center gap-2">
-                    <div className="relative">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className={`flex items-center gap-1 h-8 ${
-                          highlightEmailButton 
-                            ? 'email-button-highlight' 
-                            : 'opacity-45 hover:opacity-100 hover:bg-white'
-                        } transition-all`}
-                        onClick={() => {
-                          try {
-                            if (isFromLandingPage && setIsFromLandingPage) {
-                              setIsFromLandingPage(false);
-                            }
-                          } catch (e) {
-                            // Silent fail - prevents error from showing to users
-                          }
-                          emailOrchestration.runEmailSearch();
-                        }}
-                        disabled={emailOrchestration.isSearching}
-                        data-testid="find-emails-button"
-                      >
-                        <Mail className={`h-4 w-4 ${emailOrchestration.isSearching ? "animate-spin" : ""}`} />
-                        <span>{emailOrchestration.isSearching ? "Searching..." : "Find Key Emails"}</span>
-                      </Button>
-                    </div>
-                    
-                    <ExtendSearchButton
-                      query={currentQuery || ''}
-                      currentResults={currentResults || []}
-                      onResultsExtended={handleSearchResults}
-                      onLoginRequired={() => registrationModal.openModal()}
-                      isAuthenticated={!!auth.user}
-                      className="opacity-45 hover:opacity-100 hover:bg-white transition-all"
-                    />
-                    
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="flex items-center gap-1 h-8 opacity-45 hover:opacity-100 hover:bg-white transition-all"
-                          >
-                            <ChevronDown className="h-4 w-4" />
-                            <span className="hidden md:inline">Expand</span>
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent side="top">
-                          <p className="text-xs">Expand or collapse all company rows of contacts</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           </div>
@@ -1728,6 +1660,8 @@ export default function Home() {
                         />
                       ) : undefined}
                       onShowReport={() => setMainSummaryVisible(true)}
+                      onFindKeyEmails={emailOrchestration.runEmailSearch}
+                      isFindingEmails={emailOrchestration.isSearching}
                   />
                   </Suspense>
                 </div>
