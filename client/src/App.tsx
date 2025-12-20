@@ -14,6 +14,9 @@ import { RegistrationModalContainer } from "@/components/registration-modal-cont
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/hooks/use-theme";
 import { GuidanceProvider, QuestsPage } from "@/features/guidance-engine";
+import { InsufficientCreditsProvider } from "@/contexts/insufficient-credits-context";
+import { InsufficientCreditsModal } from "@/components/insufficient-credits-modal";
+import { InsufficientCreditsHandlerSetup } from "@/components/insufficient-credits-handler-setup";
 import "@/lib/firebase";
 import { initGA } from "@/lib/analytics";
 import { useAnalytics } from "@/hooks/use-analytics";
@@ -320,13 +323,17 @@ function App() {
       <ThemeProvider>
         <AuthProvider>
           <RegistrationModalProvider>
-            <StrategyOverlayProvider>
-              <GuidanceProvider autoStartForNewUsers={true}>
-                <Router />
-                <RegistrationModalContainer />
-                <Toaster />
-              </GuidanceProvider>
-            </StrategyOverlayProvider>
+            <InsufficientCreditsProvider>
+              <StrategyOverlayProvider>
+                <GuidanceProvider autoStartForNewUsers={true}>
+                  <Router />
+                  <RegistrationModalContainer />
+                  <InsufficientCreditsModal />
+                  <InsufficientCreditsHandlerSetup />
+                  <Toaster />
+                </GuidanceProvider>
+              </StrategyOverlayProvider>
+            </InsufficientCreditsProvider>
           </RegistrationModalProvider>
         </AuthProvider>
       </ThemeProvider>

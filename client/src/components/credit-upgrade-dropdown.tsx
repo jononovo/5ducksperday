@@ -1,16 +1,14 @@
-import React, { useState } from 'react';
-import { ChevronDown, Zap, Crown, Check, Coins } from 'lucide-react';
+import { useState } from 'react';
+import { ChevronDown, Coins } from 'lucide-react';
 import { useQuery } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from "@/lib/utils";
+import { PlanCards } from '@/components/plan-cards';
 
 interface CreditData {
   balance: number;
@@ -26,25 +24,6 @@ interface SubscriptionStatus {
   currentPlan: string | null;
 }
 
-const WAITLIST_STORAGE_KEY = '5ducks_waitlist_plans';
-
-function getStoredWaitlistPlans(): string[] {
-  try {
-    const stored = localStorage.getItem(WAITLIST_STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveWaitlistPlans(plans: string[]) {
-  try {
-    localStorage.setItem(WAITLIST_STORAGE_KEY, JSON.stringify(plans));
-  } catch {
-    // Ignore storage errors
-  }
-}
-
 export function CreditUpgradeDropdown() {
   const { data: credits, isLoading } = useQuery<CreditData>({
     queryKey: ['/api/credits'],
@@ -53,82 +32,9 @@ export function CreditUpgradeDropdown() {
   const { data: subscriptionStatus } = useQuery<SubscriptionStatus>({
     queryKey: ['/api/stripe/subscription-status'],
   });
-  
-  const { toast } = useToast();
 
-  // State management for subscription testing
-  const [isSubscribed, setIsSubscribed] = useState(false);
-  const [currentPlan, setCurrentPlan] = useState<string | null>(null);
-  const [waitlistPlans, setWaitlistPlans] = useState<string[]>(() => getStoredWaitlistPlans());
   const [isOpen, setIsOpen] = useState(false);
 
-  const plans = [
-    {
-      id: 'ugly-duckling',
-      name: 'The Duckling',
-      credits: 2000,
-      bonus: 3000,
-      price: 18.95,
-      icon: Zap,
-      color: 'from-blue-500 to-purple-600'
-    },
-    {
-      id: 'duckin-awesome',
-      name: "Mama Duck",
-      credits: 5000,
-      bonus: 10000,
-      price: 44.95,
-      icon: Crown,
-      color: 'from-purple-600 to-pink-600'
-    }
-  ];
-
-  const handlePlanSelect = async (planId: string) => {
-    console.log(`Selected plan: ${planId}`);
-    
-    if (planId === 'duckin-awesome') {
-      // Waitlist functionality for unavailable plan - stored locally
-      if (!waitlistPlans.includes(planId)) {
-        const newWaitlistPlans = [...waitlistPlans, planId];
-        setWaitlistPlans(newWaitlistPlans);
-        saveWaitlistPlans(newWaitlistPlans);
-        toast({
-          title: "Added to Waitlist",
-          description: "We'll notify you when Mama Duck becomes available!",
-        });
-      }
-      return;
-    }
-    
-    // Stripe checkout for The Duckling plan
-    if (planId === 'ugly-duckling') {
-      try {
-        setIsOpen(false); // Close dropdown before redirect
-        
-        const response = await apiRequest('POST', '/api/stripe/create-checkout-session', {
-          planId
-        });
-        
-        const data = await response.json();
-        
-        if (data.checkoutUrl) {
-          // Redirect to Stripe checkout
-          window.location.href = data.checkoutUrl;
-        } else {
-          throw new Error('No checkout URL received');
-        }
-      } catch (error: any) {
-        console.error('Stripe checkout error:', error);
-        toast({
-          title: "Checkout Error",
-          description: error.message || "Failed to start checkout process. Please try again.",
-          variant: "destructive",
-        });
-      }
-    }
-  };
-
-  // Check if user has active subscription
   const hasActiveSubscription = subscriptionStatus?.hasSubscription && subscriptionStatus?.status === 'active';
   const userCurrentPlan = subscriptionStatus?.currentPlan;
 
@@ -218,100 +124,8 @@ export function CreditUpgradeDropdown() {
         </div>
 
         {/* Plans */}
-        <div className="px-4 pb-2 space-y-4">
-          {plans.map((plan) => {
-            const isCurrentPlan = hasActiveSubscription && userCurrentPlan === plan.id;
-            const isUpgrade = plan.id === 'duckin-awesome';
-            const isOnWaitlist = waitlistPlans.includes(plan.id);
-            
-            return (
-              <Card
-                key={plan.id}
-                className={cn(
-                  "relative transition-all duration-300 cursor-pointer hover:shadow-md hover:scale-[1.01] border shadow-md",
-                  isCurrentPlan 
-                    ? 'border-green-300 bg-green-50/50 dark:bg-green-950/20 dark:border-green-700' 
-                    : 'border-border hover:border-blue-200 dark:hover:border-blue-800'
-                )}
-                onClick={() => !isCurrentPlan && handlePlanSelect(plan.id)}
-              >
-                {isCurrentPlan && (
-                  <div className="absolute top-2 right-2">
-                    <div className="bg-green-500 text-white rounded-full p-1">
-                      <Check className="w-3 h-3" />
-                    </div>
-                  </div>
-                )}
-                
-                <CardContent className="pt-3 px-3 pb-3">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-lg flex items-center justify-center border border-border">
-                      <plan.icon className="w-5 h-5 text-muted-foreground" />
-                    </div>
-                    
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-foreground">{plan.name}</h4>
-                      <div className="text-sm text-muted-foreground mb-2">
-                        <span className="font-medium">{plan.credits.toLocaleString()} Credits</span>
-                        <span className="text-green-600 dark:text-green-400 font-medium"> + {plan.bonus.toLocaleString()} Bonus</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-lg font-bold text-foreground">${plan.price}</span>
-                        <span className="text-sm text-muted-foreground">Monthly</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {!isCurrentPlan && !isOnWaitlist && (
-                    <Button
-                      className={cn(
-                        "w-full mt-3 text-base group relative transition-all duration-300 transform hover:scale-102 hover:shadow-lg",
-                        isUpgrade 
-                          ? 'bg-gray-100 hover:bg-black hover:text-white text-black border-0' 
-                          : 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white border-0 shadow-lg'
-                      )}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handlePlanSelect(plan.id);
-                      }}
-                    >
-                      {isUpgrade ? (
-                        <>
-                          <span className="transition-all duration-700 delay-1000 group-hover:opacity-0 group-hover:scale-95">
-                            Join Waitlist
-                          </span>
-                          <span className="absolute transition-all duration-700 delay-1000 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100">
-                            Coming Soon 🚀
-                          </span>
-                        </>
-                      ) : (
-                        <>
-                          <span className="transition-all duration-700 delay-1000 group-hover:opacity-0 group-hover:scale-95">
-                            Start Selling
-                          </span>
-                          <span className="absolute transition-all duration-700 delay-1000 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100">
-                            Let's Go 🚀
-                          </span>
-                        </>
-                      )}
-                    </Button>
-                  )}
-                  
-                  {isOnWaitlist && (
-                    <div className="mt-3 text-center">
-                      <span className="text-sm text-blue-600 dark:text-blue-400 font-medium">Added to Waitlist</span>
-                    </div>
-                  )}
-                  
-                  {isCurrentPlan && (
-                    <div className="mt-3 text-center">
-                      <span className="text-sm text-green-600 dark:text-green-400 font-medium">Current Plan</span>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
+        <div className="px-4 pb-2">
+          <PlanCards onClose={() => setIsOpen(false)} />
         </div>
 
         {/* Footer */}
