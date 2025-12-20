@@ -25,7 +25,6 @@ export function useInsufficientCreditsHandler() {
     });
 
     timeoutRef.current = setTimeout(() => {
-      console.log('[InsufficientCredits] Timeout fired, calling openModal');
       openModalRef.current();
       timeoutRef.current = null;
     }, 1500);

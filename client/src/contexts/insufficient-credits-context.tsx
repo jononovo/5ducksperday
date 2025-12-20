@@ -13,7 +13,6 @@ export function InsufficientCreditsProvider({ children }: { children: ReactNode 
   const [isOpen, setIsOpen] = useState(false);
 
   const openModal = useCallback(() => {
-    console.log('[InsufficientCreditsContext] openModal called, setting isOpen to true');
     setIsOpen(true);
   }, []);
 
