@@ -55,14 +55,14 @@ export type SearchType =
   | 'individual_search';
 
 export const CREDIT_COSTS: Record<SearchType, number> = {
-  'company_search': 10,
-  'contact_discovery': 60,
-  'email_search': 160,
-  'full_search': 250,
-  'company_and_contacts': 70,   // 10 + 60
-  'company_contacts_emails': 240, // 10 + 60 + 170
-  'individual_email': 20,
-  'individual_search': 100  // Person discovery + email
+  'company_search': 10,           // Only Companies search
+  'contact_discovery': 60,        // Not used directly (legacy)
+  'email_search': 160,            // Full search: companies + contacts + emails
+  'full_search': 250,             // Not used (legacy)
+  'company_and_contacts': 70,     // Companies + Contacts search
+  'company_contacts_emails': 240, // Not used - actual full search uses email_search
+  'individual_email': 20,         // Single contact email lookup
+  'individual_search': 100        // Find Individual search
 } as const;
 
 export const MONTHLY_CREDIT_ALLOWANCE = 250;

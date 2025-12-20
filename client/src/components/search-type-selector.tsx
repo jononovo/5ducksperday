@@ -50,14 +50,14 @@ const searchTypeConfigs: SearchTypeConfig[] = [
       <Mail key="emails" className="h-3 w-3 md:h-[14px] md:w-[14px] lg:h-[18px] lg:w-[18px]" />
     ],
     estimatedTime: "22 seconds",
-    creditCost: 240
+    creditCost: 160
   },
   {
     type: "individual_search",
     label: "Find Individual",
     icons: [<UserSearch key="individual-search" className="h-3 w-3 md:h-[14px] md:w-[14px] lg:h-[18px] lg:w-[18px]" />],
     estimatedTime: "18 seconds",
-    creditCost: 180
+    creditCost: 100
   }
 ];
 
