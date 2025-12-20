@@ -42,7 +42,7 @@ export function CampaignSelector({
             : "Choose an active campaign"
         } />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent className="z-[100]">
         {campaigns.length === 0 ? (
           <div className="p-2 text-sm text-muted-foreground">
             No active campaigns found. Please create and activate a campaign first.

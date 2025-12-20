@@ -39,7 +39,7 @@ export function ListSelector({
       <SelectTrigger className="w-[200px]" data-testid="select-contact-list">
         <SelectValue placeholder="Choose a contact list" />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent className="z-[100]">
         {contactLists.map((list) => (
           <SelectItem 
             key={list.id} 

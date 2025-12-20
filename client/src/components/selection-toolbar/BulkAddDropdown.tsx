@@ -5,7 +5,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown, Target } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 
 interface BulkAddDropdownProps {
   onAddToPipeline: () => void;
@@ -25,13 +25,12 @@ export function BulkAddDropdown({
       <Button 
         variant="outline" 
         size="sm" 
-        className="h-6 px-2 text-[11px] font-medium text-gray-600 rounded-r-none border-r-0"
+        className="h-6 px-2 text-[11px] font-medium text-gray-600 rounded-r-none border-r-0 hover:bg-gray-50 hover:text-gray-700"
         onClick={onAddToPipeline}
         disabled={isPipelineLoading}
         title="Add selected to Pipeline"
         data-testid="button-add-to-pipeline"
       >
-        <Target className="h-3 w-3 mr-1" />
         {isPipelineLoading ? "Adding..." : "Add to Pipeline"}
       </Button>
       <DropdownMenu>
