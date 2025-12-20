@@ -6,7 +6,6 @@
 import { Express, Request, Response } from "express";
 import { storage } from "../storage";
 import { CreditService } from "../features/billing/credits/service";
-import { SearchType } from "../features/billing/credits/types";
 import { SessionManager } from "./sessions";
 import { getUserId } from "../utils/auth";
 import rateLimit from "express-rate-limit";
@@ -35,17 +34,6 @@ const demoSearchLimiter = rateLimit({
   }
 });
 
-/**
- * Map frontend search type to backend search type for billing
- */
-function mapSearchTypeToCredits(frontendSearchType: string): SearchType {
-  switch(frontendSearchType) {
-    case 'companies': return 'company_search';         // 10 credits
-    case 'contacts': return 'company_and_contacts';    // 70 credits (10 + 60)
-    case 'emails': return 'company_contacts_emails';   // 240 credits (10 + 60 + 170)
-    default: return 'company_search';                  // fallback to 10 credits
-  }
-}
 
 /**
  * Register company search routes

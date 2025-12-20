@@ -147,14 +147,11 @@ await CreditService.withCreditBilling(
 
 | Action Type | Cost | Use Case |
 |-------------|------|----------|
-| `company_search` | 10 | Company discovery only |
-| `contact_discovery` | 60 | Finding contacts (not used directly) |
-| `company_and_contacts` | 70 | Combined company + contacts |
+| `company_search` | 10 | Only Companies search |
+| `company_and_contacts` | 70 | Companies + Contacts search |
 | `email_search` | 160 | Full search: companies + contacts + emails |
-| `individual_email` | 20 | Single contact email search |
-| `individual_search` | 100 | Person discovery + email |
-
-> **Note:** `company_contacts_emails` and `full_search` types exist in CREDIT_COSTS but are not currently used for billing. The actual full search uses `email_search` (160 credits).
+| `individual_email` | 20 | Single contact email lookup |
+| `individual_search` | 100 | Find Individual search |
 
 ### Checklist for New Billable Features
 
