@@ -317,17 +317,89 @@ Respond ONLY with valid JSON in this exact format:
       }
 
       const challengesArrayMatch = fileContent.match(/challenges:\s*\[/);
-      if (!challengesArrayMatch) {
+      if (!challengesArrayMatch || challengesArrayMatch.index === undefined) {
         return res.status(400).json({ message: "Could not find challenges array in quest file" });
       }
 
-      const lastBracketIndex = fileContent.lastIndexOf("]");
-      if (lastBracketIndex === -1) {
+      const challengesArrayStart = challengesArrayMatch.index + challengesArrayMatch[0].length;
+      
+      let bracketCount = 1;
+      let challengesArrayEnd = -1;
+      let inString: string | null = null;
+      let inLineComment = false;
+      let inBlockComment = false;
+      let escaped = false;
+      
+      for (let i = challengesArrayStart; i < fileContent.length; i++) {
+        const char = fileContent[i];
+        const nextChar = fileContent[i + 1];
+        
+        if (inLineComment) {
+          if (char === '\n') {
+            inLineComment = false;
+          }
+          continue;
+        }
+        
+        if (inBlockComment) {
+          if (char === '*' && nextChar === '/') {
+            inBlockComment = false;
+            i++;
+          }
+          continue;
+        }
+        
+        if (escaped) {
+          escaped = false;
+          continue;
+        }
+        
+        if (char === '\\') {
+          escaped = true;
+          continue;
+        }
+        
+        if (inString) {
+          if (char === inString) {
+            inString = null;
+          }
+          continue;
+        }
+        
+        if (char === '/' && nextChar === '/') {
+          inLineComment = true;
+          i++;
+          continue;
+        }
+        
+        if (char === '/' && nextChar === '*') {
+          inBlockComment = true;
+          i++;
+          continue;
+        }
+        
+        if (char === '"' || char === "'" || char === '`') {
+          inString = char;
+          continue;
+        }
+        
+        if (char === '[') {
+          bracketCount++;
+        } else if (char === ']') {
+          bracketCount--;
+          if (bracketCount === 0) {
+            challengesArrayEnd = i;
+            break;
+          }
+        }
+      }
+
+      if (challengesArrayEnd === -1) {
         return res.status(400).json({ message: "Could not find closing bracket of challenges array" });
       }
 
-      const beforeBracket = fileContent.slice(0, lastBracketIndex);
-      const afterBracket = fileContent.slice(lastBracketIndex);
+      const beforeBracket = fileContent.slice(0, challengesArrayEnd);
+      const afterBracket = fileContent.slice(challengesArrayEnd);
 
       const hasExistingChallenges = beforeBracket.match(/\}\s*,?\s*$/);
       const needsComma = hasExistingChallenges && !beforeBracket.trim().endsWith(",");
