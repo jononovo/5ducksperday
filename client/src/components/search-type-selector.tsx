@@ -14,6 +14,7 @@ export interface SearchTypeConfig {
   label: string;
   icons: React.ReactNode[];
   estimatedTime: string;
+  creditCost: number;
 }
 
 interface SearchTypeSelectorProps {
@@ -27,7 +28,8 @@ const searchTypeConfigs: SearchTypeConfig[] = [
     type: "companies",
     label: "Only Companies",
     icons: [<Building2 key="company" className="h-3 w-3 md:h-[14px] md:w-[14px] lg:h-[18px] lg:w-[18px]" />],
-    estimatedTime: "7 seconds"
+    estimatedTime: "7 seconds",
+    creditCost: 10
   },
   {
     type: "contacts",
@@ -36,7 +38,8 @@ const searchTypeConfigs: SearchTypeConfig[] = [
       <Building2 key="company" className="h-3 w-3 md:h-[14px] md:w-[14px] lg:h-[18px] lg:w-[18px]" />,
       <Users key="contacts" className="h-3 w-3 md:h-[14px] md:w-[14px] lg:h-[18px] lg:w-[18px]" />
     ],
-    estimatedTime: "12 seconds"
+    estimatedTime: "12 seconds",
+    creditCost: 70
   },
   {
     type: "emails",
@@ -46,13 +49,15 @@ const searchTypeConfigs: SearchTypeConfig[] = [
       <Users key="contacts" className="h-3 w-3 md:h-[14px] md:w-[14px] lg:h-[18px] lg:w-[18px]" />,
       <Mail key="emails" className="h-3 w-3 md:h-[14px] md:w-[14px] lg:h-[18px] lg:w-[18px]" />
     ],
-    estimatedTime: "22 seconds"
+    estimatedTime: "22 seconds",
+    creditCost: 240
   },
   {
     type: "individual_search",
     label: "Find Individual",
     icons: [<UserSearch key="individual-search" className="h-3 w-3 md:h-[14px] md:w-[14px] lg:h-[18px] lg:w-[18px]" />],
-    estimatedTime: "18 seconds"
+    estimatedTime: "18 seconds",
+    creditCost: 180
   }
 ];
 
@@ -119,9 +124,14 @@ export function SearchTypeSelector({ selectedType, onTypeChange, disabled = fals
                     {config.label}
                   </span>
                 </div>
-                <span className="text-xs text-gray-500 font-mono">
-                  {config.estimatedTime}
-                </span>
+                <div className="text-right">
+                  <span className="text-xs text-gray-500 font-mono">
+                    {config.estimatedTime}
+                  </span>
+                  <div className="text-xs text-amber-600 font-medium">
+                    {config.creditCost} credits
+                  </div>
+                </div>
               </div>
             ))}
           </div>
