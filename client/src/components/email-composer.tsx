@@ -1175,7 +1175,7 @@ export function EmailComposer({
     )}
 
     {/* Settings and Templates Buttons Row - with proper spacing from email field */}
-    <div className="mt-2 md:mt-4 pt-2">
+    <div className="mt-2 pt-1">
       <div className="flex justify-start gap-2">
         {/* Campaign Settings Button - Only shown in campaign mode */}
         {drawerMode === 'campaign' && (
