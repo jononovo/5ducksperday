@@ -62,7 +62,9 @@ export function ChallengeRecorder({ isOpen, onClose }: ChallengeRecorderProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isInserting, setIsInserting] = useState(false);
   const [insertResult, setInsertResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [isTesting, setIsTesting] = useState(false);
   
+  const guidance = useGuidance();
   const recordingRef = useRef(false);
 
   const handleClick = useCallback((e: MouseEvent) => {
@@ -212,6 +214,21 @@ export function ChallengeRecorder({ isOpen, onClose }: ChallengeRecorderProps) {
     }
   };
 
+  const testChallenge = () => {
+    if (!generatedChallenge) return;
+    
+    const challenge: Challenge = {
+      id: `sandbox_${Date.now()}`,
+      ...generatedChallenge,
+    };
+    
+    setIsTesting(true);
+    
+    guidance.startSandboxChallenge(challenge, () => {
+      setIsTesting(false);
+    });
+  };
+
   const reset = () => {
     recordingRef.current = false;
     setState("idle");
@@ -267,7 +284,15 @@ export function ChallengeRecorder({ isOpen, onClose }: ChallengeRecorderProps) {
           </div>
 
           <div className="p-4 space-y-4">
-            {state === "idle" && (
+            {isTesting && (
+              <div className="flex flex-col items-center gap-3 py-4">
+                <Play className="h-8 w-8 text-amber-400" />
+                <p className="text-sm text-gray-300">Testing challenge...</p>
+                <p className="text-xs text-gray-500">Complete the challenge to return here</p>
+              </div>
+            )}
+
+            {!isTesting && state === "idle" && (
               <>
                 {QUESTS.length === 0 ? (
                   <div className="text-center py-4">
@@ -338,7 +363,7 @@ export function ChallengeRecorder({ isOpen, onClose }: ChallengeRecorderProps) {
               </>
             )}
 
-            {state === "recording" && (
+            {!isTesting && state === "recording" && (
               <>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
@@ -372,14 +397,14 @@ export function ChallengeRecorder({ isOpen, onClose }: ChallengeRecorderProps) {
               </>
             )}
 
-            {state === "processing" && (
+            {!isTesting && state === "processing" && (
               <div className="flex flex-col items-center gap-3 py-4">
                 <Loader2 className="h-8 w-8 text-amber-400 animate-spin" />
                 <p className="text-sm text-gray-300">Generating challenge with AI...</p>
               </div>
             )}
 
-            {state === "complete" && generatedChallenge && (
+            {!isTesting && state === "complete" && generatedChallenge && (
               <>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
@@ -387,14 +412,24 @@ export function ChallengeRecorder({ isOpen, onClose }: ChallengeRecorderProps) {
                     <span className="text-sm font-medium text-white">Challenge Generated!</span>
                   </div>
                   
-                  <div className="bg-gray-800 rounded-lg p-3 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">{generatedChallenge.emoji}</span>
-                      <span className="text-sm font-medium text-white">{generatedChallenge.name}</span>
+                  <button
+                    onClick={testChallenge}
+                    className="w-full text-left bg-gray-800 rounded-lg p-3 space-y-2 hover:bg-gray-700 transition-colors cursor-pointer border border-transparent hover:border-amber-500/50 group"
+                    data-testid="test-challenge-card"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{generatedChallenge.emoji}</span>
+                        <span className="text-sm font-medium text-white">{generatedChallenge.name}</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-xs text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Play className="h-3 w-3" />
+                        <span>Test</span>
+                      </div>
                     </div>
                     <p className="text-xs text-gray-400">{generatedChallenge.description}</p>
                     <p className="text-xs text-gray-500">{generatedChallenge.steps.length} steps</p>
-                  </div>
+                  </button>
                 </div>
 
                 {insertResult && (
