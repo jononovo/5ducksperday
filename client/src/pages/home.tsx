@@ -1025,7 +1025,13 @@ export default function Home() {
     });
     
     try {
-      // First fetch the companies
+      // Invalidate cache first to ensure we get fresh data from database
+      // This is critical when companies have been added via "5 More" extension
+      await queryClient.invalidateQueries({
+        queryKey: [`/api/lists/${list.listId}/companies`]
+      });
+      
+      // Now fetch the companies - will make a fresh request since cache was invalidated
       const companies = await queryClient.fetchQuery({
         queryKey: [`/api/lists/${list.listId}/companies`]
       }) as Company[];
@@ -1094,7 +1100,7 @@ export default function Home() {
       
       toast({
         title: "Search Loaded",
-        description: `Loaded "${list.prompt}" with ${list.resultCount} companies and ${totalContacts} contacts`,
+        description: `Loaded "${list.prompt}" with ${companiesWithContacts.length} companies and ${totalContacts} contacts`,
       });
     } catch (error) {
       toast({
