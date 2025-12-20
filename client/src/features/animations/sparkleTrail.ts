@@ -20,7 +20,7 @@ const SPARKLE_CONFIGS: SparkleConfig[] = [
 ];
 
 const ANIMATION_DURATION = 1100; // ms
-const DOUBLE_ANIMATION_DELAY = 200; // ms between first and second animation
+const WAVE_DELAYS = [0, 200, 500]; // ms delays for each wave (0, 200, 500 = third wave 300ms after second)
 
 /**
  * Play a coin/sparkle sound effect using Web Audio API
@@ -129,7 +129,7 @@ function runSparkleWave(
   endX: number,
   endY: number,
   targetElement: Element | null,
-  bounce: boolean,
+  applyBounce: boolean,
   waveIndex: number
 ): void {
   SPARKLE_CONFIGS.forEach((config, index) => {
@@ -150,8 +150,8 @@ function runSparkleWave(
     }, config.delay);
   });
 
-  // Only bounce on the last wave
-  if (bounce && targetElement && waveIndex === 1) {
+  // Apply bounce if requested (typically only on last wave)
+  if (applyBounce && targetElement) {
     setTimeout(() => {
       applyBounceEffect(targetElement);
     }, ANIMATION_DURATION);
@@ -160,7 +160,7 @@ function runSparkleWave(
 
 /**
  * Animate sparkle particles from a source element to the credits display
- * Runs the animation twice with 200ms separation for extra prominence
+ * Runs the animation in 3 waves (0ms, 200ms, 500ms) for extra prominence
  * 
  * @param sourceElement - The element to animate from (credit badge/chip)
  * @param options - Optional configuration
@@ -208,16 +208,18 @@ export function animateCreditSparkles(
       playCoinSound();
     }
 
-    // First wave
-    runSparkleWave(startX, startY, endX, endY, targetElement, false, 0);
+    // Run all waves with their respective delays
+    const lastWaveIndex = WAVE_DELAYS.length - 1;
+    WAVE_DELAYS.forEach((delay, waveIndex) => {
+      setTimeout(() => {
+        const isLastWave = waveIndex === lastWaveIndex;
+        runSparkleWave(startX, startY, endX, endY, targetElement, bounce && isLastWave, waveIndex);
+      }, delay);
+    });
 
-    // Second wave after 200ms delay
-    setTimeout(() => {
-      runSparkleWave(startX, startY, endX, endY, targetElement, bounce, 1);
-    }, DOUBLE_ANIMATION_DELAY);
-
-    // Resolve after both animations complete
-    const totalDuration = ANIMATION_DURATION + DOUBLE_ANIMATION_DELAY + 250;
+    // Resolve after all animations complete
+    const lastWaveDelay = WAVE_DELAYS[WAVE_DELAYS.length - 1];
+    const totalDuration = ANIMATION_DURATION + lastWaveDelay + 250;
     setTimeout(() => {
       onComplete?.();
       resolve();
