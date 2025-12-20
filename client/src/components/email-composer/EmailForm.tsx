@@ -37,13 +37,17 @@ export default function EmailForm({
   creatingCampaign,
   isMergeViewMode,
   getDisplayValue,
-  isExpanded
+  isExpanded,
+  isMobile
 }: EmailFormProps) {
   const emailSubjectRef = useRef<HTMLInputElement>(null);
   const emailContentRef = useRef<HTMLTextAreaElement>(null);
 
   const handleTextareaResize = () => {
     if (emailContentRef.current) {
+      if (isMobile) {
+        return;
+      }
       emailContentRef.current.style.height = 'auto';
       const scrollHeight = emailContentRef.current.scrollHeight;
       emailContentRef.current.style.height = Math.min(scrollHeight, 400) + 'px';
@@ -80,7 +84,10 @@ export default function EmailForm({
             handleTextareaResize();
           }}
           className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 border-0 rounded-none md:border md:rounded-b-md px-3 md:px-3 pb-12 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50"
-          style={{ minHeight: isExpanded ? '400px' : '160px', maxHeight: isExpanded ? '600px' : '400px' }}
+          style={isMobile 
+            ? { minHeight: '40vh', maxHeight: '60vh' }
+            : { minHeight: isExpanded ? '400px' : '160px', maxHeight: isExpanded ? '600px' : '400px' }
+          }
           data-testid="textarea-email-content"
         />
         <div className="absolute bottom-2 right-2 flex items-center gap-2">

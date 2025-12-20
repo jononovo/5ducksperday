@@ -296,7 +296,7 @@ export function EmailDrawer({
                   drawerMode={mode}
                   currentListId={currentListId}
                   currentQuery={currentQuery}
-                  isExpanded={true}
+                  isMobile={true}
                 />
               </div>
             </div>

@@ -62,6 +62,7 @@ interface EmailComposerProps {
   currentListId?: number | null;
   currentQuery?: string | null;
   isExpanded?: boolean;
+  isMobile?: boolean;
   // Email state props from parent
   emailPrompt?: string;
   setEmailPrompt?: (value: string) => void;
@@ -95,6 +96,7 @@ export function EmailComposer({
   currentListId = null,
   currentQuery = null,
   isExpanded = false,
+  isMobile = false,
   // Email state props with fallback to internal state for backwards compatibility
   emailPrompt: emailPromptProp,
   setEmailPrompt: setEmailPromptProp,
@@ -1147,6 +1149,7 @@ export function EmailComposer({
       isMergeViewMode={isMergeViewMode}
       getDisplayValue={getDisplayValue}
       isExpanded={isExpanded}
+      isMobile={isMobile}
     />
 
     {/* Merge Field Controls - Show immediately after EmailForm in Campaign Template mode */}
