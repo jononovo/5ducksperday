@@ -218,8 +218,8 @@ export function ChallengeRecorder({ isOpen, onClose }: ChallengeRecorderProps) {
     if (!generatedChallenge) return;
     
     const challenge: Challenge = {
-      id: `sandbox_${Date.now()}`,
       ...generatedChallenge,
+      id: `sandbox_${Date.now()}`,
     };
     
     setIsTesting(true);
@@ -256,7 +256,7 @@ export function ChallengeRecorder({ isOpen, onClose }: ChallengeRecorderProps) {
     }
   }, [isOpen, state]);
 
-  if (!isOpen) return null;
+  if (!isOpen || isTesting) return null;
 
   const selectedQuest = QUESTS.find(q => q.id === selectedQuestId);
 
@@ -284,15 +284,7 @@ export function ChallengeRecorder({ isOpen, onClose }: ChallengeRecorderProps) {
           </div>
 
           <div className="p-4 space-y-4">
-            {isTesting && (
-              <div className="flex flex-col items-center gap-3 py-4">
-                <Play className="h-8 w-8 text-amber-400" />
-                <p className="text-sm text-gray-300">Testing challenge...</p>
-                <p className="text-xs text-gray-500">Complete the challenge to return here</p>
-              </div>
-            )}
-
-            {!isTesting && state === "idle" && (
+            {state === "idle" && (
               <>
                 {QUESTS.length === 0 ? (
                   <div className="text-center py-4">
@@ -363,7 +355,7 @@ export function ChallengeRecorder({ isOpen, onClose }: ChallengeRecorderProps) {
               </>
             )}
 
-            {!isTesting && state === "recording" && (
+            {state === "recording" && (
               <>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
@@ -397,14 +389,14 @@ export function ChallengeRecorder({ isOpen, onClose }: ChallengeRecorderProps) {
               </>
             )}
 
-            {!isTesting && state === "processing" && (
+            {state === "processing" && (
               <div className="flex flex-col items-center gap-3 py-4">
                 <Loader2 className="h-8 w-8 text-amber-400 animate-spin" />
                 <p className="text-sm text-gray-300">Generating challenge with AI...</p>
               </div>
             )}
 
-            {!isTesting && state === "complete" && generatedChallenge && (
+            {state === "complete" && generatedChallenge && (
               <>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
