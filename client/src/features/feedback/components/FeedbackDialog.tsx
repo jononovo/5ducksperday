@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -83,15 +82,16 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <LifeBuoy className="h-5 w-5" />
-            Send Feedback
+            Support
           </DialogTitle>
           <DialogDescription>
+            We'd LOVE to know how to do better.
+            <br />
             Let us know what you think, report a bug, or request a feature.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="feedback-type">What type of feedback?</Label>
             <Select
               value={feedbackType}
               onValueChange={(value) => setFeedbackType(value as FeedbackType)}
@@ -109,7 +109,6 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
             </Select>
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="feedback-message">Your message</Label>
             <Textarea
               id="feedback-message"
               data-testid="input-feedback-message"
