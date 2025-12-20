@@ -203,9 +203,9 @@ export function EmailDrawer({
         className="fixed top-[5%] left-1/2 -translate-x-1/2 z-50 w-full max-w-3xl h-[90vh] bg-background border rounded-lg shadow-2xl overflow-hidden"
         data-testid="expanded-drawer"
       >
-        <div className="h-full overflow-y-auto">
+        <div className="h-full overflow-y-auto pb-2">
           {renderHeader()}
-          <div className="p-4">
+          <div className="px-4 pt-4 pb-2">
             <EmailComposer
               selectedContact={selectedContact}
               selectedCompany={selectedCompany}
@@ -259,10 +259,10 @@ export function EmailDrawer({
             </div>
           )}
           
-          <div className="overflow-y-auto max-h-[calc(100vh-2.5rem)] md:max-h-screen pb-4" style={{ minWidth: open ? '320px' : '0' }}>
+          <div className="overflow-y-auto max-h-[calc(100vh-2.5rem)] md:max-h-screen pb-2" style={{ minWidth: open ? '320px' : '0' }}>
             {renderHeader()}
             
-            <div className="p-4">
+            <div className="px-4 pt-4 pb-2">
               <EmailComposer
                 selectedContact={selectedContact}
                 selectedCompany={selectedCompany}
