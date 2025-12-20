@@ -120,7 +120,7 @@ export function EmailGenerationControls({
             <button 
               className={cn(
                 "flex items-center gap-1.5 px-2 py-1 rounded transition-colors text-xs text-muted-foreground",
-                selectedTone ? "bg-blue-50 hover:bg-blue-100" : "hover:bg-blue-50"
+                selectedTone ? "bg-yellow-400/20 hover:bg-yellow-400/30" : "hover:bg-yellow-400/20"
               )}
               title="Select email tone"
               data-testid="button-tone-selector"
@@ -174,7 +174,7 @@ export function EmailGenerationControls({
             <button 
               className={cn(
                 "flex items-center gap-1.5 px-2 py-1 rounded transition-colors text-xs text-muted-foreground",
-                selectedOfferStrategy && selectedOfferStrategy !== 'none' ? "bg-blue-50 hover:bg-blue-100" : "hover:bg-blue-50"
+                selectedOfferStrategy && selectedOfferStrategy !== 'none' ? "bg-yellow-400/20 hover:bg-yellow-400/30" : "hover:bg-yellow-400/20"
               )}
               title="Select offer strategy"
               data-testid="button-offer-selector"
