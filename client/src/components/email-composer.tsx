@@ -1048,6 +1048,8 @@ export function EmailComposer({
             }
           }}
           senderProfiles={senderProfiles}
+          isExpanded={isExpanded}
+          isMobile={isMobile}
         />
     </div>
 

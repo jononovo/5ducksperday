@@ -100,8 +100,8 @@ export function ProfileDropdown<T extends ProfileDropdownItem>({
       <PopoverTrigger asChild>
         <button 
           className={cn(
-            "flex items-center gap-1.5 px-2 py-1 rounded hover:bg-blue-50 transition-colors text-xs text-muted-foreground",
-            triggerClassName
+            "flex items-center gap-1.5 px-2 py-1 rounded hover:bg-yellow-400/20 transition-colors text-xs",
+            triggerClassName || "text-muted-foreground"
           )}
           title={`Select ${headerTitle.toLowerCase()}`}
           data-testid={`button-${testIdPrefix}-selector`}
