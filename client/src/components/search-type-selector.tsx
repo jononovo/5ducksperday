@@ -101,7 +101,7 @@ export function SearchTypeSelector({ selectedType, onTypeChange, disabled = fals
               <div
                 key={config.type}
                 data-testid={`search-type-option-${config.type}`}
-                className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all hover:bg-gray-50 ${
+                className={`flex items-center justify-between py-2 px-3 rounded-lg border cursor-pointer transition-all hover:bg-gray-50 ${
                   selectedType === config.type 
                     ? 'border-blue-300 bg-blue-50' 
                     : 'border-gray-200'
@@ -118,7 +118,7 @@ export function SearchTypeSelector({ selectedType, onTypeChange, disabled = fals
                       </div>
                     ))}
                   </div>
-                  <span className={`font-medium ${
+                  <span className={`text-base font-medium ${
                     selectedType === config.type ? 'text-blue-900' : 'text-gray-900'
                   }`}>
                     {config.label}
@@ -128,7 +128,7 @@ export function SearchTypeSelector({ selectedType, onTypeChange, disabled = fals
                   <span className="text-xs text-gray-500 font-mono">
                     {config.estimatedTime}
                   </span>
-                  <div className="text-xs text-amber-600 font-medium">
+                  <div className="text-xs text-gray-400">
                     {config.creditCost} credits
                   </div>
                 </div>
