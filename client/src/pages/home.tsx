@@ -79,6 +79,7 @@ import { SearchSessionManager } from "@/lib/search-session-manager";
 import { useComprehensiveEmailSearch } from "@/features/search-email";
 import { useSearchState, type SavedSearchState, type CompanyWithContacts } from "@/features/search-state";
 import { useEmailSearchOrchestration } from "@/features/email-search-orchestration";
+import { FeedbackModal } from "@/features/find-ideal-customer/components/FeedbackModal";
 
 // Define SourceBreakdown interface to match EmailSearchSummary
 interface SourceBreakdown {
@@ -146,6 +147,19 @@ export default function Home() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingSearchQuery, setOnboardingSearchQuery] = useState<string>("");
   const [onboardingSearchResults, setOnboardingSearchResults] = useState<any[]>([]);
+  
+  // Feedback modal state
+  const [feedbackModalState, setFeedbackModalState] = useState<{
+    isOpen: boolean;
+    contactId: number | null;
+    contactName: string;
+    feedbackType: "excellent" | "terrible";
+  }>({
+    isOpen: false,
+    contactId: null,
+    contactName: "",
+    feedbackType: "excellent",
+  });
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -972,11 +986,12 @@ export default function Home() {
     return pendingContactIds.has(contactId);
   };
 
-  // Add mutation for contact feedback
+  // Add mutation for contact feedback with context
   const feedbackMutation = useMutation({
-    mutationFn: async ({ contactId, feedbackType }: { contactId: number; feedbackType: string }) => {
+    mutationFn: async ({ contactId, feedbackType, ispContext }: { contactId: number; feedbackType: string; ispContext: string }) => {
       const response = await apiRequest("POST", `/api/contacts/${contactId}/feedback`, {
         feedbackType,
+        ispContext,
       });
       return response.json();
     },
@@ -990,8 +1005,9 @@ export default function Home() {
             contact.id === data.contactId
               ? {
                   ...contact,
-                  userFeedbackScore: data.userFeedbackScore,
-                  feedbackCount: data.feedbackCount,
+                  feedbackType: data.feedbackType,
+                  ispContext: data.ispContext,
+                  feedbackAt: data.feedbackAt,
                 }
               : contact
           ),
@@ -1000,8 +1016,11 @@ export default function Home() {
 
       toast({
         title: "Feedback Recorded",
-        description: "Thank you for helping improve our contact validation!",
+        description: "Thank you for helping us find your ideal customer!",
       });
+      
+      // Close the modal
+      setFeedbackModalState(prev => ({ ...prev, isOpen: false }));
     },
     onError: (error) => {
       toast({
@@ -1012,8 +1031,53 @@ export default function Home() {
     },
   });
 
-  const handleContactFeedback = (contactId: number, feedbackType: string) => {
-    feedbackMutation.mutate({ contactId, feedbackType });
+  // Open feedback modal when user selects a feedback option
+  const handleContactFeedback = (contactId: number, feedbackType: "excellent" | "terrible") => {
+    // Find the contact to get their name
+    const contact = currentResults
+      ?.flatMap(company => company.contacts || [])
+      ?.find(c => c.id === contactId);
+    
+    if (!contact) {
+      toast({
+        title: "Error",
+        description: "Contact not found",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Check if feedback was already given
+    if (contact.feedbackType) {
+      toast({
+        title: "Feedback Already Given",
+        description: "You have already provided feedback for this contact.",
+      });
+      return;
+    }
+    
+    setFeedbackModalState({
+      isOpen: true,
+      contactId,
+      contactName: contact.name,
+      feedbackType,
+    });
+  };
+  
+  // Handle feedback modal submission
+  const handleFeedbackSubmit = (feedbackType: "excellent" | "terrible", ispContext: string) => {
+    if (feedbackModalState.contactId) {
+      feedbackMutation.mutate({
+        contactId: feedbackModalState.contactId,
+        feedbackType,
+        ispContext,
+      });
+    }
+  };
+  
+  // Close feedback modal
+  const handleFeedbackModalClose = () => {
+    setFeedbackModalState(prev => ({ ...prev, isOpen: false }));
   };
 
   // Handle loading a saved search from the drawer
@@ -1747,6 +1811,16 @@ export default function Home() {
           }}
         />
       )}
+      
+      {/* Feedback Modal for rating contacts */}
+      <FeedbackModal
+        isOpen={feedbackModalState.isOpen}
+        onClose={handleFeedbackModalClose}
+        onSubmit={handleFeedbackSubmit}
+        feedbackType={feedbackModalState.feedbackType}
+        contactName={feedbackModalState.contactName}
+        isPending={feedbackMutation.isPending}
+      />
     </div>
     </>
   );

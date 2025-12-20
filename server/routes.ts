@@ -55,6 +55,7 @@ import { registerGuidanceRoutes } from "./features/guidance/routes";
 import { registerProgressRoutes } from "./features/progress/routes";
 import { registerAccessApplicationsRoutes } from "./features/access-applications/routes";
 import { registerFeedbackRoutes } from "./features/feedback/routes";
+import { registerFindIdealCustomerRoutes } from "./features/find-ideal-customer/routes";
 
 
 // Import centralized auth utilities
@@ -321,6 +322,9 @@ Respond in this exact JSON format:
   
   // Register feedback routes
   registerFeedbackRoutes(app);
+  
+  // Register find ideal customer routes (contact feedback)
+  registerFindIdealCustomerRoutes(app);
 
   const httpServer = createServer(app);
   return httpServer;

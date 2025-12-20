@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { MessageSquare, Star, ThumbsUp, ThumbsDown } from "lucide-react";
+import { MessageSquare, Star, ThumbsDown } from "lucide-react";
 import { SiLinkedin } from "react-icons/si";
 import { ContactActionColumn } from "@/components/contact-action-column";
 import { ComprehensiveSearchButton } from "@/components/comprehensive-email-search";
@@ -25,7 +25,7 @@ export interface ContactRowProps {
   hasEmail?: boolean;
   handleContactView?: (contactId: number) => void;
   handleComprehensiveEmailSearch?: (contactId: number) => void;
-  onContactFeedback?: (contactId: number, feedback: string) => void;
+  onContactFeedback?: (contactId: number, feedbackType: "excellent" | "terrible") => void;
   pendingComprehensiveSearchIds?: Set<number>;
 }
 
@@ -169,10 +169,6 @@ export function ContactRow({
                       <DropdownMenuItem onClick={() => onContactFeedback(contact.id, "excellent")}>
                         <Star className="h-4 w-4 mr-2 text-yellow-500" />
                         Excellent Match
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onContactFeedback(contact.id, "ok")}>
-                        <ThumbsUp className="h-4 w-4 mr-2 text-blue-500" />
-                        OK Match
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => onContactFeedback(contact.id, "terrible")}>
                         <ThumbsDown className="h-4 w-4 mr-2 text-red-500" />
