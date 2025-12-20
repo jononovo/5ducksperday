@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
 import { CreditUpgradeDropdown } from "@/components/credit-upgrade-dropdown";
 import { StreakButton } from "@/components/streak-button";
-import { FeedbackDialog } from "@/components/feedback-dialog";
+import { FeedbackDialog } from "@/features/feedback";
 import {
   DropdownMenu,
   DropdownMenuContent,
