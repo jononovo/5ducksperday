@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import confetti from 'canvas-confetti';
+import { fireDailyCompleteConfetti } from '@/features/animations';
 import { cn } from '@/lib/utils';
 import { Calendar } from 'lucide-react';
 
@@ -51,12 +51,7 @@ export function EggProgressBar({ totalEmails, sentEmails, currentIndex, pendingC
   // Simple confetti when all emails are sent
   useEffect(() => {
     if (sentEmails === totalEmails && totalEmails > 0) {
-      // Single burst of confetti from center
-      confetti({
-        particleCount: 100,
-        spread: 60,
-        origin: { x: 0.5, y: 0.1 }
-      });
+      fireDailyCompleteConfetti();
     }
   }, [sentEmails, totalEmails]);
 

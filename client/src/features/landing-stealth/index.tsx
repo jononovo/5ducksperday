@@ -8,7 +8,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useToast } from "@/hooks/use-toast";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
 import { useAuth } from "@/hooks/use-auth";
-import confetti from "canvas-confetti";
+import { fireUnlockConfetti } from "@/features/animations";
 import { StealthOnboardingModal } from "./StealthOnboardingModal";
 import { FooterStealth } from "@/components/footer-stealth";
 
@@ -95,44 +95,8 @@ export default function LandingStealth() {
   }, []);
   
   // Fire confetti from the button position
-  const fireUnlockConfetti = () => {
-    const button = buttonRef.current;
-    if (!button) {
-      // Fallback to center
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { x: 0.5, y: 0.5 },
-        colors: ['#fbbf24', '#f59e0b', '#d97706', '#22c55e', '#10b981'],
-      });
-      return;
-    }
-    
-    const rect = button.getBoundingClientRect();
-    const x = (rect.left + rect.width / 2) / window.innerWidth;
-    const y = (rect.top + rect.height / 2) / window.innerHeight;
-    
-    // Golden sparkle burst
-    confetti({
-      particleCount: 80,
-      spread: 60,
-      origin: { x, y },
-      colors: ['#fbbf24', '#f59e0b', '#d97706', '#fef3c7'],
-      shapes: ['circle', 'square'],
-      scalar: 1.2,
-    });
-    
-    // Secondary burst with stars
-    setTimeout(() => {
-      confetti({
-        particleCount: 40,
-        spread: 100,
-        origin: { x, y },
-        colors: ['#22c55e', '#10b981', '#a3e635'],
-        shapes: ['circle'],
-        scalar: 0.8,
-      });
-    }, 150);
+  const triggerUnlockConfetti = () => {
+    fireUnlockConfetti(buttonRef.current);
   };
 
   const content = [
@@ -241,7 +205,7 @@ export default function LandingStealth() {
       setIsUnlocking(true);
       
       // Fire confetti immediately
-      fireUnlockConfetti();
+      triggerUnlockConfetti();
       
       // Show Access Granted overlay briefly, then open registration modal
       setTimeout(() => {

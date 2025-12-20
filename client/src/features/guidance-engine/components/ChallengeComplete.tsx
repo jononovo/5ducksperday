@@ -1,9 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createPortal } from "react-dom";
 import { Trophy, ChevronRight, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import confetti from "canvas-confetti";
+import { fireChallengeConfetti, animateCreditSparkles } from "@/features/animations";
 
 interface ChallengeCompleteProps {
   isVisible: boolean;
@@ -22,35 +22,21 @@ export function ChallengeComplete({
   onContinue,
   onDismiss,
 }: ChallengeCompleteProps) {
+  const creditsBadgeRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (isVisible) {
-      const duration = 2000;
-      const end = Date.now() + duration;
-
-      const frame = () => {
-        confetti({
-          particleCount: 3,
-          angle: 60,
-          spread: 55,
-          origin: { x: 0, y: 0.7 },
-          colors: ["#facc15", "#f59e0b", "#fbbf24"],
-        });
-        confetti({
-          particleCount: 3,
-          angle: 120,
-          spread: 55,
-          origin: { x: 1, y: 0.7 },
-          colors: ["#facc15", "#f59e0b", "#fbbf24"],
-        });
-
-        if (Date.now() < end) {
-          requestAnimationFrame(frame);
-        }
-      };
-
-      frame();
+      fireChallengeConfetti();
+      
+      if (creditsAwarded && creditsAwarded > 0) {
+        const sparkleTimer = setTimeout(() => {
+          animateCreditSparkles(creditsBadgeRef.current);
+        }, 800);
+        
+        return () => clearTimeout(sparkleTimer);
+      }
     }
-  }, [isVisible]);
+  }, [isVisible, creditsAwarded]);
 
   return createPortal(
     <AnimatePresence>
@@ -110,10 +96,12 @@ export function ChallengeComplete({
 
             {creditsAwarded && creditsAwarded > 0 && (
               <motion.div
+                ref={creditsBadgeRef}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.55, type: "spring", stiffness: 400, damping: 20 }}
                 className="flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-500/30 rounded-full px-4 py-2 mb-6"
+                data-testid="credits-badge"
               >
                 <Coins className="h-5 w-5 text-amber-400" />
                 <span className="text-amber-400 font-semibold">+{creditsAwarded} Credits Earned!</span>

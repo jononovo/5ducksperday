@@ -4,7 +4,7 @@ import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createPortal } from "react-dom";
 import type { FormShellProps, SlideComponentProps } from "../types";
-import { fireSectionConfetti, fireFinalConfetti } from "../utils/confetti";
+import { fireSectionConfetti, fireFinalConfetti } from "@/features/animations";
 import { apiRequest } from "@/lib/queryClient";
 import { SlideSingleSelect } from "./SlideSingleSelect";
 import { SlideMultiSelect } from "./SlideMultiSelect";
