@@ -2,10 +2,11 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "wouter";
-import { Circle, Square, Loader2, Check, Copy, X, ChevronDown, Upload } from "lucide-react";
+import { Circle, Square, Loader2, Check, Copy, X, ChevronDown, Upload, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { QUESTS } from "../quests";
-import type { RecordedStep, GeneratedChallenge } from "../types";
+import { useGuidance } from "../context/GuidanceContext";
+import type { RecordedStep, GeneratedChallenge, Challenge } from "../types";
 
 interface ChallengeRecorderProps {
   isOpen: boolean;

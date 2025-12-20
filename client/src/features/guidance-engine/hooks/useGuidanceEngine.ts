@@ -115,12 +115,17 @@ interface UseGuidanceEngineOptions {
   userId: number | null;
 }
 
+const SANDBOX_QUEST_ID = "__sandbox__";
+
 export function useGuidanceEngine(options: UseGuidanceEngineOptions): GuidanceContextValue {
   const { authReady, userId } = options;
   const [state, setState] = useState<GuidanceState>(loadProgress);
   const [isInitialized, setIsInitialized] = useState(false);
   const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastUserIdRef = useRef<number | null>(null);
+  
+  const [sandboxChallenge, setSandboxChallenge] = useState<Challenge | null>(null);
+  const sandboxCompleteCallbackRef = useRef<(() => void) | null>(null);
 
   // Initialize from server once auth is ready
   useEffect(() => {
@@ -172,6 +177,10 @@ export function useGuidanceEngine(options: UseGuidanceEngineOptions): GuidanceCo
 
   // Sync to server when state changes (with debounce)
   useEffect(() => {
+    if (state.currentQuestId === SANDBOX_QUEST_ID) {
+      return;
+    }
+    
     saveProgress(state);
     
     if (!isInitialized) {
@@ -205,15 +214,19 @@ export function useGuidanceEngine(options: UseGuidanceEngineOptions): GuidanceCo
     };
   }, [state, isInitialized, authReady, userId]);
 
+  const isSandboxMode = state.currentQuestId === SANDBOX_QUEST_ID;
+
   const currentQuest: Quest | null = useMemo(() => {
     if (!state.currentQuestId) return null;
+    if (isSandboxMode) return null;
     return getQuestById(state.currentQuestId) || null;
-  }, [state.currentQuestId]);
+  }, [state.currentQuestId, isSandboxMode]);
 
   const currentChallenge: Challenge | null = useMemo(() => {
+    if (isSandboxMode) return sandboxChallenge;
     if (!currentQuest) return null;
     return currentQuest.challenges[state.currentChallengeIndex] || null;
-  }, [currentQuest, state.currentChallengeIndex]);
+  }, [currentQuest, state.currentChallengeIndex, isSandboxMode, sandboxChallenge]);
 
   const currentStep: GuidanceStep | null = useMemo(() => {
     if (!currentChallenge) return null;
@@ -403,6 +416,46 @@ export function useGuidanceEngine(options: UseGuidanceEngineOptions): GuidanceCo
     };
   }, [state.completedQuests]);
 
+  const startSandboxChallenge = useCallback((challenge: Challenge, onComplete?: () => void) => {
+    setSandboxChallenge(challenge);
+    sandboxCompleteCallbackRef.current = onComplete || null;
+    setState((prev) => ({
+      ...prev,
+      isActive: true,
+      currentQuestId: SANDBOX_QUEST_ID,
+      currentChallengeIndex: 0,
+      currentStepIndex: 0,
+      isHeaderVisible: false,
+    }));
+  }, []);
+
+  const stopSandbox = useCallback(() => {
+    setSandboxChallenge(null);
+    sandboxCompleteCallbackRef.current = null;
+    setState((prev) => ({
+      ...prev,
+      isActive: false,
+      currentQuestId: null,
+      currentChallengeIndex: 0,
+      currentStepIndex: 0,
+    }));
+  }, []);
+
+  useEffect(() => {
+    if (isSandboxMode && !state.isActive && sandboxChallenge) {
+      const callback = sandboxCompleteCallbackRef.current;
+      setSandboxChallenge(null);
+      sandboxCompleteCallbackRef.current = null;
+      setState((prev) => ({
+        ...prev,
+        currentQuestId: null,
+      }));
+      if (callback) {
+        setTimeout(callback, 100);
+      }
+    }
+  }, [isSandboxMode, state.isActive, sandboxChallenge]);
+
   return {
     state,
     currentQuest,
@@ -420,5 +473,8 @@ export function useGuidanceEngine(options: UseGuidanceEngineOptions): GuidanceCo
     restartChallenge,
     getChallengeProgress,
     getQuestProgress,
+    startSandboxChallenge,
+    stopSandbox,
+    isSandboxMode,
   };
 }

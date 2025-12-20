@@ -69,6 +69,9 @@ export interface GuidanceContextValue {
   restartChallenge: (questId: string, challengeIndex: number) => void;
   getChallengeProgress: () => { completed: number; total: number };
   getQuestProgress: () => { completed: number; total: number };
+  startSandboxChallenge: (challenge: Challenge, onComplete?: () => void) => void;
+  stopSandbox: () => void;
+  isSandboxMode: boolean;
 }
 
 export interface FluffyGuideProps {
