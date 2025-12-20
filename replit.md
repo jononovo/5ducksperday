@@ -10,7 +10,7 @@
 - **Navigation Flow**: Search → Save List → Compose Email (via drawer) → Launch Campaign
 
 ## System Architecture
-The platform is built with a React SPA frontend (TypeScript, Vite, Tailwind, shadcn/ui, TanStack Query) and an Express.js backend (TypeScript) utilizing PostgreSQL for core data and Replit KV Store for dynamic configurations. Authentication is handled by Firebase and Passport.js.
+The platform is built with a React SPA frontend (TypeScript, Vite, Tailwind, shadcn/ui, TanStack Query) and an Express.js backend (TypeScript) utilizing PostgreSQL for all persistent data. Authentication is handled by Firebase and Passport.js.
 
 **UI/UX Decisions:**
 - **Consolidated Email Workflow**: The standalone /outreach page was removed; all email composition now happens via the email drawer on /app. This streamlines the user flow by keeping users on a single page for search and outreach.
@@ -74,7 +74,7 @@ The platform is built with a React SPA frontend (TypeScript, Vite, Tailwind, sha
 - **Demo User Exclusion**: User id=1 (demo user) is excluded from progress saving and credit operations (enforced in CreditRewardService).
 
 **System Design Choices:**
-- **Data Architecture**: PostgreSQL serves as the primary database for core entities (users, companies, contacts, campaigns) and analytics. Replit KV stores credits, tokens, subscriptions, and rate limiting data. A database-persistent job queue with retry logic manages background tasks.
+- **Data Architecture**: PostgreSQL serves as the primary database for core entities (users, companies, contacts, campaigns) and analytics. Credits, subscriptions, and tokens are stored in PostgreSQL tables (`user_credits`, `credit_transactions`, `subscriptions`, `oauth_tokens`). A database-persistent job queue with retry logic manages background tasks.
 - **List ID Naming Convention**: Clarification provided for `lists.id` (DB primary key) and `lists.list_id` (user-facing display number), with a future plan to rename `lists.list_id` to `lists.display_id`.
 - **Authentication**: Firebase handles authentication, with Passport.js for session management. `requireAuth` middleware protects routes.
 - **Concurrency & Rate Limits**:
@@ -91,5 +91,4 @@ The platform is built with a React SPA frontend (TypeScript, Vite, Tailwind, sha
 - **OpenAI**: Powers AI-driven email content generation based on tone and strategy.
 - **SendGrid**: Handles email delivery and tracking, including webhook management.
 - **Firebase**: Provides authentication services.
-- **PostgreSQL**: The primary relational database for persistent data storage.
-- **Replit KV Store**: Used for storing key-value pairs such as credits, tokens, and rate limits.
+- **PostgreSQL**: The primary relational database for all persistent data storage (users, companies, contacts, campaigns, credits, subscriptions, tokens).
