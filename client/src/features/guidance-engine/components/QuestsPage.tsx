@@ -28,7 +28,7 @@ import { useGuidance } from "../context/GuidanceContext";
 import { QUESTS } from "../quests";
 import { CertificateShowcase } from "./CertificateShowcase";
 import type { Quest, Challenge } from "../types";
-import confetti from "canvas-confetti";
+import { fireCelebrateConfetti } from "@/features/animations";
 
 type QuestStatus = "completed" | "in-progress" | "locked";
 type ChallengeStatus = "completed" | "in-progress" | "available" | "locked";
@@ -358,12 +358,7 @@ export function QuestsPage() {
   const overallProgress = totalQuests > 0 ? (completedQuestsCount / totalQuests) * 100 : 0;
 
   const handleCelebrate = () => {
-    confetti({
-      particleCount: 100,
-      spread: 70,
-      origin: { y: 0.6 },
-      colors: ['#fbbf24', '#f59e0b', '#22c55e', '#10b981'],
-    });
+    fireCelebrateConfetti();
   };
 
   return (

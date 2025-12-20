@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { createPortal } from "react-dom";
 import { Trophy, ChevronRight, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import confetti from "canvas-confetti";
+import { fireChallengeConfetti } from "@/features/animations";
 
 interface ChallengeCompleteProps {
   isVisible: boolean;
@@ -24,31 +24,7 @@ export function ChallengeComplete({
 }: ChallengeCompleteProps) {
   useEffect(() => {
     if (isVisible) {
-      const duration = 2000;
-      const end = Date.now() + duration;
-
-      const frame = () => {
-        confetti({
-          particleCount: 3,
-          angle: 60,
-          spread: 55,
-          origin: { x: 0, y: 0.7 },
-          colors: ["#facc15", "#f59e0b", "#fbbf24"],
-        });
-        confetti({
-          particleCount: 3,
-          angle: 120,
-          spread: 55,
-          origin: { x: 1, y: 0.7 },
-          colors: ["#facc15", "#f59e0b", "#fbbf24"],
-        });
-
-        if (Date.now() < end) {
-          requestAnimationFrame(frame);
-        }
-      };
-
-      frame();
+      fireChallengeConfetti();
     }
   }, [isVisible]);
 
