@@ -53,6 +53,10 @@ function fireContinuousBurst(
   frame();
 }
 
+export function fireTouchConfetti(): void {
+  fireContinuousBurst(450, 2, COLORS.gold, 0.7);
+}
+
 export function fireShortConfetti(): void {
   fireContinuousBurst(1000, 3, COLORS.gold, 0.7);
 }
@@ -198,6 +202,7 @@ export function fireConfetti(preset: ConfettiPreset, options?: ConfettiOptions):
 export function useConfetti() {
   return {
     fire: fireConfetti,
+    fireTouchConfetti,
     fireShortConfetti,
     fireLongConfetti,
     fireFinalConfetti,

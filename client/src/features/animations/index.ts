@@ -1,5 +1,6 @@
 export {
   fireConfetti,
+  fireTouchConfetti,
   fireShortConfetti,
   fireLongConfetti,
   fireFinalConfetti,
