@@ -139,8 +139,9 @@ export function registerGuidanceRoutes(app: Express) {
   app.post("/api/guidance/generate-challenge", async (req, res) => {
     try {
       const userId = getUserId(req);
+      const isDevelopment = process.env.NODE_ENV !== 'production';
       
-      if (!userId || userId === 1) {
+      if (!userId || (!isDevelopment && userId === 1)) {
         return res.status(401).json({ message: "Authentication required to generate challenges" });
       }
 
