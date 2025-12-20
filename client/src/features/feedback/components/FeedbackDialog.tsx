@@ -85,9 +85,9 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
             Support
           </DialogTitle>
           <DialogDescription>
-            We'd LOVE to know how to do better.
+            💛 We'd LOVE to know how to do better.
             <br />
-            Let us know what you think, report a bug, or request a feature.
+            💬 Let us know what you think, 🐛 report a bug, or ✨ request a feature.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
