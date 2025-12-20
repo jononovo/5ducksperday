@@ -177,7 +177,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
                         onToggleDescription();
                       }}
                       className={cn(
-                        "p-0.5 rounded transition-all border",
+                        "p-1.5 rounded transition-all border",
                         showDescription 
                           ? "text-yellow-700 dark:text-yellow-500 bg-yellow-400/20 border-yellow-400/50" 
                           : "text-muted-foreground border-transparent hover:text-yellow-700 dark:hover:text-yellow-500 hover:bg-yellow-400/10 hover:border-yellow-400/30"
