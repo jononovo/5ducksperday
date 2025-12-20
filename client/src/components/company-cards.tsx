@@ -26,7 +26,8 @@ import {
   ChevronRight,
   ScrollText,
   Layers,
-  Check
+  Check,
+  Mail
 } from "lucide-react";
 import { SiLinkedin } from "react-icons/si";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -65,6 +66,8 @@ interface CompanyCardsProps {
   onCompanySelectionChange?: (company: Company & { contacts?: ContactWithCompanyInfo[] }) => void;
   topActionsTrailing?: React.ReactNode;
   onShowReport?: () => void;
+  onFindKeyEmails?: () => void;
+  isFindingEmails?: boolean;
 }
 
 // Unified CompanyCard component
@@ -344,7 +347,9 @@ export default function CompanyCards({
   getCompanySelectionState,
   onCompanySelectionChange,
   topActionsTrailing,
-  onShowReport
+  onShowReport,
+  onFindKeyEmails,
+  isFindingEmails
 }: CompanyCardsProps) {
   const [, setLocation] = useLocation();
   
@@ -689,6 +694,23 @@ export default function CompanyCards({
               Slides
             </Button>
           </div>
+          
+          {onFindKeyEmails && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onFindKeyEmails}
+              disabled={isFindingEmails}
+              className={cn(
+                "px-2 h-6 text-[11px] font-medium transition-all",
+                "hover:bg-muted/50 text-gray-400/60 hover:text-gray-500"
+              )}
+              data-testid="find-emails-button"
+            >
+              <Mail className={cn("h-3 w-3 mr-0.5", isFindingEmails && "animate-spin")} />
+              {isFindingEmails ? "Searching..." : "Find Emails"}
+            </Button>
+          )}
           
           {onShowReport && (
             <button
