@@ -116,7 +116,10 @@ export function EmailGenerationControls({
         <Popover open={tonePopoverOpen} onOpenChange={setTonePopoverOpen}>
           <PopoverTrigger asChild>
             <button 
-              className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-blue-50 transition-colors text-xs text-muted-foreground"
+              className={cn(
+                "flex items-center gap-1.5 px-2 py-1 rounded transition-colors text-xs text-muted-foreground",
+                selectedTone && selectedTone !== 'default' ? "bg-blue-50 hover:bg-blue-100" : "hover:bg-blue-50"
+              )}
               title="Select email tone"
               data-testid="button-tone-selector"
             >
