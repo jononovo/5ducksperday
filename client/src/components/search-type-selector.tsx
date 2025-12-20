@@ -128,7 +128,7 @@ export function SearchTypeSelector({ selectedType, onTypeChange, disabled = fals
                   <span className="text-xs text-gray-500 font-mono">
                     ~{config.estimatedTime}
                   </span>
-                  <div className="text-xs text-gray-400">
+                  <div className="text-[10px] text-gray-400">
                     {config.creditCost} credits
                   </div>
                 </div>
