@@ -70,17 +70,17 @@ export default function EmailForm({
       </div>
 
       {/* Email Content Field */}
-      <div className={`relative md:mb-6 ${isExpanded ? 'flex-1 flex flex-col min-h-[200px]' : ''}`} style={{ marginTop: '-1px' }}>
+      <div className="relative md:mb-6" style={{ marginTop: '-1px' }}>
         <Textarea
           ref={emailContentRef}
           placeholder="Enter or edit the generated email content..."
           value={getDisplayValue(emailContent, originalEmailContent)}
           onChange={(e) => {
             onContentChange(e.target.value);
-            if (!isExpanded) handleTextareaResize();
+            handleTextareaResize();
           }}
-          className={`mobile-input mobile-input-text-fix resize-none transition-all duration-200 border-0 rounded-none md:border md:rounded-b-md px-3 md:px-3 pb-12 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50 ${isExpanded ? 'flex-1' : ''}`}
-          style={isExpanded ? { minHeight: '200px' } : { minHeight: '160px', maxHeight: '400px' }}
+          className="mobile-input mobile-input-text-fix resize-none transition-all duration-200 border-0 rounded-none md:border md:rounded-b-md px-3 md:px-3 pb-12 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50"
+          style={{ minHeight: isExpanded ? '400px' : '160px', maxHeight: isExpanded ? '600px' : '400px' }}
           data-testid="textarea-email-content"
         />
         <div className="absolute bottom-2 right-2 flex items-center gap-2">

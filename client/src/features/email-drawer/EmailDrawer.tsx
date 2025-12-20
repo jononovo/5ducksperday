@@ -203,9 +203,9 @@ export function EmailDrawer({
         className="fixed top-[5%] left-1/2 -translate-x-1/2 z-50 w-full max-w-3xl h-[90vh] bg-background border rounded-lg shadow-2xl overflow-hidden"
         data-testid="expanded-drawer"
       >
-        <div className="flex flex-col h-full">
+        <div className="h-full overflow-y-auto">
           {renderHeader()}
-          <div className="flex-1 overflow-y-auto p-4">
+          <div className="p-4">
             <EmailComposer
               selectedContact={selectedContact}
               selectedCompany={selectedCompany}
@@ -284,19 +284,21 @@ export function EmailDrawer({
         } overflow-hidden border-l border-t border-b rounded-tl-lg rounded-bl-lg bg-background shadow-xl`}
       >
         {open && (
-          <div className="flex flex-col h-full" style={{ minWidth: '320px' }}>
-            {renderHeader()}
-            
-            <div className="flex-1 overflow-y-auto px-0 py-4">
-              <EmailComposer
-                selectedContact={selectedContact}
-                selectedCompany={selectedCompany}
-                onContactChange={onContactChange}
-                drawerMode={mode}
-                currentListId={currentListId}
-                currentQuery={currentQuery}
-                isExpanded={true}
-              />
+          <div className="overflow-y-auto h-full" style={{ minWidth: '320px' }}>
+            <div className="flex flex-col min-h-full pb-24">
+              {renderHeader()}
+              
+              <div className="px-0 py-4">
+                <EmailComposer
+                  selectedContact={selectedContact}
+                  selectedCompany={selectedCompany}
+                  onContactChange={onContactChange}
+                  drawerMode={mode}
+                  currentListId={currentListId}
+                  currentQuery={currentQuery}
+                  isExpanded={true}
+                />
+              </div>
             </div>
           </div>
         )}
