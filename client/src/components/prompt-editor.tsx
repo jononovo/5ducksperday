@@ -686,15 +686,20 @@ export default function PromptEditor({
               const errorMessage = jobData.error || "An error occurred during search";
               const isInsufficientCredits = errorMessage.toLowerCase().includes('insufficient credits');
               
-              // Show toast notification - wrap in try-catch to ensure it doesn't fail silently
-              try {
-                toast({
-                  title: isInsufficientCredits ? "Insufficient Credits" : "Search Failed",
-                  description: errorMessage,
-                  variant: "destructive",
-                });
-              } catch (toastError) {
-                console.error("Failed to show toast:", toastError);
+              if (isInsufficientCredits) {
+                // Use the global trigger which shows toast + opens modal
+                triggerInsufficientCreditsGlobally();
+              } else {
+                // Show toast notification for other errors
+                try {
+                  toast({
+                    title: "Search Failed",
+                    description: errorMessage,
+                    variant: "destructive",
+                  });
+                } catch (toastError) {
+                  console.error("Failed to show toast:", toastError);
+                }
               }
               
               // Refresh credits display to show updated balance
@@ -722,13 +727,17 @@ export default function PromptEditor({
                 // Show toast with appropriate message
                 const isInsufficientCredits = currentPhase.toLowerCase().includes('insufficient') ||
                                               errorMessage.toLowerCase().includes('insufficient credits');
-                toast({
-                  title: isInsufficientCredits ? "Insufficient Credits" : "Search Failed",
-                  description: isInsufficientCredits 
-                    ? "You don't have enough credits for this search. Please add more credits to continue."
-                    : (errorMessage || "An error occurred during search"),
-                  variant: "destructive",
-                });
+                
+                if (isInsufficientCredits) {
+                  // Use the global trigger which shows toast + opens modal
+                  triggerInsufficientCreditsGlobally();
+                } else {
+                  toast({
+                    title: "Search Failed",
+                    description: errorMessage || "An error occurred during search",
+                    variant: "destructive",
+                  });
+                }
                 
                 // Refresh credits display
                 if (user) {
