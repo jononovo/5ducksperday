@@ -168,7 +168,10 @@ export function EmailGenerationControls({
         <Popover open={offerPopoverOpen} onOpenChange={setOfferPopoverOpen}>
           <PopoverTrigger asChild>
             <button 
-              className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-blue-50 transition-colors text-xs text-muted-foreground"
+              className={cn(
+                "flex items-center gap-1.5 px-2 py-1 rounded transition-colors text-xs text-muted-foreground",
+                selectedOfferStrategy && selectedOfferStrategy !== 'none' ? "bg-blue-50 hover:bg-blue-100" : "hover:bg-blue-50"
+              )}
               title="Select offer strategy"
               data-testid="button-offer-selector"
             >
