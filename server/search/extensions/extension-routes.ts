@@ -60,10 +60,23 @@ export function setupExtensionRoutes(app: any, getUserId: (req: Request) => numb
         contactSearchConfig
       });
       
-      // Deduct credits after successful search initiation
-      if (result.companies.length > 0) {
-        await CreditService.deductCredits(userId, 'search_extension', true);
+      // Deduct credits immediately after successful search initiation
+      try {
+        const deductionResult = await CreditService.deductCredits(userId, 'search_extension', true);
+        if (!deductionResult.success) {
+          console.error(`[ExtensionRoute] Credit deduction failed: ${deductionResult.error}`);
+          res.status(402).json({
+            error: deductionResult.error || "Failed to deduct credits"
+          });
+          return;
+        }
         console.log(`[ExtensionRoute] Deducted ${requiredCredits} credits for search extension`);
+      } catch (deductError) {
+        console.error(`[ExtensionRoute] Credit deduction threw error:`, deductError);
+        res.status(402).json({
+          error: "Failed to process credit deduction. Please try again."
+        });
+        return;
       }
       
       console.log(`[ExtensionRoute] Extension result: jobId=${result.jobId}, companies=${result.companies.length}`);
