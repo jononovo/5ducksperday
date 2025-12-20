@@ -17,7 +17,11 @@ export function CreditsDisplay() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground">
+      <div 
+        className="flex items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground"
+        data-credits-target
+        data-testid="credits-display"
+      >
         <Coins className="h-4 w-4 animate-pulse" />
         <span>Loading...</span>
       </div>
@@ -26,7 +30,11 @@ export function CreditsDisplay() {
 
   if (!credits || typeof credits.balance !== 'number') {
     return (
-      <div className="flex items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground">
+      <div 
+        className="flex items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground"
+        data-credits-target
+        data-testid="credits-display"
+      >
         <Coins className="h-4 w-4 animate-pulse" />
         <span>Loading...</span>
       </div>
