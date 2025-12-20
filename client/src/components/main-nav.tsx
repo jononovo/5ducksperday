@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { LogOut, User, Menu, LayoutDashboard, MessageCircle, Target, Headphones, Flame, PanelLeft } from "lucide-react";
+import { LogOut, User, Menu, LayoutDashboard, MessageCircle, Target, Headphones, Flame, PanelLeft, LifeBuoy } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
 import { useStrategyOverlay } from "@/features/strategy-chat";
@@ -7,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
 import { CreditUpgradeDropdown } from "@/components/credit-upgrade-dropdown";
 import { StreakButton } from "@/components/streak-button";
+import { FeedbackDialog } from "@/features/feedback";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +23,7 @@ const navigation = [
 
 export function MainNav() {
   const [location, setLocation] = useLocation();
+  const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
   
   // Safe auth hook usage with error handling
   let user = null;
@@ -113,6 +116,14 @@ export function MainNav() {
                   <Headphones className="h-4 w-4 mr-2" />
                   <span>Contact</span>
                 </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setFeedbackDialogOpen(true)}
+                  className="cursor-pointer"
+                  data-testid="menu-item-feedback"
+                >
+                  <LifeBuoy className="h-4 w-4 mr-2" />
+                  <span>Feedback</span>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 {logoutMutation && (
                   <DropdownMenuItem onClick={() => logoutMutation.mutate()}>
@@ -135,6 +146,11 @@ export function MainNav() {
           )
         )}
       </div>
+      
+      <FeedbackDialog 
+        open={feedbackDialogOpen} 
+        onOpenChange={setFeedbackDialogOpen} 
+      />
     </nav>
   );
 }

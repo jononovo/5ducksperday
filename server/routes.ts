@@ -54,6 +54,7 @@ import { registerSearchQueueRoutes } from "./features/search-queues/routes";
 import { registerGuidanceRoutes } from "./features/guidance/routes";
 import { registerProgressRoutes } from "./features/progress/routes";
 import { registerAccessApplicationsRoutes } from "./features/access-applications/routes";
+import { registerFeedbackRoutes } from "./features/feedback/routes";
 
 
 // Import centralized auth utilities
@@ -317,6 +318,9 @@ Respond in this exact JSON format:
   
   // Register access applications routes (stealth landing page)
   registerAccessApplicationsRoutes(app);
+  
+  // Register feedback routes
+  registerFeedbackRoutes(app);
 
   const httpServer = createServer(app);
   return httpServer;
