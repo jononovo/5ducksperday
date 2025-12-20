@@ -1,7 +1,8 @@
 import { storage } from "../../storage";
 import { searchCompanies, discoverCompanies, enrichCompanyDetails } from "../perplexity/company-search";
 import { findKeyDecisionMakers } from "../contacts/finder";
-import { CreditService } from "../../features/billing/credits/service";
+import { CreditService, InsufficientCreditsError } from "../../features/billing/credits/service";
+import { CREDIT_COSTS, type SearchType } from "../../features/billing/credits/types";
 import type { InsertSearchJob, SearchJob } from "@shared/schema";
 import type { ContactSearchConfig } from "../types";
 import { fetchRandomJoke, delay, type Joke } from "./joke-service";
@@ -65,6 +66,36 @@ export class SearchJobService {
       if (job.status !== 'pending') {
         console.log(`[SearchJobService] Job ${jobId} already ${job.status}, skipping`);
         return;
+      }
+
+      // PRE-CHECK: Verify user has sufficient credits before starting expensive operations
+      // Skip credit check for cron/system jobs
+      if (job.source !== 'cron') {
+        const creditType = this.getCreditTypeForJob(job);
+        if (creditType) {
+          const credits = await CreditService.getUserCredits(job.userId);
+          const requiredCredits = CREDIT_COSTS[creditType];
+          
+          if (credits.currentBalance < requiredCredits) {
+            console.log(`[SearchJobService] Insufficient credits for job ${jobId}: has ${credits.currentBalance}, needs ${requiredCredits}`);
+            
+            await storage.updateSearchJob(job.id, {
+              status: 'failed',
+              completedAt: new Date(),
+              error: `Insufficient credits. You have ${credits.currentBalance} credits but this search requires ${requiredCredits} credits.`,
+              progress: {
+                phase: 'Insufficient Credits',
+                completed: 0,
+                total: 1,
+                message: `Requires ${requiredCredits} credits, you have ${credits.currentBalance}`
+              }
+            });
+            
+            throw new InsufficientCreditsError(credits.currentBalance, requiredCredits, creditType);
+          }
+          
+          console.log(`[SearchJobService] Credit pre-check passed for job ${jobId}: ${creditType} (${requiredCredits} credits)`);
+        }
       }
 
       // Mark job as processing (total will be updated once we know the exact phase count)
@@ -424,6 +455,22 @@ export class SearchJobService {
     try {
       console.log(`[SearchJobService] Executing email search for job ${jobId}`);
       
+      // PRE-CHECK: Verify credits before expensive operations (skip for cron jobs)
+      if (job.source !== 'cron') {
+        const credits = await CreditService.getUserCredits(job.userId);
+        const requiredCredits = CREDIT_COSTS.email_search;
+        
+        if (credits.currentBalance < requiredCredits) {
+          console.log(`[SearchJobService] Insufficient credits for email search job ${jobId}`);
+          await storage.updateSearchJob(job.id, {
+            status: 'failed',
+            completedAt: new Date(),
+            error: `Insufficient credits. You have ${credits.currentBalance} credits but this search requires ${requiredCredits} credits.`
+          });
+          throw new InsufficientCreditsError(credits.currentBalance, requiredCredits, 'email_search');
+        }
+      }
+      
       const contactId = (job.metadata as any)?.contactId;
       if (!contactId) {
         throw new Error('contactId required in metadata for email search');
@@ -578,6 +625,22 @@ export class SearchJobService {
     try {
       console.log(`[SearchJobService] Executing bulk email search for job ${jobId}`);
       
+      // PRE-CHECK: Verify credits before expensive operations (skip for cron jobs)
+      if (job.source !== 'cron') {
+        const credits = await CreditService.getUserCredits(job.userId);
+        const requiredCredits = CREDIT_COSTS.email_search;
+        
+        if (credits.currentBalance < requiredCredits) {
+          console.log(`[SearchJobService] Insufficient credits for bulk email search job ${jobId}`);
+          await storage.updateSearchJob(job.id, {
+            status: 'failed',
+            completedAt: new Date(),
+            error: `Insufficient credits. You have ${credits.currentBalance} credits but this search requires ${requiredCredits} credits.`
+          });
+          throw new InsufficientCreditsError(credits.currentBalance, requiredCredits, 'email_search');
+        }
+      }
+      
       // Get company IDs from metadata
       const companyIds = (job.metadata as any)?.companyIds || [];
       if (companyIds.length === 0) {
@@ -710,6 +773,22 @@ export class SearchJobService {
   private static async executeContactOnlySearch(job: SearchJob, jobId: string): Promise<void> {
     try {
       console.log(`[SearchJobService] Executing contact-only search for job ${jobId}`);
+      
+      // PRE-CHECK: Verify credits before expensive operations (skip for cron jobs)
+      if (job.source !== 'cron') {
+        const credits = await CreditService.getUserCredits(job.userId);
+        const requiredCredits = CREDIT_COSTS.company_and_contacts;
+        
+        if (credits.currentBalance < requiredCredits) {
+          console.log(`[SearchJobService] Insufficient credits for contact-only search job ${jobId}`);
+          await storage.updateSearchJob(job.id, {
+            status: 'failed',
+            completedAt: new Date(),
+            error: `Insufficient credits. You have ${credits.currentBalance} credits but this search requires ${requiredCredits} credits.`
+          });
+          throw new InsufficientCreditsError(credits.currentBalance, requiredCredits, 'company_and_contacts');
+        }
+      }
       
       // Get company IDs from metadata or search all user's companies
       const companyIds = (job.metadata as any)?.companyIds || [];
@@ -982,6 +1061,32 @@ export class SearchJobService {
     return { sourceBreakdown, emailsFound: totalEmailsFound };
   }
 
+  /**
+   * Determine the credit type for a job based on its search type
+   * Note: Must match the credit types used in actual deductions
+   */
+  private static getCreditTypeForJob(job: SearchJob): SearchType | null {
+    const isContactSearch = job.searchType === 'contacts';
+    const isEmailSearch = job.searchType === 'emails';
+    
+    if (job.searchType === 'individual_search' || job.searchType === 'individual') {
+      return 'individual_search';
+    }
+    if (job.searchType === 'email-single') {
+      return 'individual_email';
+    }
+    if (isEmailSearch) {
+      // Matches the deduction in executeBulkEmailSearch which uses 'email_search'
+      return 'email_search';
+    }
+    if (isContactSearch) {
+      return 'company_and_contacts';
+    }
+    if (job.searchType === 'companies') {
+      return 'company_search';
+    }
+    return null;
+  }
 
   /**
    * Update job progress
