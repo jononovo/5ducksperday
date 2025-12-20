@@ -159,6 +159,20 @@ export function getEmailComposerDrawerState(): { isOpen: boolean; drawerMode?: '
   return { isOpen: false };
 }
 
+// Helper to update just the drawer open state
+export function setDrawerOpenState(isOpen: boolean) {
+  try {
+    const savedState = localStorage.getItem(STORAGE_KEY);
+    if (savedState) {
+      const parsed = JSON.parse(savedState);
+      parsed.isOpen = isOpen;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+    }
+  } catch (error) {
+    console.error('Failed to update drawer state:', error);
+  }
+}
+
 // Helper to get current email subject from persisted state
 export function getPersistedEmailSubject(): string | undefined {
   try {

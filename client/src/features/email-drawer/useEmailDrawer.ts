@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Contact, Company } from '@shared/schema';
 import type { DrawerMode, DrawerViewState, UseEmailDrawerOptions, UseEmailDrawerReturn } from './types';
-import { getEmailComposerDrawerState } from '@/hooks/use-email-composer-persistence';
+import { getEmailComposerDrawerState, setDrawerOpenState } from '@/hooks/use-email-composer-persistence';
 
 export function useEmailDrawer(options: UseEmailDrawerOptions = {}): UseEmailDrawerReturn {
   const savedDrawerState = getEmailComposerDrawerState();
@@ -52,6 +52,7 @@ export function useEmailDrawer(options: UseEmailDrawerOptions = {}): UseEmailDra
 
   const closeDrawer = useCallback(() => {
     setIsOpen(false);
+    setDrawerOpenState(false);
     setMode('compose');
     setViewState('normal');
     setSelectedContact(null);
