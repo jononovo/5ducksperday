@@ -1113,6 +1113,7 @@ export default function Home() {
           sourceBreakdown: list.sourceBreakdown
         });
       }
+      
     } catch (error) {
       toast({
         title: "Failed to load search",
