@@ -26,8 +26,7 @@ import {
   ChevronRight,
   ScrollText,
   Layers,
-  Check,
-  Info
+  Check
 } from "lucide-react";
 import { SiLinkedin } from "react-icons/si";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -178,15 +177,18 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
                         onToggleDescription();
                       }}
                       className={cn(
-                        "p-0.5 rounded-full transition-colors",
+                        "p-0.5 rounded-full transition-all",
                         showDescription 
-                          ? "text-primary bg-primary/10" 
-                          : "text-muted-foreground hover:text-primary hover:bg-primary/10"
+                          ? "text-yellow-700 dark:text-yellow-400 bg-yellow-400/20" 
+                          : "text-muted-foreground hover:text-yellow-700 dark:hover:text-yellow-400 hover:bg-yellow-400/10"
                       )}
                       aria-label="Show company description"
                       data-testid={`button-info-company-${company.id}`}
                     >
-                      <Info className="h-3.5 w-3.5" />
+                      <ChevronDown className={cn(
+                        "h-3.5 w-3.5 transition-transform",
+                        showDescription && "rotate-180"
+                      )} />
                     </button>
                   )}
                 </h3>
