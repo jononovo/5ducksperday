@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createPortal } from "react-dom";
 import { useLocation } from "wouter";
-import { Trophy, Play, X } from "lucide-react";
+import { Trophy, Play, X, Circle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { ChallengeRecorder } from "./ChallengeRecorder";
 import type { FluffyGuideProps } from "../types";
 
 interface ExtendedFluffyGuideProps extends FluffyGuideProps {
@@ -13,6 +14,7 @@ interface ExtendedFluffyGuideProps extends FluffyGuideProps {
 export function FluffyGuide({ onClick, isActive, onCloseGuide }: ExtendedFluffyGuideProps) {
   const [showMenu, setShowMenu] = useState(false);
   const [shouldWiggle, setShouldWiggle] = useState(false);
+  const [showRecorder, setShowRecorder] = useState(false);
   const [, navigate] = useLocation();
 
   useEffect(() => {
@@ -46,6 +48,11 @@ export function FluffyGuide({ onClick, isActive, onCloseGuide }: ExtendedFluffyG
   const handleCloseGuide = () => {
     setShowMenu(false);
     onCloseGuide?.();
+  };
+
+  const handleRecordChallenge = () => {
+    setShowMenu(false);
+    setShowRecorder(true);
   };
 
   if (isActive) {
@@ -96,6 +103,14 @@ export function FluffyGuide({ onClick, isActive, onCloseGuide }: ExtendedFluffyG
               >
                 <Trophy className="h-4 w-4 text-amber-400" />
                 <span className="text-sm font-medium">View All Quests</span>
+              </button>
+              <button
+                onClick={handleRecordChallenge}
+                className="w-full flex items-center gap-3 px-4 py-3 text-left text-white hover:bg-gray-800 transition-colors border-t border-gray-700"
+                data-testid="fluffy-record-challenge"
+              >
+                <Circle className="h-4 w-4 text-red-400 fill-current" />
+                <span className="text-sm font-medium">Record Challenge</span>
               </button>
               <TooltipProvider>
                 <Tooltip>
@@ -149,6 +164,10 @@ export function FluffyGuide({ onClick, isActive, onCloseGuide }: ExtendedFluffyG
           </motion.div>
         </button>
       </motion.div>
+      <ChallengeRecorder 
+        isOpen={showRecorder} 
+        onClose={() => setShowRecorder(false)} 
+      />
     </>,
     document.body
   );
