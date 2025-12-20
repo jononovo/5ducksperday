@@ -47,6 +47,7 @@ import { ContactWithCompanyInfo } from "@/lib/results-analysis/prospect-filterin
 import { ContactActionColumn } from "@/components/contact-action-column";
 import { ComprehensiveSearchButton } from "@/components/comprehensive-email-search";
 import { FindKeyEmailsButton } from "@/features/search-email";
+import { ExtendSearchButton } from "@/features/search-extension";
 import { ContactRow } from "@/components/contact-row";
 import { cn } from "@/lib/utils";
 import { useRef } from "react";
@@ -68,6 +69,10 @@ interface CompanyCardsProps {
   onShowReport?: () => void;
   onFindKeyEmails?: () => void;
   isFindingEmails?: boolean;
+  query?: string;
+  onExtendSearch?: (query: string, results: any[]) => void;
+  isAuthenticated?: boolean;
+  onLoginRequired?: () => void;
 }
 
 // Unified CompanyCard component
@@ -349,7 +354,11 @@ export default function CompanyCards({
   topActionsTrailing,
   onShowReport,
   onFindKeyEmails,
-  isFindingEmails
+  isFindingEmails,
+  query,
+  onExtendSearch,
+  isAuthenticated,
+  onLoginRequired
 }: CompanyCardsProps) {
   const [, setLocation] = useLocation();
   
@@ -699,6 +708,16 @@ export default function CompanyCards({
             <FindKeyEmailsButton
               onSearch={onFindKeyEmails}
               isSearching={isFindingEmails}
+            />
+          )}
+          
+          {query && onExtendSearch && onLoginRequired && (
+            <ExtendSearchButton
+              query={query}
+              currentResults={companies}
+              onResultsExtended={onExtendSearch}
+              isAuthenticated={isAuthenticated ?? false}
+              onLoginRequired={onLoginRequired}
             />
           )}
           

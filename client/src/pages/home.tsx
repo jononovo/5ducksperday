@@ -1598,6 +1598,10 @@ export default function Home() {
                       onShowReport={() => setMainSummaryVisible(true)}
                       onFindKeyEmails={emailOrchestration.runEmailSearch}
                       isFindingEmails={emailOrchestration.isSearching}
+                      query={currentQuery}
+                      onExtendSearch={handleSearchResults}
+                      isAuthenticated={!!auth.user}
+                      onLoginRequired={() => registrationModal.openModal()}
                   />
                   </Suspense>
                 </div>
