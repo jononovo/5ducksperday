@@ -279,7 +279,7 @@ export function EmailDrawer({
       <div 
         className={`md:hidden email-drawer-transition ${
           open 
-            ? 'fixed top-[2.5rem] right-0 h-[85vh] w-[85%] z-50' 
+            ? 'fixed top-[2.5rem] right-0 h-[85vh] w-[95%] z-50' 
             : 'fixed w-0 right-0 top-[2.5rem]'
         } overflow-hidden border-l border-t border-b rounded-tl-lg rounded-bl-lg bg-background shadow-xl flex flex-col`}
       >
