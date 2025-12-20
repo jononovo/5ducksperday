@@ -49,14 +49,16 @@ export type SearchType =
   | 'email_search'
   | 'company_and_contacts'
   | 'individual_email'
-  | 'individual_search';
+  | 'individual_search'
+  | 'search_extension';
 
 export const CREDIT_COSTS: Record<SearchType, number> = {
   'company_search': 10,           // Only Companies search
   'email_search': 160,            // Full search: companies + contacts + emails
   'company_and_contacts': 70,     // Companies + Contacts search
   'individual_email': 20,         // Single contact email lookup
-  'individual_search': 100        // Find Individual search
+  'individual_search': 100,       // Find Individual search
+  'search_extension': 110         // Extend search with 5 more companies
 } as const;
 
 export const MONTHLY_CREDIT_ALLOWANCE = 250;

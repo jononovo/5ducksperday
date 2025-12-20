@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import { ExtensionSearchService } from './extension-service';
+import { CreditService } from '../../features/billing/credits/service';
+import { CREDIT_COSTS } from '../../features/billing/credits/types';
 
 export function setupExtensionRoutes(app: any, getUserId: (req: Request) => number) {
   /**
@@ -13,6 +15,24 @@ export function setupExtensionRoutes(app: any, getUserId: (req: Request) => numb
       if (!query || typeof query !== 'string') {
         res.status(400).json({
           error: "Invalid request: query must be a non-empty string"
+        });
+        return;
+      }
+      
+      // Check user credits before proceeding
+      const credits = await CreditService.getUserCredits(userId);
+      const requiredCredits = CREDIT_COSTS.search_extension;
+      
+      if (credits.isBlocked) {
+        res.status(402).json({
+          error: "Account is blocked. Please contact support."
+        });
+        return;
+      }
+      
+      if (credits.currentBalance < requiredCredits) {
+        res.status(402).json({
+          error: `Insufficient credits. Required: ${requiredCredits}, Available: ${credits.currentBalance}`
         });
         return;
       }
@@ -39,6 +59,25 @@ export function setupExtensionRoutes(app: any, getUserId: (req: Request) => numb
         excludeCompanyNames,
         contactSearchConfig
       });
+      
+      // Deduct credits immediately after successful search initiation
+      try {
+        const deductionResult = await CreditService.deductCredits(userId, 'search_extension', true);
+        if (!deductionResult.success) {
+          console.error(`[ExtensionRoute] Credit deduction failed: ${deductionResult.error}`);
+          res.status(402).json({
+            error: deductionResult.error || "Failed to deduct credits"
+          });
+          return;
+        }
+        console.log(`[ExtensionRoute] Deducted ${requiredCredits} credits for search extension`);
+      } catch (deductError) {
+        console.error(`[ExtensionRoute] Credit deduction threw error:`, deductError);
+        res.status(402).json({
+          error: "Failed to process credit deduction. Please try again."
+        });
+        return;
+      }
       
       console.log(`[ExtensionRoute] Extension result: jobId=${result.jobId}, companies=${result.companies.length}`);
       
