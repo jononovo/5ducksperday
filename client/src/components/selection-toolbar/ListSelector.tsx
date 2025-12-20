@@ -5,6 +5,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Target } from "lucide-react";
 import type { ContactList } from "@shared/schema";
 
 interface ListSelectorProps {
@@ -35,14 +36,21 @@ export function ListSelector({
         onOpenChange(open);
       }}
     >
-      <SelectTrigger className="w-[200px]">
+      <SelectTrigger className="w-[200px]" data-testid="select-contact-list">
         <SelectValue placeholder="Choose a contact list" />
       </SelectTrigger>
       <SelectContent>
         {contactLists.map((list) => (
-          <SelectItem key={list.id} value={list.id.toString()}>
+          <SelectItem 
+            key={list.id} 
+            value={list.id.toString()}
+            data-testid={`select-item-list-${list.id}`}
+          >
             <div className="flex items-center justify-between w-full">
-              <span>{list.name}</span>
+              <span className="flex items-center gap-1.5">
+                {list.isDefault && <Target className="h-3.5 w-3.5 text-primary" />}
+                {list.name}
+              </span>
               <span className="text-xs text-muted-foreground ml-2">
                 {list.contactCount} contacts
               </span>

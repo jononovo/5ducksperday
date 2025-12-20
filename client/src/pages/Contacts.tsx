@@ -637,7 +637,10 @@ export default function Contacts() {
                             </TableCell>
                             <TableCell className="font-medium py-3">
                               <div className="flex flex-col">
-                                <div className="font-semibold">{list.name}</div>
+                                <div className="font-semibold flex items-center gap-1.5">
+                                  {list.isDefault && <Target className="h-4 w-4 text-primary" />}
+                                  {list.name}
+                                </div>
                                 {list.description && (
                                   <div className="text-xs text-muted-foreground mt-1">
                                     {list.description}
@@ -736,14 +739,19 @@ export default function Contacts() {
                                     <Archive className="h-4 w-4 mr-2" />
                                     Archive
                                   </DropdownMenuItem>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem
-                                    className="text-red-600"
-                                    onClick={(e) => handleDeleteList(e, list.id, list.name)}
-                                  >
-                                    <Trash2 className="h-4 w-4 mr-2" />
-                                    Delete
-                                  </DropdownMenuItem>
+                                  {!list.isDefault && (
+                                    <>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem
+                                        className="text-red-600"
+                                        onClick={(e) => handleDeleteList(e, list.id, list.name)}
+                                        data-testid={`button-delete-list-${list.id}`}
+                                      >
+                                        <Trash2 className="h-4 w-4 mr-2" />
+                                        Delete
+                                      </DropdownMenuItem>
+                                    </>
+                                  )}
                                 </DropdownMenuContent>
                               </DropdownMenu>
                             </TableCell>
