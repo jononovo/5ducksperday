@@ -1,4 +1,4 @@
-import { Coins, X } from 'lucide-react';
+import { Coins } from 'lucide-react';
 import { useQuery } from "@tanstack/react-query";
 import { Button } from '@/components/ui/button';
 import {
@@ -66,28 +66,17 @@ export function InsufficientCreditsModal() {
         data-testid="modal-insufficient-credits"
       >
         <DialogHeader className="bg-gradient-to-r from-muted/50 to-muted/30 p-4 border-b">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Coins className={cn(
-                "h-5 w-5",
-                (credits?.balance ?? 0) >= 1 ? "text-yellow-500" : "text-red-600"
-              )} />
-              <div className="flex items-baseline gap-2">
-                <p className="font-semibold text-foreground">
-                  {(credits?.balance ?? 0).toLocaleString()} Credits
-                </p>
-                <p className="text-xs text-muted-foreground">Current balance</p>
-              </div>
+          <div className="flex items-center gap-2">
+            <Coins className={cn(
+              "h-5 w-5",
+              (credits?.balance ?? 0) >= 1 ? "text-yellow-500" : "text-red-600"
+            )} />
+            <div className="flex items-baseline gap-2">
+              <p className="font-semibold text-foreground">
+                {(credits?.balance ?? 0).toLocaleString()} Credits
+              </p>
+              <p className="text-xs text-muted-foreground">Current balance</p>
             </div>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-8 w-8"
-              onClick={closeModal}
-              data-testid="button-close-modal"
-            >
-              <X className="h-4 w-4" />
-            </Button>
           </div>
         </DialogHeader>
 
