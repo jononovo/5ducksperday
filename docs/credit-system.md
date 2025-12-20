@@ -89,6 +89,95 @@ Manual credit adjustment (admin function)
 }
 ```
 
+## Developer Guide: Adding Billable Features
+
+### Required Pattern
+
+Every billable action MUST follow this flow:
+
+1. **Pre-check**: Verify user has sufficient credits BEFORE starting expensive operations
+2. **Execute**: Run the billable action
+3. **Deduct**: Bill credits only on success
+
+### Using the `withCreditBilling` Helper
+
+The recommended way to implement billable features is using the `withCreditBilling` wrapper:
+
+```typescript
+import { CreditService, InsufficientCreditsError } from '../features/billing/credits/service';
+
+// In your route or service:
+try {
+  const result = await CreditService.withCreditBilling(
+    userId,
+    'company_search',  // SearchType from CREDIT_COSTS
+    async () => {
+      // Your billable action here - only runs if credits are sufficient
+      return await performExpensiveSearch();
+    }
+  );
+  
+  res.json(result);
+} catch (error) {
+  if (error instanceof InsufficientCreditsError) {
+    res.status(402).json({
+      message: "Insufficient credits",
+      balance: error.balance,
+      required: error.required,
+      actionType: error.actionType
+    });
+    return;
+  }
+  throw error;
+}
+```
+
+### For Cron/System Jobs (No Billing)
+
+```typescript
+await CreditService.withCreditBilling(
+  userId,
+  'company_search',
+  async () => await performSearch(),
+  { skipDeduction: true }  // Don't bill for system-triggered jobs
+);
+```
+
+### Available Action Types (CREDIT_COSTS)
+
+| Action Type | Cost | Use Case |
+|-------------|------|----------|
+| `company_search` | 10 | Company discovery only |
+| `contact_discovery` | 60 | Finding contacts |
+| `company_and_contacts` | 70 | Combined company + contacts |
+| `email_search` | 160 | Email enrichment |
+| `company_contacts_emails` | 240 | Full search workflow |
+| `individual_email` | 20 | Single contact email search |
+| `individual_search` | 180 | Person discovery + email |
+
+### Checklist for New Billable Features
+
+- [ ] Identify the appropriate `SearchType` from `CREDIT_COSTS` (or add new one if needed)
+- [ ] Use `withCreditBilling` wrapper around the billable action
+- [ ] Handle `InsufficientCreditsError` with 402 HTTP response
+- [ ] Test with users who have 0 credits to verify pre-check works
+- [ ] Never call `deductCredits` directly - use the wrapper instead
+
+### What NOT to Do
+
+```typescript
+// BAD: Direct deduction without pre-check
+const result = await expensiveSearch();  // Runs even with 0 credits!
+await CreditService.deductCredits(userId, 'company_search', true);
+
+// BAD: Inconsistent error handling
+if (credits.balance < 10) {
+  throw new Error("Not enough credits");  // Use InsufficientCreditsError instead
+}
+```
+
+---
+
 ## Core Functionality
 
 ### Automatic Top-ups

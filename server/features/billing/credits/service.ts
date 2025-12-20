@@ -1,6 +1,30 @@
 import { UserCredits, CreditTransaction, SearchType, CreditDeductionResult, CREDIT_COSTS, MONTHLY_CREDIT_ALLOWANCE, STRIPE_CONFIG } from "./types";
 import { storage } from '../../../storage';
 
+/**
+ * Error thrown when user has insufficient credits for an action
+ */
+export class InsufficientCreditsError extends Error {
+  constructor(
+    public balance: number,
+    public required: number,
+    public actionType: SearchType
+  ) {
+    super(`Insufficient credits: have ${balance}, need ${required} for ${actionType}`);
+    this.name = 'InsufficientCreditsError';
+  }
+}
+
+/**
+ * Options for the withCreditBilling wrapper
+ */
+export interface CreditBillingOptions {
+  /** Skip deduction (for cron/system jobs that don't bill) */
+  skipDeduction?: boolean;
+  /** Additional metadata for transaction logging */
+  metadata?: Record<string, any>;
+}
+
 export class CreditService {
   /**
    * Get user credits
@@ -80,6 +104,71 @@ export class CreditService {
         updatedAt: Date.now()
       };
     }
+  }
+
+  /**
+   * Unified credit billing wrapper
+   * 
+   * Use this for ALL billable actions to ensure consistent credit handling:
+   * 1. Pre-check: Verify user has sufficient credits BEFORE starting
+   * 2. Execute: Run the billable action
+   * 3. Deduct: Bill credits only on success
+   * 
+   * @param userId - The user ID to bill
+   * @param actionType - The type of action (from CREDIT_COSTS)
+   * @param action - The async function to execute if credits are sufficient
+   * @param options - Optional settings (skipDeduction for cron jobs, metadata for logging)
+   * @returns The result of the action
+   * @throws InsufficientCreditsError if user doesn't have enough credits
+   * 
+   * @example
+   * // Standard usage
+   * const result = await CreditService.withCreditBilling(
+   *   userId,
+   *   'company_search',
+   *   async () => {
+   *     return await performExpensiveSearch();
+   *   }
+   * );
+   * 
+   * @example
+   * // Cron job (no billing)
+   * await CreditService.withCreditBilling(
+   *   userId,
+   *   'company_search',
+   *   async () => await performSearch(),
+   *   { skipDeduction: true }
+   * );
+   */
+  static async withCreditBilling<T>(
+    userId: number,
+    actionType: SearchType,
+    action: () => Promise<T>,
+    options?: CreditBillingOptions
+  ): Promise<T> {
+    // 1. Pre-check: Verify user has sufficient credits
+    const credits = await this.getUserCredits(userId);
+    const cost = CREDIT_COSTS[actionType];
+    
+    if (credits.currentBalance < cost) {
+      console.log(`[CreditService] Insufficient credits for user ${userId}: has ${credits.currentBalance}, needs ${cost} for ${actionType}`);
+      throw new InsufficientCreditsError(credits.currentBalance, cost, actionType);
+    }
+    
+    console.log(`[CreditService] Pre-check passed for user ${userId}: ${actionType} (cost: ${cost}, balance: ${credits.currentBalance})`);
+    
+    // 2. Execute: Run the billable action
+    const result = await action();
+    
+    // 3. Deduct: Bill credits only on success (unless skipped)
+    if (!options?.skipDeduction) {
+      await this.deductCredits(userId, actionType, true);
+      console.log(`[CreditService] Billed ${cost} credits to user ${userId} for ${actionType}`);
+    } else {
+      console.log(`[CreditService] Skipped billing for user ${userId} (skipDeduction=true)`);
+    }
+    
+    return result;
   }
 
   /**
