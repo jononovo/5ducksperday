@@ -1092,10 +1092,6 @@ export default function Home() {
         });
       }
       
-      toast({
-        title: "Search Loaded",
-        description: `Loaded "${list.prompt}" with ${list.resultCount} companies and ${totalContacts} contacts`,
-      });
     } catch (error) {
       toast({
         title: "Failed to load search",
