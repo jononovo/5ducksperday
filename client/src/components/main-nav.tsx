@@ -119,10 +119,10 @@ export function MainNav() {
                 <DropdownMenuItem
                   onClick={() => setFeedbackDialogOpen(true)}
                   className="cursor-pointer"
-                  data-testid="menu-item-feedback"
+                  data-testid="menu-item-support"
                 >
                   <LifeBuoy className="h-4 w-4 mr-2" />
-                  <span>Feedback</span>
+                  <span>Support</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 {logoutMutation && (
