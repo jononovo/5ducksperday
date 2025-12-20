@@ -133,6 +133,10 @@ async function verifyFirebaseToken(req: Request): Promise<SelectUser | null> {
         "Welcome bonus - 250 free credits"
       ).catch(err => console.error(`[Auth] Failed to award registration credits:`, err));
       
+      // Create default Pipeline contact list for new user (non-blocking)
+      storage.getOrCreatePipeline(user.id)
+        .catch(err => console.error(`[Auth] Failed to create Pipeline for user:`, err));
+      
       // Send welcome email to new user (non-blocking)
       sendWelcomeEmail(decodedToken.email, decodedToken.name);
     }

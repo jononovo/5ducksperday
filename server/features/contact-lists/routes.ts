@@ -167,10 +167,14 @@ export function registerContactListRoutes(app: Application, requireAuth: any) {
         return res.status(404).json({ message: 'Contact list not found' });
       }
       
+      // Protect Pipeline from renaming
       const { name, description, noDuplicatesWithOtherLists } = req.body;
+      if (existingList.isDefault && name && name !== existingList.name) {
+        return res.status(403).json({ message: 'Cannot rename the Pipeline' });
+      }
       
       const updated = await storage.updateContactList(listId, {
-        name: name || existingList.name,
+        name: existingList.isDefault ? existingList.name : (name || existingList.name),
         description: description !== undefined ? description : existingList.description,
         noDuplicatesWithOtherLists: noDuplicatesWithOtherLists !== undefined ? noDuplicatesWithOtherLists : existingList.noDuplicatesWithOtherLists
       });
@@ -192,6 +196,12 @@ export function registerContactListRoutes(app: Application, requireAuth: any) {
       
       if (isNaN(listId)) {
         return res.status(400).json({ message: 'Invalid list ID' });
+      }
+      
+      // Check if this is the default Pipeline
+      const list = await storage.getContactList(listId, userId);
+      if (list?.isDefault) {
+        return res.status(403).json({ message: 'Cannot delete the Pipeline' });
       }
       
       await storage.deleteContactList(listId, userId);

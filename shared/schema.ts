@@ -1121,6 +1121,7 @@ export const contactLists = pgTable("contact_lists", {
   description: text("description"),
   contactCount: integer("contact_count").notNull().default(0),
   noDuplicatesWithOtherLists: boolean("no_duplicates_with_other_lists").notNull().default(false),
+  isDefault: boolean("is_default").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
 });
@@ -1234,7 +1235,8 @@ const contactListMemberSchema = z.object({
 
 export const insertContactListSchema = contactListSchema.extend({
   userId: z.number(),
-  contactCount: z.number().default(0)
+  contactCount: z.number().default(0),
+  isDefault: z.boolean().default(false)
 });
 
 export const insertContactListMemberSchema = contactListMemberSchema.extend({

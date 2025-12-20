@@ -132,6 +132,7 @@ export interface IStorage {
   // Contact Lists
   listContactLists(userId: number): Promise<ContactList[]>;
   getContactList(id: number, userId: number): Promise<ContactList | undefined>;
+  getOrCreatePipeline(userId: number): Promise<ContactList>;
   createContactList(data: InsertContactList): Promise<ContactList>;
   updateContactList(id: number, data: Partial<ContactList>): Promise<ContactList>;
   deleteContactList(id: number, userId: number): Promise<void>;
@@ -1016,7 +1017,32 @@ class DatabaseStorage implements IStorage {
     return db.select()
       .from(contactLists)
       .where(eq(contactLists.userId, userId))
-      .orderBy(desc(contactLists.createdAt));
+      .orderBy(desc(contactLists.isDefault), desc(contactLists.createdAt));
+  }
+
+  async getOrCreatePipeline(userId: number): Promise<ContactList> {
+    const [existing] = await db.select()
+      .from(contactLists)
+      .where(and(
+        eq(contactLists.userId, userId),
+        eq(contactLists.isDefault, true)
+      ));
+    
+    if (existing) {
+      return existing;
+    }
+    
+    const [pipeline] = await db.insert(contactLists)
+      .values({
+        userId,
+        name: 'Pipeline',
+        description: 'Your default contact list for prospects',
+        contactCount: 0,
+        isDefault: true
+      })
+      .returning();
+    
+    return pipeline;
   }
 
   async getContactList(id: number, userId: number): Promise<ContactList | undefined> {
