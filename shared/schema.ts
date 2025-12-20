@@ -211,7 +211,11 @@ export const contacts = pgTable("contacts", {
   lastContactChannel: text("last_contact_channel"), // 'email', 'sms', 'phone'
   totalCommunications: integer("total_communications").default(0),
   totalReplies: integer("total_replies").default(0),
-  lastThreadId: text("last_thread_id") // Most recent conversation thread
+  lastThreadId: text("last_thread_id"), // Most recent conversation thread
+  // ICP feedback fields
+  feedbackType: text("feedback_type"), // 'excellent' | 'terrible'
+  ispContext: text("isp_context"), // User's explanation of why ideal/not ideal
+  feedbackAt: timestamp("feedback_at", { withTimezone: true })
 }, (table) => [
   index('idx_contacts_company_id').on(table.companyId),
   index('idx_contacts_user_id').on(table.userId),
