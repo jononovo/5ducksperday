@@ -14,6 +14,7 @@ import { SearchSessionManager } from "@/lib/search-session-manager";
 
 import { useAuth } from "@/hooks/use-auth";
 import { useRegistrationModal } from "@/hooks/use-registration-modal";
+import { triggerInsufficientCreditsGlobally } from "@/hooks/use-insufficient-credits-handler";
 import ContactSearchChips, { ContactSearchConfig } from "./contact-search-chips";
 import SearchTypeSelector, { SearchType } from "./search-type-selector";
 import IndividualSearchModal, { IndividualSearchFormData } from "./individual-search-modal";
@@ -773,16 +774,18 @@ export default function PromptEditor({
       const isInsufficientCredits = errorMessage.includes("402:") || 
                                      errorMessage.toLowerCase().includes("insufficient credits");
       
-      try {
-        toast({
-          title: isInsufficientCredits ? "Insufficient Credits" : "Search Failed",
-          description: isInsufficientCredits 
-            ? "You don't have enough credits for this search. Please add more credits to continue."
-            : errorMessage,
-          variant: "destructive",
-        });
-      } catch (toastError) {
-        console.error("Failed to show toast:", toastError);
+      if (isInsufficientCredits) {
+        triggerInsufficientCreditsGlobally();
+      } else {
+        try {
+          toast({
+            title: "Search Failed",
+            description: errorMessage,
+            variant: "destructive",
+          });
+        } catch (toastError) {
+          console.error("Failed to show toast:", toastError);
+        }
       }
       
       // Refresh credits display
@@ -969,16 +972,18 @@ export default function PromptEditor({
       const isInsufficientCredits = errorMessage.includes("402:") || 
                                      errorMessage.toLowerCase().includes("insufficient credits");
       
-      try {
-        toast({
-          title: isInsufficientCredits ? "Insufficient Credits" : "Search Failed",
-          description: isInsufficientCredits 
-            ? "You don't have enough credits for this search. Please add more credits to continue."
-            : errorMessage,
-          variant: "destructive",
-        });
-      } catch (toastError) {
-        console.error("Failed to show toast:", toastError);
+      if (isInsufficientCredits) {
+        triggerInsufficientCreditsGlobally();
+      } else {
+        try {
+          toast({
+            title: "Search Failed",
+            description: errorMessage,
+            variant: "destructive",
+          });
+        } catch (toastError) {
+          console.error("Failed to show toast:", toastError);
+        }
       }
       
       // Refresh credits display
