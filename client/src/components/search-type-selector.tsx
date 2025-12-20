@@ -91,7 +91,7 @@ export function SearchTypeSelector({ selectedType, onTypeChange, disabled = fals
 
       {/* Search Type Selection Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md rounded-2xl">
           <DialogHeader>
             <DialogTitle>Select Your Search Type</DialogTitle>
           </DialogHeader>
@@ -101,10 +101,10 @@ export function SearchTypeSelector({ selectedType, onTypeChange, disabled = fals
               <div
                 key={config.type}
                 data-testid={`search-type-option-${config.type}`}
-                className={`flex items-center justify-between py-2 px-3 rounded-lg border cursor-pointer transition-all hover:bg-gray-50 ${
+                className={`flex items-center justify-between py-2 px-3 rounded-lg border cursor-pointer transition-all ${
                   selectedType === config.type 
-                    ? 'border-blue-300 bg-blue-50' 
-                    : 'border-gray-200'
+                    ? 'border-blue-300 bg-blue-50 hover:bg-blue-100' 
+                    : 'border-gray-200 bg-gray-50 hover:bg-gray-100'
                 }`}
                 onClick={() => handleTypeSelect(config.type)}
               >
@@ -126,7 +126,7 @@ export function SearchTypeSelector({ selectedType, onTypeChange, disabled = fals
                 </div>
                 <div className="text-right">
                   <span className="text-xs text-gray-500 font-mono">
-                    {config.estimatedTime}
+                    ~{config.estimatedTime}
                   </span>
                   <div className="text-xs text-gray-400">
                     {config.creditCost} credits
