@@ -1113,11 +1113,6 @@ export default function Home() {
           sourceBreakdown: list.sourceBreakdown
         });
       }
-      
-      toast({
-        title: "Search Loaded",
-        description: `Loaded "${list.prompt}" with ${companiesWithContacts.length} companies and ${totalContacts} contacts`,
-      });
     } catch (error) {
       toast({
         title: "Failed to load search",
