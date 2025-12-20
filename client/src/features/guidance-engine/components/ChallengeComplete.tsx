@@ -1,9 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createPortal } from "react-dom";
 import { Trophy, ChevronRight, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { fireChallengeConfetti } from "@/features/animations";
+import { fireChallengeConfetti, animateCreditSparkles } from "@/features/animations";
 
 interface ChallengeCompleteProps {
   isVisible: boolean;
@@ -22,11 +22,21 @@ export function ChallengeComplete({
   onContinue,
   onDismiss,
 }: ChallengeCompleteProps) {
+  const creditsBadgeRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (isVisible) {
       fireChallengeConfetti();
+      
+      if (creditsAwarded && creditsAwarded > 0) {
+        const sparkleTimer = setTimeout(() => {
+          animateCreditSparkles(creditsBadgeRef.current);
+        }, 800);
+        
+        return () => clearTimeout(sparkleTimer);
+      }
     }
-  }, [isVisible]);
+  }, [isVisible, creditsAwarded]);
 
   return createPortal(
     <AnimatePresence>
@@ -86,10 +96,12 @@ export function ChallengeComplete({
 
             {creditsAwarded && creditsAwarded > 0 && (
               <motion.div
+                ref={creditsBadgeRef}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.55, type: "spring", stiffness: 400, damping: 20 }}
                 className="flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-500/30 rounded-full px-4 py-2 mb-6"
+                data-testid="credits-badge"
               >
                 <Coins className="h-5 w-5 text-amber-400" />
                 <span className="text-amber-400 font-semibold">+{creditsAwarded} Credits Earned!</span>

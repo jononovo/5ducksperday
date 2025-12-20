@@ -19,3 +19,8 @@ export {
   type EmojiAnimation,
   type EggState,
 } from "./AnimatedEmoji";
+
+export {
+  animateCreditSparkles,
+  useSparkleTrail,
+} from "./sparkleTrail";

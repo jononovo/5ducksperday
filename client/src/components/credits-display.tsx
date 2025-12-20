@@ -34,7 +34,11 @@ export function CreditsDisplay() {
   }
 
   return (
-    <div className="flex items-center gap-2 text-sm font-medium">
+    <div 
+      className="flex items-center gap-2 text-sm font-medium"
+      data-credits-target
+      data-testid="credits-display"
+    >
       <Coins className={cn(
         "h-4 w-4",
         credits.balance >= 1 ? "text-yellow-500" : "text-red-600"
