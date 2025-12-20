@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "wouter";
-import { Circle, Square, Loader2, Check, Copy, X, ChevronDown } from "lucide-react";
+import { Circle, Square, Loader2, Check, Copy, X, ChevronDown, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { QUESTS } from "../quests";
 import type { RecordedStep, GeneratedChallenge } from "../types";
@@ -59,6 +59,8 @@ export function ChallengeRecorder({ isOpen, onClose }: ChallengeRecorderProps) {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [isInserting, setIsInserting] = useState(false);
+  const [insertResult, setInsertResult] = useState<{ success: boolean; message: string } | null>(null);
   
   const recordingRef = useRef(false);
 
@@ -182,12 +184,40 @@ export function ChallengeRecorder({ isOpen, onClose }: ChallengeRecorderProps) {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const insertIntoQuest = async () => {
+    if (!generatedChallenge || !selectedQuestId) return;
+    
+    setIsInserting(true);
+    setInsertResult(null);
+    
+    try {
+      const response = await fetch(`/api/guidance/quests/${selectedQuestId}/challenges`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ challenge: generatedChallenge }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        setInsertResult({ success: false, message: data.message || "Failed to insert challenge" });
+      } else {
+        setInsertResult({ success: true, message: data.message || "Challenge inserted successfully!" });
+      }
+    } catch (err) {
+      setInsertResult({ success: false, message: err instanceof Error ? err.message : "Failed to insert challenge" });
+    } finally {
+      setIsInserting(false);
+    }
+  };
+
   const reset = () => {
     recordingRef.current = false;
     setState("idle");
     setSteps([]);
     setGeneratedChallenge(null);
     setError(null);
+    setInsertResult(null);
   };
 
   const handleClose = () => {
@@ -197,6 +227,7 @@ export function ChallengeRecorder({ isOpen, onClose }: ChallengeRecorderProps) {
     setGeneratedChallenge(null);
     setError(null);
     setDropdownOpen(false);
+    setInsertResult(null);
     onClose();
   };
 
@@ -365,23 +396,47 @@ export function ChallengeRecorder({ isOpen, onClose }: ChallengeRecorderProps) {
                   </div>
                 </div>
 
-                <div className="flex gap-2">
+                {insertResult && (
+                  <div className={`text-xs px-3 py-2 rounded-lg ${insertResult.success ? 'bg-green-900/50 text-green-300' : 'bg-red-900/50 text-red-300'}`}>
+                    {insertResult.message}
+                  </div>
+                )}
+
+                <div className="space-y-2">
                   <Button
-                    onClick={copyToClipboard}
-                    variant="outline"
-                    className="flex-1 border-gray-600 text-white hover:bg-gray-800"
-                    data-testid="copy-challenge"
+                    onClick={insertIntoQuest}
+                    disabled={isInserting || insertResult?.success}
+                    className="w-full bg-green-600 hover:bg-green-700 text-white disabled:opacity-50"
+                    data-testid="insert-challenge"
                   >
-                    {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
-                    {copied ? "Copied!" : "Copy Code"}
+                    {isInserting ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : insertResult?.success ? (
+                      <Check className="h-4 w-4 mr-2" />
+                    ) : (
+                      <Upload className="h-4 w-4 mr-2" />
+                    )}
+                    {isInserting ? "Inserting..." : insertResult?.success ? "Inserted!" : "Insert into Quest File"}
                   </Button>
-                  <Button
-                    onClick={reset}
-                    className="flex-1 bg-amber-600 hover:bg-amber-700 text-white"
-                    data-testid="record-another"
-                  >
-                    Record Another
-                  </Button>
+                  
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={copyToClipboard}
+                      variant="outline"
+                      className="flex-1 border-gray-600 text-white hover:bg-gray-800"
+                      data-testid="copy-challenge"
+                    >
+                      {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
+                      {copied ? "Copied!" : "Copy"}
+                    </Button>
+                    <Button
+                      onClick={reset}
+                      className="flex-1 bg-amber-600 hover:bg-amber-700 text-white"
+                      data-testid="record-another"
+                    >
+                      Record Another
+                    </Button>
+                  </div>
                 </div>
               </>
             )}

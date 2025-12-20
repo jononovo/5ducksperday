@@ -3,8 +3,27 @@ import { storage } from "../../storage";
 import { getUserId } from "../../utils/auth";
 import { CreditRewardService } from "../billing/rewards/service";
 import Anthropic from "@anthropic-ai/sdk";
+import * as fs from "fs";
+import * as path from "path";
 
 const anthropic = new Anthropic();
+
+const QUEST_FILE_MANIFEST: Record<string, { file: string; exportName: string }> = {
+  "finding-customers": { file: "quest-1.ts", exportName: "quest1" },
+  "send-an-email": { file: "quest-2.ts", exportName: "quest2" },
+  "invite-a-friend": { file: "quest-3.ts", exportName: "quest3" },
+  "manage-your-products": { file: "quest-4.ts", exportName: "quest4" },
+  "manage-sender-profile": { file: "quest-5.ts", exportName: "quest5" },
+  "launch-daily-ducks-assistant": { file: "quest-6.ts", exportName: "quest6" },
+  "daily-ducks": { file: "quest-7.ts", exportName: "quest7" },
+  "help-your-community": { file: "quest-8.ts", exportName: "quest8" },
+  "create-contact-list": { file: "quest-9.ts", exportName: "quest9" },
+  "tinkering-contact-lists": { file: "quest-10.ts", exportName: "quest10" },
+  "connect-gmail-api": { file: "quest-11.ts", exportName: "quest11" },
+  "email-templates-merge-fields": { file: "quest-12.ts", exportName: "quest12" },
+  "schedule-campaign": { file: "quest-13.ts", exportName: "quest13" },
+  "ai-each-unique-campaign": { file: "quest-14.ts", exportName: "quest14" },
+};
 
 const challengeGenerationRateLimit = new Map<number, { count: number; resetTime: number }>();
 const RATE_LIMIT_MAX = 5;
@@ -258,6 +277,77 @@ Respond ONLY with valid JSON in this exact format:
     } catch (error) {
       console.error("[GuidanceRoutes] Error generating challenge:", error);
       res.status(500).json({ message: "Failed to generate challenge" });
+    }
+  });
+
+  app.post("/api/guidance/quests/:questId/challenges", async (req, res) => {
+    try {
+      const isDevelopment = process.env.NODE_ENV !== 'production';
+      if (!isDevelopment) {
+        return res.status(403).json({ message: "This endpoint is only available in development mode" });
+      }
+
+      const { questId } = req.params;
+      const { challenge } = req.body;
+
+      if (!challenge || !challenge.id || !challenge.name || !challenge.steps) {
+        return res.status(400).json({ message: "Invalid challenge data" });
+      }
+
+      const questInfo = QUEST_FILE_MANIFEST[questId];
+      if (!questInfo) {
+        return res.status(404).json({ message: `Quest not found: ${questId}` });
+      }
+
+      const questFilePath = path.join(
+        process.cwd(),
+        "client/src/features/guidance-engine/quests",
+        questInfo.file
+      );
+
+      if (!fs.existsSync(questFilePath)) {
+        return res.status(404).json({ message: `Quest file not found: ${questInfo.file}` });
+      }
+
+      let fileContent = fs.readFileSync(questFilePath, "utf-8");
+
+      const existingIdMatch = fileContent.match(new RegExp(`id:\\s*["']${challenge.id}["']`));
+      if (existingIdMatch) {
+        return res.status(409).json({ message: `Challenge with id "${challenge.id}" already exists in this quest` });
+      }
+
+      const challengesArrayMatch = fileContent.match(/challenges:\s*\[/);
+      if (!challengesArrayMatch) {
+        return res.status(400).json({ message: "Could not find challenges array in quest file" });
+      }
+
+      const lastBracketIndex = fileContent.lastIndexOf("]");
+      if (lastBracketIndex === -1) {
+        return res.status(400).json({ message: "Could not find closing bracket of challenges array" });
+      }
+
+      const beforeBracket = fileContent.slice(0, lastBracketIndex);
+      const afterBracket = fileContent.slice(lastBracketIndex);
+
+      const hasExistingChallenges = beforeBracket.match(/\}\s*,?\s*$/);
+      const needsComma = hasExistingChallenges && !beforeBracket.trim().endsWith(",");
+
+      const challengeJson = JSON.stringify(challenge, null, 2)
+        .split("\n")
+        .map((line, i) => (i === 0 ? line : "    " + line))
+        .join("\n");
+
+      const insertion = `${needsComma ? "," : ""}\n    ${challengeJson}`;
+      const newContent = beforeBracket.trimEnd() + insertion + "\n  " + afterBracket;
+
+      fs.writeFileSync(questFilePath, newContent, "utf-8");
+
+      console.log(`[GuidanceRoutes] Inserted challenge "${challenge.id}" into ${questInfo.file}`);
+
+      res.json({ success: true, message: `Challenge inserted into ${questInfo.file}` });
+    } catch (error) {
+      console.error("[GuidanceRoutes] Error inserting challenge:", error);
+      res.status(500).json({ message: "Failed to insert challenge" });
     }
   });
 }
