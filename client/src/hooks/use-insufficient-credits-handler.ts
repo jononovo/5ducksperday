@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useInsufficientCredits } from '@/contexts/insufficient-credits-context';
 
@@ -6,6 +6,12 @@ export function useInsufficientCreditsHandler() {
   const { toast } = useToast();
   const { openModal } = useInsufficientCredits();
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const openModalRef = useRef(openModal);
+
+  // Keep the ref updated with the latest openModal function
+  useEffect(() => {
+    openModalRef.current = openModal;
+  }, [openModal]);
 
   const triggerInsufficientCredits = useCallback(() => {
     if (timeoutRef.current) {
@@ -19,10 +25,11 @@ export function useInsufficientCreditsHandler() {
     });
 
     timeoutRef.current = setTimeout(() => {
-      openModal();
+      console.log('[InsufficientCredits] Timeout fired, calling openModal');
+      openModalRef.current();
       timeoutRef.current = null;
     }, 1500);
-  }, [toast, openModal]);
+  }, [toast]);
 
   const cleanup = useCallback(() => {
     if (timeoutRef.current) {
