@@ -26,7 +26,8 @@ import {
   ChevronRight,
   ScrollText,
   Layers,
-  Check
+  Check,
+  Info
 } from "lucide-react";
 import { SiLinkedin } from "react-icons/si";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -93,6 +94,8 @@ interface CompanyCardProps {
   selectedEmailContact?: Contact | null;
   showAllContacts: boolean;
   onToggleShowAllContacts: () => void;
+  showDescription: boolean;
+  onToggleDescription: () => void;
 }
 
 const CompanyCard: React.FC<CompanyCardProps> = ({
@@ -119,7 +122,9 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
   viewMode,
   selectedEmailContact,
   showAllContacts,
-  onToggleShowAllContacts
+  onToggleShowAllContacts,
+  showDescription,
+  onToggleDescription
 }) => {
   const checkboxRef = useRef<HTMLButtonElement>(null);
   
@@ -166,7 +171,35 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
                 <h3 className="font-semibold text-base leading-tight flex items-center gap-2">
                   <Building2 className="h-4 w-4 text-muted-foreground" />
                   {company.name}
+                  {company.description && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleDescription();
+                      }}
+                      className={cn(
+                        "p-0.5 rounded-full transition-colors",
+                        showDescription 
+                          ? "text-primary bg-primary/10" 
+                          : "text-muted-foreground hover:text-primary hover:bg-primary/10"
+                      )}
+                      aria-label="Show company description"
+                      data-testid={`button-info-company-${company.id}`}
+                    >
+                      <Info className="h-3.5 w-3.5" />
+                    </button>
+                  )}
                 </h3>
+                
+                {showDescription && company.description && (
+                  <div 
+                    className="mt-1.5 p-2 bg-muted/50 rounded-md text-sm text-muted-foreground leading-relaxed"
+                    onClick={(e) => e.stopPropagation()}
+                    data-testid={`text-description-company-${company.id}`}
+                  >
+                    {company.description}
+                  </div>
+                )}
                 
                 <div className="flex items-center gap-2 mt-1">
                   {company.website && (
@@ -322,6 +355,9 @@ export default function CompanyCards({
   // State to track which companies show all contacts (vs just top 3)
   const [expandedContactLists, setExpandedContactLists] = useState<Set<number>>(new Set());
   
+  // State to track which companies have their description visible
+  const [visibleDescriptions, setVisibleDescriptions] = useState<Set<number>>(new Set());
+  
   // State to highlight navigation buttons
   const [highlightNavButtons, setHighlightNavButtons] = useState(false);
   
@@ -350,6 +386,19 @@ export default function CompanyCards({
   // Toggle showing all contacts vs top 3 for a company
   const toggleContactListExpansion = (companyId: number) => {
     setExpandedContactLists(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(companyId)) {
+        newSet.delete(companyId);
+      } else {
+        newSet.add(companyId);
+      }
+      return newSet;
+    });
+  };
+  
+  // Toggle company description visibility
+  const toggleDescriptionVisibility = (companyId: number) => {
+    setVisibleDescriptions(prev => {
       const newSet = new Set(prev);
       if (newSet.has(companyId)) {
         newSet.delete(companyId);
@@ -715,6 +764,8 @@ export default function CompanyCards({
               selectedEmailContact={selectedEmailContact}
               showAllContacts={expandedContactLists.has(company.id)}
               onToggleShowAllContacts={() => toggleContactListExpansion(company.id)}
+              showDescription={visibleDescriptions.has(company.id)}
+              onToggleDescription={() => toggleDescriptionVisibility(company.id)}
             />
           </div>
         ))
@@ -751,6 +802,8 @@ export default function CompanyCards({
               selectedEmailContact={selectedEmailContact}
               showAllContacts={expandedContactLists.has(companies[currentSlideIndex].id)}
               onToggleShowAllContacts={() => toggleContactListExpansion(companies[currentSlideIndex].id)}
+              showDescription={visibleDescriptions.has(companies[currentSlideIndex].id)}
+              onToggleDescription={() => toggleDescriptionVisibility(companies[currentSlideIndex].id)}
             />
           </div>
         )
