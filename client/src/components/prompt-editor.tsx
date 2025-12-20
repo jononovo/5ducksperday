@@ -678,26 +678,77 @@ export default function PromptEditor({
               isPollingRef.current = false;
               setIsPolling(false);
               
-              toast({
-                title: "Search Failed",
-                description: jobData.error || "An error occurred during search",
-                variant: "destructive",
-              });
+              // Clear the progress display so "Error" doesn't show in progress bar
+              setSearchProgress(prev => ({ ...prev, phase: "", completed: 0, total: 5 }));
+              
+              // Determine if this is an insufficient credits error for better messaging
+              const errorMessage = jobData.error || "An error occurred during search";
+              const isInsufficientCredits = errorMessage.toLowerCase().includes('insufficient credits');
+              
+              // Show toast notification - wrap in try-catch to ensure it doesn't fail silently
+              try {
+                toast({
+                  title: isInsufficientCredits ? "Insufficient Credits" : "Search Failed",
+                  description: errorMessage,
+                  variant: "destructive",
+                });
+              } catch (toastError) {
+                console.error("Failed to show toast:", toastError);
+              }
+              
+              // Refresh credits display to show updated balance
+              if (user) {
+                queryClient.invalidateQueries({ queryKey: ['/api/credits'] });
+              }
               
               onComplete();
             } else {
-              // Job still processing, continue polling quickly
-              if (jobData.progress) {
-                setSearchProgress(prev => ({ 
-                  ...prev, 
-                  phase: jobData.progress.phase || "Processing",
-                  completed: jobData.progress.completed || 0,
-                  total: jobData.progress.total || 5
-                }));
-              }
+              // Job still processing - but check for error phases that indicate failure
+              const currentPhase = jobData.progress?.phase || "";
+              const isErrorPhase = currentPhase.toLowerCase().includes('error') || 
+                                   currentPhase.toLowerCase().includes('insufficient');
+              const errorMessage = jobData.progress?.message || jobData.error || "";
               
-              // Poll very quickly for immediate feedback
-              setTimeout(pollJobStatus, 500); // Poll every 500ms for fast updates
+              if (isErrorPhase) {
+                // Stop polling - this is a failure state even if status isn't 'failed' yet
+                console.error(`Job ${data.jobId} has error phase:`, currentPhase, errorMessage);
+                isPollingRef.current = false;
+                setIsPolling(false);
+                
+                // Clear progress display
+                setSearchProgress(prev => ({ ...prev, phase: "", completed: 0, total: 5 }));
+                
+                // Show toast with appropriate message
+                const isInsufficientCredits = currentPhase.toLowerCase().includes('insufficient') ||
+                                              errorMessage.toLowerCase().includes('insufficient credits');
+                toast({
+                  title: isInsufficientCredits ? "Insufficient Credits" : "Search Failed",
+                  description: isInsufficientCredits 
+                    ? "You don't have enough credits for this search. Please add more credits to continue."
+                    : (errorMessage || "An error occurred during search"),
+                  variant: "destructive",
+                });
+                
+                // Refresh credits display
+                if (user) {
+                  queryClient.invalidateQueries({ queryKey: ['/api/credits'] });
+                }
+                
+                onComplete();
+              } else {
+                // Normal processing - update progress and continue polling
+                if (jobData.progress) {
+                  setSearchProgress(prev => ({ 
+                    ...prev, 
+                    phase: currentPhase || "Processing",
+                    completed: jobData.progress.completed || 0,
+                    total: jobData.progress.total || 5
+                  }));
+                }
+                
+                // Poll very quickly for immediate feedback
+                setTimeout(pollJobStatus, 500); // Poll every 500ms for fast updates
+              }
             }
           }
         } catch (error) {
@@ -714,20 +765,31 @@ export default function PromptEditor({
       pollJobStatus();
     },
     onError: (error: Error) => {
+      // Clear any progress display
+      setSearchProgress(prev => ({ ...prev, phase: "", completed: 0, total: 5 }));
+      
       // Check if it's a credit blocking error (402 status)
-      if (error.message.includes("402:") || error.message.includes("insufficient credits")) {
+      const errorMessage = error.message || "Search failed";
+      const isInsufficientCredits = errorMessage.includes("402:") || 
+                                     errorMessage.toLowerCase().includes("insufficient credits");
+      
+      try {
         toast({
-          title: "Account Blocked",
-          description: "Account blocked due to insufficient credits.",
+          title: isInsufficientCredits ? "Insufficient Credits" : "Search Failed",
+          description: isInsufficientCredits 
+            ? "You don't have enough credits for this search. Please add more credits to continue."
+            : errorMessage,
           variant: "destructive",
         });
-      } else {
-        toast({
-          title: "Company Search Failed",
-          description: error.message,
-          variant: "destructive",
-        });
+      } catch (toastError) {
+        console.error("Failed to show toast:", toastError);
       }
+      
+      // Refresh credits display
+      if (user) {
+        queryClient.invalidateQueries({ queryKey: ['/api/credits'] });
+      }
+      
       onComplete();
     },
   });
@@ -826,14 +888,62 @@ export default function PromptEditor({
               isPollingRef.current = false;
               setIsPolling(false);
               setIsIndividualSearching(false);
+              
+              // Clear the progress display
+              setSearchProgress(prev => ({ ...prev, phase: "", completed: 0, total: 5 }));
+              
+              // Determine error type for better messaging
+              const errorMessage = jobData.error || "Individual search failed";
+              const isInsufficientCredits = errorMessage.toLowerCase().includes('insufficient credits');
+              
+              // Show toast notification
+              try {
+                toast({
+                  title: isInsufficientCredits ? "Insufficient Credits" : "Search Failed",
+                  description: errorMessage,
+                  variant: "destructive",
+                });
+              } catch (toastError) {
+                console.error("Failed to show toast:", toastError);
+              }
+              
+              // Refresh credits display
+              queryClient.invalidateQueries({ queryKey: ['/api/credits'] });
+              
               onComplete();
-              toast({
-                title: "Search Failed",
-                description: jobData.error || "Individual search failed",
-                variant: "destructive",
-              });
             } else {
-              setTimeout(pollJobStatus, 500);
+              // Job still processing - but check for error phases that indicate failure
+              const currentPhase = jobData.progress?.phase || "";
+              const isErrorPhase = currentPhase.toLowerCase().includes('error') || 
+                                   currentPhase.toLowerCase().includes('insufficient');
+              const errorMessage = jobData.progress?.message || jobData.error || "";
+              
+              if (isErrorPhase) {
+                // Stop polling - this is a failure state
+                console.error(`Individual search job ${data.jobId} has error phase:`, currentPhase, errorMessage);
+                isPollingRef.current = false;
+                setIsPolling(false);
+                setIsIndividualSearching(false);
+                
+                // Clear progress display
+                setSearchProgress(prev => ({ ...prev, phase: "", completed: 0, total: 5 }));
+                
+                // Show toast with appropriate message
+                const isInsufficientCredits = currentPhase.toLowerCase().includes('insufficient') ||
+                                              errorMessage.toLowerCase().includes('insufficient credits');
+                toast({
+                  title: isInsufficientCredits ? "Insufficient Credits" : "Search Failed",
+                  description: isInsufficientCredits 
+                    ? "You don't have enough credits for this search. Please add more credits to continue."
+                    : (errorMessage || "An error occurred during search"),
+                  variant: "destructive",
+                });
+                
+                queryClient.invalidateQueries({ queryKey: ['/api/credits'] });
+                onComplete();
+              } else {
+                setTimeout(pollJobStatus, 500);
+              }
             }
           }
         } catch (error) {
@@ -851,19 +961,29 @@ export default function PromptEditor({
     },
     onError: (error: Error) => {
       setIsIndividualSearching(false);
-      if (error.message.includes("402:") || error.message.includes("insufficient credits")) {
+      
+      // Clear any progress display
+      setSearchProgress(prev => ({ ...prev, phase: "", completed: 0, total: 5 }));
+      
+      const errorMessage = error.message || "Search failed";
+      const isInsufficientCredits = errorMessage.includes("402:") || 
+                                     errorMessage.toLowerCase().includes("insufficient credits");
+      
+      try {
         toast({
-          title: "Account Blocked",
-          description: "Account blocked due to insufficient credits.",
+          title: isInsufficientCredits ? "Insufficient Credits" : "Search Failed",
+          description: isInsufficientCredits 
+            ? "You don't have enough credits for this search. Please add more credits to continue."
+            : errorMessage,
           variant: "destructive",
         });
-      } else {
-        toast({
-          title: "Individual Search Failed",
-          description: error.message,
-          variant: "destructive",
-        });
+      } catch (toastError) {
+        console.error("Failed to show toast:", toastError);
       }
+      
+      // Refresh credits display
+      queryClient.invalidateQueries({ queryKey: ['/api/credits'] });
+      
       onComplete();
     },
   });
