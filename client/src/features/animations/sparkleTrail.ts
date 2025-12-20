@@ -12,13 +12,55 @@ interface SparkleConfig {
   offsetY: number;
 }
 
+// Increased sparkle sizes for more prominence
 const SPARKLE_CONFIGS: SparkleConfig[] = [
-  { size: 20, delay: 0, offsetX: 0, offsetY: 0 },
-  { size: 14, delay: 70, offsetX: -7, offsetY: 5 },
-  { size: 10, delay: 140, offsetX: 6, offsetY: -4 },
+  { size: 32, delay: 0, offsetX: 0, offsetY: 0 },
+  { size: 24, delay: 70, offsetX: -10, offsetY: 8 },
+  { size: 18, delay: 140, offsetX: 10, offsetY: -6 },
 ];
 
 const ANIMATION_DURATION = 1100; // ms
+const DOUBLE_ANIMATION_DELAY = 200; // ms between first and second animation
+
+/**
+ * Play a coin/sparkle sound effect using Web Audio API
+ */
+function playCoinSound(): void {
+  try {
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    
+    // Create a pleasant coin chime sound
+    const playTone = (frequency: number, startTime: number, duration: number, volume: number) => {
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(frequency, startTime);
+      
+      // Envelope for pleasant sound
+      gainNode.gain.setValueAtTime(0, startTime);
+      gainNode.gain.linearRampToValueAtTime(volume, startTime + 0.02);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+      
+      oscillator.start(startTime);
+      oscillator.stop(startTime + duration);
+    };
+    
+    const now = audioContext.currentTime;
+    
+    // Coin chime: ascending notes
+    playTone(880, now, 0.15, 0.12);        // A5
+    playTone(1100, now + 0.08, 0.12, 0.1); // C#6
+    playTone(1320, now + 0.15, 0.2, 0.08); // E6
+    
+  } catch (e) {
+    // Audio not supported, silently fail
+    console.debug('[SparkleTrail] Audio not available');
+  }
+}
 
 function createSparkleElement(
   startX: number,
@@ -28,6 +70,7 @@ function createSparkleElement(
 ): HTMLDivElement {
   const sparkle = document.createElement('div');
   
+  // Enhanced glow effect for more prominence
   sparkle.style.cssText = `
     position: fixed;
     left: ${startX + config.offsetX}px;
@@ -35,14 +78,16 @@ function createSparkleElement(
     width: ${config.size}px;
     height: ${config.size}px;
     background: radial-gradient(circle,
-      rgba(255,255,255,0.9) 0%,
-      rgba(255,215,0,0.6) 40%,
+      rgba(255,255,255,1) 0%,
+      rgba(255,223,0,0.8) 30%,
+      rgba(255,180,0,0.5) 50%,
       transparent 70%);
     border-radius: 50%;
     pointer-events: none;
     z-index: ${10001 - index};
-    box-shadow: 0 0 ${config.size / 2}px rgba(255,215,0,0.6),
-                0 0 ${config.size}px rgba(255,180,0,0.4);
+    box-shadow: 0 0 ${config.size * 0.6}px rgba(255,215,0,0.8),
+                0 0 ${config.size * 1.2}px rgba(255,180,0,0.5),
+                0 0 ${config.size * 2}px rgba(255,150,0,0.3);
     transition: left ${ANIMATION_DURATION}ms cubic-bezier(0.25, 0.1, 0.25, 1),
                 top ${ANIMATION_DURATION}ms cubic-bezier(0.25, 0.1, 0.25, 1),
                 transform ${ANIMATION_DURATION}ms ease-out,
@@ -58,7 +103,7 @@ function applyBounceEffect(element: Element): void {
   const originalTransform = htmlElement.style.transform;
   
   htmlElement.style.transition = 'transform 0.2s ease-out';
-  htmlElement.style.transform = 'scale(1.15)';
+  htmlElement.style.transform = 'scale(1.2)';
   
   setTimeout(() => {
     htmlElement.style.transform = originalTransform || 'scale(1)';
@@ -76,7 +121,46 @@ function findCreditsTarget(): Element | null {
 }
 
 /**
+ * Run a single sparkle animation wave
+ */
+function runSparkleWave(
+  startX: number,
+  startY: number,
+  endX: number,
+  endY: number,
+  targetElement: Element | null,
+  bounce: boolean,
+  waveIndex: number
+): void {
+  SPARKLE_CONFIGS.forEach((config, index) => {
+    setTimeout(() => {
+      const sparkle = createSparkleElement(startX, startY, config, index);
+      document.body.appendChild(sparkle);
+
+      requestAnimationFrame(() => {
+        sparkle.style.left = `${endX}px`;
+        sparkle.style.top = `${endY}px`;
+        sparkle.style.transform = 'scale(0.4)';
+        sparkle.style.opacity = '0';
+      });
+
+      setTimeout(() => {
+        sparkle.remove();
+      }, ANIMATION_DURATION + 50);
+    }, config.delay);
+  });
+
+  // Only bounce on the last wave
+  if (bounce && targetElement && waveIndex === 1) {
+    setTimeout(() => {
+      applyBounceEffect(targetElement);
+    }, ANIMATION_DURATION);
+  }
+}
+
+/**
  * Animate sparkle particles from a source element to the credits display
+ * Runs the animation twice with 200ms separation for extra prominence
  * 
  * @param sourceElement - The element to animate from (credit badge/chip)
  * @param options - Optional configuration
@@ -88,13 +172,15 @@ export function animateCreditSparkles(
     targetElement?: Element | null;
     onComplete?: () => void;
     bounce?: boolean;
+    playSound?: boolean;
   } = {}
 ): Promise<void> {
   return new Promise((resolve) => {
     const { 
       targetElement = findCreditsTarget(), 
       onComplete,
-      bounce = true 
+      bounce = true,
+      playSound = true
     } = options;
 
     if (!sourceElement) {
@@ -117,34 +203,25 @@ export function animateCreditSparkles(
     const endX = targetRect.left + targetRect.width / 2;
     const endY = targetRect.top + targetRect.height / 2;
 
-    SPARKLE_CONFIGS.forEach((config, index) => {
-      setTimeout(() => {
-        const sparkle = createSparkleElement(startX, startY, config, index);
-        document.body.appendChild(sparkle);
-
-        requestAnimationFrame(() => {
-          sparkle.style.left = `${endX}px`;
-          sparkle.style.top = `${endY}px`;
-          sparkle.style.transform = 'scale(0.5)';
-          sparkle.style.opacity = '0';
-        });
-
-        setTimeout(() => {
-          sparkle.remove();
-        }, ANIMATION_DURATION + 50);
-      }, config.delay);
-    });
-
-    if (bounce && targetElement) {
-      setTimeout(() => {
-        applyBounceEffect(targetElement);
-      }, ANIMATION_DURATION);
+    // Play sound on first wave
+    if (playSound) {
+      playCoinSound();
     }
 
+    // First wave
+    runSparkleWave(startX, startY, endX, endY, targetElement, false, 0);
+
+    // Second wave after 200ms delay
+    setTimeout(() => {
+      runSparkleWave(startX, startY, endX, endY, targetElement, bounce, 1);
+    }, DOUBLE_ANIMATION_DELAY);
+
+    // Resolve after both animations complete
+    const totalDuration = ANIMATION_DURATION + DOUBLE_ANIMATION_DELAY + 250;
     setTimeout(() => {
       onComplete?.();
       resolve();
-    }, ANIMATION_DURATION + 250);
+    }, totalDuration);
   });
 }
 
