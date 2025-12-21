@@ -217,10 +217,10 @@ export function GuidanceProvider({ children, autoStartForNewUsers = true }: Guid
   }, [state.isActive, state.currentStepIndex, currentChallenge, currentStep, location]);
 
   useEffect(() => {
-    if (isOnEnabledRoute && state.isActive && !state.isHeaderVisible && !engine.isSandboxMode) {
+    if (isOnEnabledRoute && state.isActive && !state.isHeaderVisible && !engine.isTestMode) {
       engine.pauseGuidance();
     }
-  }, [isOnEnabledRoute, state.isActive, state.isHeaderVisible, engine, engine.isSandboxMode]);
+  }, [isOnEnabledRoute, state.isActive, state.isHeaderVisible, engine, engine.isTestMode]);
 
   // Reset tooltip visibility when step changes
   useEffect(() => {
