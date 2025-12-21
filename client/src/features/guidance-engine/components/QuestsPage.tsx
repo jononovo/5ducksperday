@@ -89,6 +89,7 @@ interface QuestCardProps {
   onStartQuest: (questId: string) => void;
   onContinueChallenge: (questId: string, challengeIndex: number) => void;
   onRestartChallenge: (questId: string, challengeIndex: number, challengeName: string) => void;
+  onStartLockedChallenge: (questId: string, challengeIndex: number) => void;
 }
 
 function QuestCard({
@@ -102,6 +103,7 @@ function QuestCard({
   onStartQuest,
   onContinueChallenge,
   onRestartChallenge,
+  onStartLockedChallenge,
 }: QuestCardProps) {
   const [isExpanded, setIsExpanded] = useState(status === "in-progress");
   const questChallengesCompleted = (completedChallenges[quest.id] || []).length;
@@ -230,7 +232,7 @@ function QuestCard({
                       } else if (challengeStatus === "available") {
                         onStartQuest(quest.id);
                       } else if (challengeStatus === "locked" && challenge.steps.length > 0) {
-                        onContinueChallenge(quest.id, challengeIndex);
+                        onStartLockedChallenge(quest.id, challengeIndex);
                       }
                     }}
                     className={`
@@ -357,6 +359,11 @@ export function QuestsPage() {
     }
   };
 
+  const handleStartLockedChallenge = (questId: string, challengeIndex: number) => {
+    restartChallenge(questId, challengeIndex);
+    navigate("/app");
+  };
+
   const totalQuests = QUESTS.length;
   const completedQuestsCount = state.completedQuests.length;
   const overallProgress = totalQuests > 0 ? (completedQuestsCount / totalQuests) * 100 : 0;
@@ -448,6 +455,7 @@ export function QuestsPage() {
                 onStartQuest={handleStartQuest}
                 onContinueChallenge={handleContinueChallenge}
                 onRestartChallenge={handleRestartRequest}
+                onStartLockedChallenge={handleStartLockedChallenge}
               />
             );
           })}

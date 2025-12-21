@@ -71,10 +71,18 @@ export const quest1: Quest = {
       emoji: "🧭",
       steps: [
         {
+          id: "click-search-input",
+          selector: '[data-testid="search-input"]',
+          action: "click",
+          instruction: "First, click on the search bar",
+          tooltipPosition: "bottom",
+          route: "/app",
+        },
+        {
           id: "open-drawer-1",
           selector: '[data-testid="button-open-drawer"]',
           action: "click",
-          instruction: "Click the menu icon to open the navigation drawer",
+          instruction: "Now click the menu icon to open the navigation drawer",
           tooltipPosition: "right",
           route: "/app",
         },
