@@ -122,7 +122,7 @@ interface UseGuidanceEngineOptions {
   userId: number | null;
 }
 
-const SANDBOX_QUEST_ID = "__sandbox__";
+const TEST_QUEST_ID = "__test__";
 
 export function useGuidanceEngine(options: UseGuidanceEngineOptions): GuidanceContextValue {
   const { authReady, userId } = options;
@@ -131,8 +131,8 @@ export function useGuidanceEngine(options: UseGuidanceEngineOptions): GuidanceCo
   const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastUserIdRef = useRef<number | null>(null);
   
-  const [sandboxChallenge, setSandboxChallenge] = useState<Challenge | null>(null);
-  const sandboxCompleteCallbackRef = useRef<(() => void) | null>(null);
+  const [testChallenge, setTestChallenge] = useState<Challenge | null>(null);
+  const testCompleteCallbackRef = useRef<(() => void) | null>(null);
   
   const [recording, setRecording] = useState<RecordingState>(defaultRecordingState);
   const recordingRef = useRef(false);
@@ -187,7 +187,7 @@ export function useGuidanceEngine(options: UseGuidanceEngineOptions): GuidanceCo
 
   // Sync to server when state changes (with debounce)
   useEffect(() => {
-    if (state.currentQuestId === SANDBOX_QUEST_ID) {
+    if (state.currentQuestId === TEST_QUEST_ID) {
       return;
     }
     
@@ -224,19 +224,19 @@ export function useGuidanceEngine(options: UseGuidanceEngineOptions): GuidanceCo
     };
   }, [state, isInitialized, authReady, userId]);
 
-  const isSandboxMode = state.currentQuestId === SANDBOX_QUEST_ID;
+  const isTestMode = state.currentQuestId === TEST_QUEST_ID;
 
   const currentQuest: Quest | null = useMemo(() => {
     if (!state.currentQuestId) return null;
-    if (isSandboxMode) return null;
+    if (isTestMode) return null;
     return getQuestById(state.currentQuestId) || null;
-  }, [state.currentQuestId, isSandboxMode]);
+  }, [state.currentQuestId, isTestMode]);
 
   const currentChallenge: Challenge | null = useMemo(() => {
-    if (isSandboxMode) return sandboxChallenge;
+    if (isTestMode) return testChallenge;
     if (!currentQuest) return null;
     return currentQuest.challenges[state.currentChallengeIndex] || null;
-  }, [currentQuest, state.currentChallengeIndex, isSandboxMode, sandboxChallenge]);
+  }, [currentQuest, state.currentChallengeIndex, isTestMode, testChallenge]);
 
   const currentStep: GuidanceStep | null = useMemo(() => {
     if (!currentChallenge) return null;
@@ -426,22 +426,22 @@ export function useGuidanceEngine(options: UseGuidanceEngineOptions): GuidanceCo
     };
   }, [state.completedQuests]);
 
-  const startSandboxChallenge = useCallback((challenge: Challenge, onComplete?: () => void) => {
-    setSandboxChallenge(challenge);
-    sandboxCompleteCallbackRef.current = onComplete || null;
+  const startChallenge = useCallback((challenge: Challenge, onComplete?: () => void) => {
+    setTestChallenge(challenge);
+    testCompleteCallbackRef.current = onComplete || null;
     setState((prev) => ({
       ...prev,
       isActive: true,
-      currentQuestId: SANDBOX_QUEST_ID,
+      currentQuestId: TEST_QUEST_ID,
       currentChallengeIndex: 0,
       currentStepIndex: 0,
-      isHeaderVisible: false,
+      isHeaderVisible: true,
     }));
   }, []);
 
-  const stopSandbox = useCallback(() => {
-    setSandboxChallenge(null);
-    sandboxCompleteCallbackRef.current = null;
+  const stopChallenge = useCallback(() => {
+    setTestChallenge(null);
+    testCompleteCallbackRef.current = null;
     setState((prev) => ({
       ...prev,
       isActive: false,
@@ -584,10 +584,10 @@ export function useGuidanceEngine(options: UseGuidanceEngineOptions): GuidanceCo
   }, []);
 
   useEffect(() => {
-    if (isSandboxMode && !state.isActive && sandboxChallenge) {
-      const callback = sandboxCompleteCallbackRef.current;
-      setSandboxChallenge(null);
-      sandboxCompleteCallbackRef.current = null;
+    if (isTestMode && !state.isActive && testChallenge) {
+      const callback = testCompleteCallbackRef.current;
+      setTestChallenge(null);
+      testCompleteCallbackRef.current = null;
       setState((prev) => ({
         ...prev,
         currentQuestId: null,
@@ -596,7 +596,7 @@ export function useGuidanceEngine(options: UseGuidanceEngineOptions): GuidanceCo
         setTimeout(callback, 100);
       }
     }
-  }, [isSandboxMode, state.isActive, sandboxChallenge]);
+  }, [isTestMode, state.isActive, testChallenge]);
 
   return {
     state,
@@ -615,9 +615,9 @@ export function useGuidanceEngine(options: UseGuidanceEngineOptions): GuidanceCo
     restartChallenge,
     getChallengeProgress,
     getQuestProgress,
-    startSandboxChallenge,
-    stopSandbox,
-    isSandboxMode,
+    startChallenge,
+    stopChallenge,
+    isTestMode,
     recording,
     startRecording,
     stopRecording,
