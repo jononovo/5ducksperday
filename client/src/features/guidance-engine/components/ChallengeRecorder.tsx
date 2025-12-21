@@ -117,7 +117,10 @@ export function ChallengeRecorder({ isOpen, onClose }: ChallengeRecorderProps) {
     }
   };
 
-  const testChallenge = () => {
+  const testChallenge = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    
     if (!generatedChallenge) return;
     
     const challenge: Challenge = {
