@@ -89,6 +89,7 @@ interface QuestCardProps {
   onStartQuest: (questId: string) => void;
   onContinueChallenge: (questId: string, challengeIndex: number) => void;
   onRestartChallenge: (questId: string, challengeIndex: number, challengeName: string) => void;
+  onStartLockedChallenge: (questId: string, challengeIndex: number) => void;
 }
 
 function QuestCard({
@@ -102,6 +103,7 @@ function QuestCard({
   onStartQuest,
   onContinueChallenge,
   onRestartChallenge,
+  onStartLockedChallenge,
 }: QuestCardProps) {
   const [isExpanded, setIsExpanded] = useState(status === "in-progress");
   const questChallengesCompleted = (completedChallenges[quest.id] || []).length;
@@ -229,6 +231,8 @@ function QuestCard({
                         onContinueChallenge(quest.id, challengeIndex);
                       } else if (challengeStatus === "available") {
                         onStartQuest(quest.id);
+                      } else if (challengeStatus === "locked" && challenge.steps.length > 0) {
+                        onStartLockedChallenge(quest.id, challengeIndex);
                       }
                     }}
                     className={`
@@ -237,6 +241,8 @@ function QuestCard({
                         ? "bg-green-500/10 cursor-pointer hover:bg-green-500/20"
                         : challengeStatus === "in-progress" || challengeStatus === "available"
                         ? "bg-amber-500/10 cursor-pointer hover:bg-amber-500/20"
+                        : challenge.steps.length > 0
+                        ? "bg-gray-800/50 cursor-pointer hover:bg-gray-700/50"
                         : "bg-gray-800/50"
                       }
                       transition-colors
@@ -353,6 +359,11 @@ export function QuestsPage() {
     }
   };
 
+  const handleStartLockedChallenge = (questId: string, challengeIndex: number) => {
+    restartChallenge(questId, challengeIndex);
+    navigate("/app");
+  };
+
   const totalQuests = QUESTS.length;
   const completedQuestsCount = state.completedQuests.length;
   const overallProgress = totalQuests > 0 ? (completedQuestsCount / totalQuests) * 100 : 0;
@@ -439,6 +450,7 @@ export function QuestsPage() {
                 onStartQuest={handleStartQuest}
                 onContinueChallenge={handleContinueChallenge}
                 onRestartChallenge={handleRestartRequest}
+                onStartLockedChallenge={handleStartLockedChallenge}
               />
             );
           })}

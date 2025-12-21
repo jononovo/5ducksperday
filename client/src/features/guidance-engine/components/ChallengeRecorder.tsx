@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "wouter";
@@ -6,56 +6,19 @@ import { Circle, Square, Loader2, Check, Copy, X, ChevronDown, Upload, Play } fr
 import { Button } from "@/components/ui/button";
 import { QUESTS } from "../quests";
 import { useGuidance } from "../context/GuidanceContext";
-import type { RecordedStep, GeneratedChallenge, Challenge } from "../types";
+import type { GeneratedChallenge, Challenge } from "../types";
 
 interface ChallengeRecorderProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-type RecorderState = "idle" | "recording" | "processing" | "complete";
-
-function getBestSelector(element: HTMLElement): string {
-  if (element.dataset.testid) {
-    return `[data-testid="${element.dataset.testid}"]`;
-  }
-  
-  if (element.id) {
-    return `#${element.id}`;
-  }
-  
-  if (element.className && typeof element.className === 'string') {
-    const classes = element.className.split(' ').filter(c => c && !c.startsWith('hover:') && !c.startsWith('focus:'));
-    if (classes.length > 0) {
-      const uniqueClasses = classes.slice(0, 3).join('.');
-      return `${element.tagName.toLowerCase()}.${uniqueClasses}`;
-    }
-  }
-  
-  return element.tagName.toLowerCase();
-}
-
-function getElementDescription(element: HTMLElement): string {
-  const text = element.textContent?.trim().slice(0, 50);
-  if (text) return text;
-  
-  if (element.getAttribute('placeholder')) {
-    return element.getAttribute('placeholder') || '';
-  }
-  
-  if (element.getAttribute('aria-label')) {
-    return element.getAttribute('aria-label') || '';
-  }
-  
-  return element.tagName.toLowerCase();
-}
+type RecorderUIState = "idle" | "recording" | "processing" | "complete";
 
 export function ChallengeRecorder({ isOpen, onClose }: ChallengeRecorderProps) {
   const [location] = useLocation();
-  const [state, setState] = useState<RecorderState>("idle");
+  const [uiState, setUIState] = useState<RecorderUIState>("idle");
   const [selectedQuestId, setSelectedQuestId] = useState<string>(QUESTS[0]?.id || "");
-  const [steps, setSteps] = useState<RecordedStep[]>([]);
-  const [startRoute, setStartRoute] = useState<string>("");
   const [generatedChallenge, setGeneratedChallenge] = useState<GeneratedChallenge | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -65,102 +28,42 @@ export function ChallengeRecorder({ isOpen, onClose }: ChallengeRecorderProps) {
   const [isTesting, setIsTesting] = useState(false);
   
   const guidance = useGuidance();
-  const recordingRef = useRef(false);
-
-  const handleClick = useCallback((e: MouseEvent) => {
-    if (!recordingRef.current) return;
-    
-    const target = e.target as HTMLElement;
-    
-    if (target.closest('[data-recorder-ui]')) return;
-    
-    const selector = getBestSelector(target);
-    const step: RecordedStep = {
-      selector,
-      action: "click",
-      tagName: target.tagName.toLowerCase(),
-      textContent: getElementDescription(target),
-      route: window.location.pathname,
-      timestamp: Date.now(),
-    };
-    
-    setSteps(prev => [...prev, step]);
-  }, []);
-
-  const handleInput = useCallback((e: Event) => {
-    if (!recordingRef.current) return;
-    
-    const target = e.target as HTMLInputElement | HTMLTextAreaElement;
-    if (!target.tagName || !['INPUT', 'TEXTAREA'].includes(target.tagName)) return;
-    
-    if (target.closest('[data-recorder-ui]')) return;
-    
-    const selector = getBestSelector(target);
-    
-    setSteps(prev => {
-      const lastStep = prev[prev.length - 1];
-      if (lastStep && lastStep.selector === selector && lastStep.action === "type") {
-        const updated = [...prev];
-        updated[updated.length - 1] = {
-          ...lastStep,
-          typedValue: target.value,
-        };
-        return updated;
-      }
-      
-      return [...prev, {
-        selector,
-        action: "type" as const,
-        tagName: target.tagName.toLowerCase(),
-        textContent: target.placeholder || "input field",
-        typedValue: target.value,
-        route: window.location.pathname,
-        timestamp: Date.now(),
-      }];
-    });
-  }, []);
-
-  const removeListeners = useCallback(() => {
-    recordingRef.current = false;
-    document.removeEventListener("click", handleClick, true);
-    document.removeEventListener("input", handleInput, true);
-  }, [handleClick, handleInput]);
+  const { recording, startRecording, stopRecording, clearRecording } = guidance;
 
   useEffect(() => {
-    if (state === "recording") {
-      recordingRef.current = true;
-      document.addEventListener("click", handleClick, true);
-      document.addEventListener("input", handleInput, true);
-      
-      return removeListeners;
-    } else {
-      removeListeners();
+    if (recording.isRecording && uiState !== "recording") {
+      setUIState("recording");
     }
-  }, [state, handleClick, handleInput, removeListeners]);
+  }, [recording.isRecording, uiState]);
 
-  const startRecording = () => {
+  useEffect(() => {
+    if (recording.selectedQuestId && recording.selectedQuestId !== selectedQuestId) {
+      setSelectedQuestId(recording.selectedQuestId);
+    }
+  }, [recording.selectedQuestId, selectedQuestId]);
+
+  const handleStartRecording = () => {
     if (!selectedQuestId) {
       setError("Please select a quest before recording");
       return;
     }
-    setSteps([]);
-    setStartRoute(location);
     setError(null);
     setGeneratedChallenge(null);
-    setState("recording");
+    startRecording(selectedQuestId, location);
+    setUIState("recording");
   };
 
-  const stopRecording = async () => {
-    removeListeners();
-    setState("processing");
+  const handleStopRecording = async () => {
+    const steps = stopRecording();
+    setUIState("processing");
     
     try {
       const response = await fetch("/api/guidance/generate-challenge", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          questId: selectedQuestId,
-          startRoute,
+          questId: recording.selectedQuestId || selectedQuestId,
+          startRoute: recording.startRoute || location,
           steps,
         }),
       });
@@ -171,10 +74,10 @@ export function ChallengeRecorder({ isOpen, onClose }: ChallengeRecorderProps) {
       
       const data = await response.json();
       setGeneratedChallenge(data.challenge);
-      setState("complete");
+      setUIState("complete");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to generate challenge");
-      setState("idle");
+      setUIState("idle");
     }
   };
 
@@ -214,7 +117,10 @@ export function ChallengeRecorder({ isOpen, onClose }: ChallengeRecorderProps) {
     }
   };
 
-  const testChallenge = () => {
+  const testChallenge = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    
     if (!generatedChallenge) return;
     
     const challenge: Challenge = {
@@ -230,18 +136,16 @@ export function ChallengeRecorder({ isOpen, onClose }: ChallengeRecorderProps) {
   };
 
   const reset = () => {
-    recordingRef.current = false;
-    setState("idle");
-    setSteps([]);
+    clearRecording();
+    setUIState("idle");
     setGeneratedChallenge(null);
     setError(null);
     setInsertResult(null);
   };
 
   const handleClose = () => {
-    removeListeners();
-    setState("idle");
-    setSteps([]);
+    clearRecording();
+    setUIState("idle");
     setGeneratedChallenge(null);
     setError(null);
     setDropdownOpen(false);
@@ -250,15 +154,16 @@ export function ChallengeRecorder({ isOpen, onClose }: ChallengeRecorderProps) {
   };
 
   useEffect(() => {
-    if (!isOpen && state === "recording") {
-      recordingRef.current = false;
-      setState("idle");
+    if (!isOpen && recording.isRecording) {
+      clearRecording();
+      setUIState("idle");
     }
-  }, [isOpen, state]);
+  }, [isOpen, recording.isRecording, clearRecording]);
 
   if (!isOpen || isTesting) return null;
 
   const selectedQuest = QUESTS.find(q => q.id === selectedQuestId);
+  const steps = recording.steps;
 
   return createPortal(
     <div data-recorder-ui="true">
@@ -271,7 +176,7 @@ export function ChallengeRecorder({ isOpen, onClose }: ChallengeRecorderProps) {
         >
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700 bg-gray-800">
             <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${state === "recording" ? "bg-red-500 animate-pulse" : "bg-gray-500"}`} />
+              <div className={`w-2 h-2 rounded-full ${uiState === "recording" ? "bg-red-500 animate-pulse" : "bg-gray-500"}`} />
               <span className="text-sm font-medium text-white">Challenge Recorder</span>
             </div>
             <button
@@ -284,7 +189,7 @@ export function ChallengeRecorder({ isOpen, onClose }: ChallengeRecorderProps) {
           </div>
 
           <div className="p-4 space-y-4">
-            {state === "idle" && (
+            {uiState === "idle" && (
               <>
                 {QUESTS.length === 0 ? (
                   <div className="text-center py-4">
@@ -338,7 +243,7 @@ export function ChallengeRecorder({ isOpen, onClose }: ChallengeRecorderProps) {
                     </div>
 
                     <Button
-                      onClick={startRecording}
+                      onClick={handleStartRecording}
                       disabled={!selectedQuestId}
                       className="w-full bg-red-600 hover:bg-red-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                       data-testid="start-recording"
@@ -355,7 +260,7 @@ export function ChallengeRecorder({ isOpen, onClose }: ChallengeRecorderProps) {
               </>
             )}
 
-            {state === "recording" && (
+            {uiState === "recording" && (
               <>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
@@ -378,7 +283,7 @@ export function ChallengeRecorder({ isOpen, onClose }: ChallengeRecorderProps) {
                 </div>
 
                 <Button
-                  onClick={stopRecording}
+                  onClick={handleStopRecording}
                   disabled={steps.length === 0}
                   className="w-full bg-amber-600 hover:bg-amber-700 text-white"
                   data-testid="stop-recording"
@@ -389,14 +294,14 @@ export function ChallengeRecorder({ isOpen, onClose }: ChallengeRecorderProps) {
               </>
             )}
 
-            {state === "processing" && (
+            {uiState === "processing" && (
               <div className="flex flex-col items-center gap-3 py-4">
                 <Loader2 className="h-8 w-8 text-amber-400 animate-spin" />
                 <p className="text-sm text-gray-300">Generating challenge with AI...</p>
               </div>
             )}
 
-            {state === "complete" && generatedChallenge && (
+            {uiState === "complete" && generatedChallenge && (
               <>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
