@@ -130,7 +130,7 @@ export function ChallengeRecorder({ isOpen, onClose }: ChallengeRecorderProps) {
     
     setIsTesting(true);
     
-    guidance.startSandboxChallenge(challenge, () => {
+    guidance.startChallenge(challenge, () => {
       setIsTesting(false);
     });
   };

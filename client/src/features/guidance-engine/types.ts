@@ -69,9 +69,9 @@ export interface GuidanceContextValue {
   restartChallenge: (questId: string, challengeIndex: number) => void;
   getChallengeProgress: () => { completed: number; total: number };
   getQuestProgress: () => { completed: number; total: number };
-  startSandboxChallenge: (challenge: Challenge, onComplete?: () => void) => void;
-  stopSandbox: () => void;
-  isSandboxMode: boolean;
+  startChallenge: (challenge: Challenge, onComplete?: () => void) => void;
+  stopChallenge: () => void;
+  isTestMode: boolean;
   recording: RecordingState;
   startRecording: (questId: string, startRoute: string) => void;
   stopRecording: () => RecordedStep[];
