@@ -69,6 +69,9 @@ export interface GuidanceContextValue {
   restartChallenge: (questId: string, challengeIndex: number) => void;
   getChallengeProgress: () => { completed: number; total: number };
   getQuestProgress: () => { completed: number; total: number };
+  startSandboxChallenge: (challenge: Challenge, onComplete?: () => void) => void;
+  stopSandbox: () => void;
+  isSandboxMode: boolean;
 }
 
 export interface FluffyGuideProps {
@@ -104,4 +107,30 @@ export interface GuidanceTooltipProps {
 export interface SpotlightOverlayProps {
   targetSelector: string;
   isVisible: boolean;
+}
+
+export interface RecordedStep {
+  selector: string;
+  action: "click" | "type" | "view" | "hover";
+  tagName: string;
+  textContent?: string;
+  typedValue?: string;
+  route: string;
+  timestamp: number;
+}
+
+export interface RecordingState {
+  isRecording: boolean;
+  selectedQuestId: string | null;
+  startRoute: string | null;
+  steps: RecordedStep[];
+}
+
+export interface GeneratedChallenge {
+  id: string;
+  name: string;
+  description: string;
+  emoji: string;
+  steps: GuidanceStep[];
+  completionMessage: string;
 }
