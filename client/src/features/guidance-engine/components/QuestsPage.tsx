@@ -229,6 +229,8 @@ function QuestCard({
                         onContinueChallenge(quest.id, challengeIndex);
                       } else if (challengeStatus === "available") {
                         onStartQuest(quest.id);
+                      } else if (challengeStatus === "locked" && challenge.steps.length > 0) {
+                        onContinueChallenge(quest.id, challengeIndex);
                       }
                     }}
                     className={`
@@ -237,6 +239,8 @@ function QuestCard({
                         ? "bg-green-500/10 cursor-pointer hover:bg-green-500/20"
                         : challengeStatus === "in-progress" || challengeStatus === "available"
                         ? "bg-amber-500/10 cursor-pointer hover:bg-amber-500/20"
+                        : challenge.steps.length > 0
+                        ? "bg-gray-800/50 cursor-pointer hover:bg-gray-700/50"
                         : "bg-gray-800/50"
                       }
                       transition-colors
