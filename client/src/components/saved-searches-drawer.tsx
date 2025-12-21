@@ -67,6 +67,7 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch, onNewSea
                 onOpenChange(false);
               }}
               className="w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg hover:shadow-md hover:-translate-y-0.5 hover:bg-blue-50 transition-all duration-200 group"
+              data-testid="drawer-new-search"
             >
               <Plus className="h-6 w-6 text-blue-500" strokeWidth={3} />
               <span className="text-sm font-medium text-gray-700">New Search</span>
@@ -96,6 +97,7 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch, onNewSea
               <button
                 onClick={() => onOpenChange(false)}
                 className="w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg hover:shadow-md hover:bg-gray-100 hover:-translate-y-0.5 transition-all duration-200 group"
+                data-testid="drawer-nav-streak"
               >
                 <Zap className="h-5 w-5 text-gray-500 group-hover:text-yellow-600" />
                 <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">Streak</span>
@@ -109,6 +111,7 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch, onNewSea
               <button
                 onClick={() => onOpenChange(false)}
                 className="w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg hover:shadow-md hover:bg-gray-100 hover:-translate-y-0.5 transition-all duration-200 group"
+                data-testid="drawer-nav-campaigns"
               >
                 <Send className="h-5 w-5 text-gray-500 group-hover:text-green-600" />
                 <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">Campaigns</span>
@@ -122,6 +125,7 @@ export function SavedSearchesDrawer({ open, onOpenChange, onLoadSearch, onNewSea
               <button
                 onClick={() => onOpenChange(false)}
                 className="w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg hover:shadow-md hover:bg-gray-100 hover:-translate-y-0.5 transition-all duration-200 group"
+                data-testid="drawer-nav-contacts"
               >
                 <Users className="h-5 w-5 text-gray-500 group-hover:text-blue-600" />
                 <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">Contact Lists</span>

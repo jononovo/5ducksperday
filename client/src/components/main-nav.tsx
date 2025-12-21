@@ -63,6 +63,7 @@ export function MainNav() {
               onClick={handleDrawerClick}
               className="h-8 w-8 hover:bg-accent"
               title="Historic Searches"
+              data-testid="button-open-drawer"
             >
               <PanelLeft 
                 className="text-gray-500" 
