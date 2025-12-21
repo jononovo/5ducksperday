@@ -72,6 +72,10 @@ export interface GuidanceContextValue {
   startSandboxChallenge: (challenge: Challenge, onComplete?: () => void) => void;
   stopSandbox: () => void;
   isSandboxMode: boolean;
+  recording: RecordingState;
+  startRecording: (questId: string, startRoute: string) => void;
+  stopRecording: () => RecordedStep[];
+  clearRecording: () => void;
 }
 
 export interface FluffyGuideProps {

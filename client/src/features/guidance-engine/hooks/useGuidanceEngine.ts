@@ -1,6 +1,13 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
-import type { GuidanceState, GuidanceContextValue, Quest, Challenge, GuidanceStep } from "../types";
+import type { GuidanceState, GuidanceContextValue, Quest, Challenge, GuidanceStep, RecordingState, RecordedStep } from "../types";
 import { QUESTS, getQuestById, getFirstIncompleteQuest } from "../quests";
+
+const defaultRecordingState: RecordingState = {
+  isRecording: false,
+  selectedQuestId: null,
+  startRoute: null,
+  steps: [],
+};
 
 const STORAGE_KEY = "fluffy-guidance-progress";
 
@@ -126,6 +133,9 @@ export function useGuidanceEngine(options: UseGuidanceEngineOptions): GuidanceCo
   
   const [sandboxChallenge, setSandboxChallenge] = useState<Challenge | null>(null);
   const sandboxCompleteCallbackRef = useRef<(() => void) | null>(null);
+  
+  const [recording, setRecording] = useState<RecordingState>(defaultRecordingState);
+  const recordingRef = useRef(false);
 
   // Initialize from server once auth is ready
   useEffect(() => {
@@ -441,6 +451,138 @@ export function useGuidanceEngine(options: UseGuidanceEngineOptions): GuidanceCo
     }));
   }, []);
 
+  // Recording functions
+  const getBestSelector = useCallback((element: HTMLElement): string => {
+    if (element.dataset.testid) {
+      return `[data-testid="${element.dataset.testid}"]`;
+    }
+    if (element.id) {
+      return `#${element.id}`;
+    }
+    if (element.className && typeof element.className === 'string') {
+      const classes = element.className.split(' ').filter(c => c && !c.startsWith('hover:') && !c.startsWith('focus:'));
+      if (classes.length > 0) {
+        const uniqueClasses = classes.slice(0, 3).join('.');
+        return `${element.tagName.toLowerCase()}.${uniqueClasses}`;
+      }
+    }
+    return element.tagName.toLowerCase();
+  }, []);
+
+  const getElementDescription = useCallback((element: HTMLElement): string => {
+    const text = element.textContent?.trim().slice(0, 50);
+    if (text) return text;
+    if (element.getAttribute('placeholder')) {
+      return element.getAttribute('placeholder') || '';
+    }
+    if (element.getAttribute('aria-label')) {
+      return element.getAttribute('aria-label') || '';
+    }
+    return element.tagName.toLowerCase();
+  }, []);
+
+  // Global recording event listeners - these persist across page navigations
+  useEffect(() => {
+    if (!recording.isRecording) {
+      recordingRef.current = false;
+      return;
+    }
+    
+    recordingRef.current = true;
+
+    const handleClick = (e: MouseEvent) => {
+      if (!recordingRef.current) return;
+      
+      const target = e.target as HTMLElement;
+      if (target.closest('[data-recorder-ui]')) return;
+      
+      const selector = getBestSelector(target);
+      const step: RecordedStep = {
+        selector,
+        action: "click",
+        tagName: target.tagName.toLowerCase(),
+        textContent: getElementDescription(target),
+        route: window.location.pathname,
+        timestamp: Date.now(),
+      };
+      
+      setRecording(prev => ({
+        ...prev,
+        steps: [...prev.steps, step],
+      }));
+    };
+
+    const handleInput = (e: Event) => {
+      if (!recordingRef.current) return;
+      
+      const target = e.target as HTMLInputElement | HTMLTextAreaElement;
+      if (!target.tagName || !['INPUT', 'TEXTAREA'].includes(target.tagName)) return;
+      if (target.closest('[data-recorder-ui]')) return;
+      
+      const selector = getBestSelector(target);
+      
+      setRecording(prev => {
+        const lastStep = prev.steps[prev.steps.length - 1];
+        if (lastStep && lastStep.selector === selector && lastStep.action === "type") {
+          const updated = [...prev.steps];
+          updated[updated.length - 1] = {
+            ...lastStep,
+            typedValue: target.value,
+          };
+          return { ...prev, steps: updated };
+        }
+        
+        return {
+          ...prev,
+          steps: [...prev.steps, {
+            selector,
+            action: "type" as const,
+            tagName: target.tagName.toLowerCase(),
+            textContent: target.placeholder || "input field",
+            typedValue: target.value,
+            route: window.location.pathname,
+            timestamp: Date.now(),
+          }],
+        };
+      });
+    };
+
+    document.addEventListener("click", handleClick, true);
+    document.addEventListener("input", handleInput, true);
+
+    return () => {
+      document.removeEventListener("click", handleClick, true);
+      document.removeEventListener("input", handleInput, true);
+    };
+  }, [recording.isRecording, getBestSelector, getElementDescription]);
+
+  const startRecording = useCallback((questId: string, startRoute: string) => {
+    setRecording({
+      isRecording: true,
+      selectedQuestId: questId,
+      startRoute,
+      steps: [],
+    });
+  }, []);
+
+  const stopRecording = useCallback((): RecordedStep[] => {
+    const steps = recording.steps;
+    setRecording(prev => ({
+      ...prev,
+      isRecording: false,
+    }));
+    return steps;
+  }, [recording.steps]);
+
+  const clearRecording = useCallback(() => {
+    setRecording({
+      isRecording: false,
+      selectedQuestId: null,
+      startRoute: null,
+      steps: [],
+    });
+  }, []);
+
   useEffect(() => {
     if (isSandboxMode && !state.isActive && sandboxChallenge) {
       const callback = sandboxCompleteCallbackRef.current;
@@ -476,5 +618,9 @@ export function useGuidanceEngine(options: UseGuidanceEngineOptions): GuidanceCo
     startSandboxChallenge,
     stopSandbox,
     isSandboxMode,
+    recording,
+    startRecording,
+    stopRecording,
+    clearRecording,
   };
 }
