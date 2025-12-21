@@ -30,6 +30,7 @@ export function GuidanceTooltip({
     const tooltipWidth = 260;
     const tooltipHeight = 100;
     const spacing = 16;
+    const mascotOffset = 50; // Extra space for duckling when tooltip is on the right
 
     let finalPosition = position;
     if (position === "auto") {
@@ -66,7 +67,7 @@ export function GuidanceTooltip({
         break;
       case "right":
         top = rect.top + rect.height / 2 - tooltipHeight / 2;
-        left = rect.right + spacing;
+        left = rect.right + spacing + mascotOffset;
         arrowPosition = "left";
         break;
       case "left":
