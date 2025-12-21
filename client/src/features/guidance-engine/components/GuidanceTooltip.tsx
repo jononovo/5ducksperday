@@ -30,7 +30,7 @@ export function GuidanceTooltip({
     const tooltipWidth = 260;
     const tooltipHeight = 100;
     const spacing = 16;
-    const mascotOffset = 50; // Extra space for duckling when tooltip is on the right
+    const mascotOffset = 40; // Extra space for duckling when tooltip is on the right
 
     let finalPosition = position;
     if (position === "auto") {
