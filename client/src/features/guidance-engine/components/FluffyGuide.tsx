@@ -55,30 +55,29 @@ export function FluffyGuide({ onClick, isActive, onCloseGuide }: ExtendedFluffyG
     setShowRecorder(true);
   };
 
-  if (isActive) {
-    return null;
-  }
-
   return createPortal(
     <>
-      <AnimatePresence>
-        {showMenu && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[9980]"
-            onClick={() => setShowMenu(false)}
-          />
-        )}
-      </AnimatePresence>
+      {/* Only show Fluffy button and menu when guidance is not active */}
+      {!isActive && (
+        <>
+          <AnimatePresence>
+            {showMenu && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-[9980]"
+                onClick={() => setShowMenu(false)}
+              />
+            )}
+          </AnimatePresence>
 
-      <motion.div
-        className="fixed bottom-6 right-6 z-[9990]"
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ type: "spring", stiffness: 200, damping: 15 }}
-      >
+          <motion.div
+            className="fixed bottom-6 right-6 z-[9990]"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 200, damping: 15 }}
+          >
         <AnimatePresence>
           {showMenu && (
             <motion.div
@@ -163,7 +162,10 @@ export function FluffyGuide({ onClick, isActive, onCloseGuide }: ExtendedFluffyG
             <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1 border-l-8 border-l-gray-800 border-y-4 border-y-transparent" />
           </motion.div>
         </button>
-      </motion.div>
+          </motion.div>
+        </>
+      )}
+      {/* ChallengeRecorder is always rendered to preserve its state during test playback */}
       <ChallengeRecorder 
         isOpen={showRecorder} 
         onClose={() => setShowRecorder(false)} 
