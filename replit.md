@@ -112,6 +112,16 @@ The platform is built with a React SPA frontend (TypeScript, Vite, Tailwind, sha
     - 500 emails/day maximum per campaign with a 30s minimum spacing.
 - **Modular Code Architecture**: Features are organized using a module pattern (`server/features/[name]` and `client/src/features/[name]`) for improved maintainability and reusability.
 
+**LinkedIn Integration (Phase 1 - Authentication):**
+- **Architecture**: Python FastAPI microservice (`services/linkedin-python/`) wraps the unofficial `linkedin-api` library, called from Node.js via internal HTTP API.
+- **Database Tables**: `linkedin_accounts` (stores encrypted cookies/TOTP secrets), `linkedin_action_queue` (pending actions), `linkedin_engagements` (engagement history).
+- **Node.js Module**: `server/features/linkedin/` with `LinkedInAuthService` and Express routes at `/api/linkedin/*`.
+- **Security**: Internal token (`LINKEDIN_INTERNAL_TOKEN`) required for Python↔Node communication. Cookies stored with AES-256-CBC encryption.
+- **Session Handling**: In-memory session map maintains `session_id` between connect and verify calls.
+- **2FA Limitation**: LinkedIn 2FA cannot be completed programmatically via the unofficial API. Users must temporarily disable 2FA or use app passwords to connect.
+- **Environment Variables**: `LINKEDIN_INTERNAL_TOKEN`, `LINKEDIN_SERVICE_URL` (default: `http://127.0.0.1:8001`), `LINKEDIN_SERVICE_PORT`.
+- **Important Note**: Using unofficial LinkedIn APIs carries Terms of Service violation risks. Clear warnings should be surfaced to users about automation risks.
+
 ## External Dependencies
 - **Perplexity**: Used for company and contact discovery.
 - **Hunter.io**: Integrated for email verification.
@@ -120,3 +130,4 @@ The platform is built with a React SPA frontend (TypeScript, Vite, Tailwind, sha
 - **SendGrid**: Handles email delivery and tracking, including webhook management.
 - **Firebase**: Provides authentication services.
 - **PostgreSQL**: The primary relational database for all persistent data storage (users, companies, contacts, campaigns, credits, subscriptions, tokens).
+- **LinkedIn (unofficial)**: Python `linkedin-api` library for LinkedIn automation features via FastAPI microservice.
