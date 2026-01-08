@@ -1495,6 +1495,118 @@ export type InsertEmailSequenceEvent = z.infer<typeof insertEmailSequenceEventSc
 export type EmailSend = typeof emailSends.$inferSelect;
 export type InsertEmailSend = z.infer<typeof insertEmailSendSchema>;
 
+// ==========================================
+// LINKEDIN INTEGRATION
+// ==========================================
+
+// LinkedIn Accounts - stores user's LinkedIn session
+export const linkedinAccounts = pgTable("linkedin_accounts", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  linkedinPublicId: text("linkedin_public_id"), // e.g., "john-smith-123"
+  linkedinName: text("linkedin_name"),
+  linkedinHeadline: text("linkedin_headline"),
+  linkedinPhotoUrl: text("linkedin_photo_url"),
+  encryptedCookies: text("encrypted_cookies"), // AES-256 encrypted JSON
+  encryptedTotpSecret: text("encrypted_totp_secret"), // For auto-reconnect
+  sessionStatus: text("session_status").notNull().default('disconnected'), // 'connected', 'disconnected', 'pending_verification', 'expired'
+  cookieExpiresAt: timestamp("cookie_expires_at", { withTimezone: true }),
+  connectedAt: timestamp("connected_at", { withTimezone: true }),
+  lastVerifiedAt: timestamp("last_verified_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow()
+}, (table) => [
+  uniqueIndex('idx_linkedin_accounts_user_id').on(table.userId),
+  index('idx_linkedin_accounts_status').on(table.sessionStatus)
+]);
+
+// LinkedIn Action Queue - rate-limited action processing
+export const linkedinActionQueue = pgTable("linkedin_action_queue", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  contactId: integer("contact_id").references(() => contacts.id, { onDelete: 'set null' }),
+  actionType: text("action_type").notNull(), // 'view_profile', 'like_post', 'comment_post', 'send_connection', 'send_message'
+  payload: jsonb("payload").notNull().default({}), // Action-specific data
+  status: text("status").notNull().default('pending'), // 'pending', 'processing', 'completed', 'failed'
+  scheduledAt: timestamp("scheduled_at", { withTimezone: true }).notNull(),
+  executedAt: timestamp("executed_at", { withTimezone: true }),
+  result: jsonb("result"),
+  error: text("error"),
+  retryCount: integer("retry_count").default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow()
+}, (table) => [
+  index('idx_linkedin_action_queue_user_id').on(table.userId),
+  index('idx_linkedin_action_queue_status').on(table.status),
+  index('idx_linkedin_action_queue_scheduled').on(table.scheduledAt),
+  index('idx_linkedin_action_queue_pending').on(table.status, table.scheduledAt)
+]);
+
+// LinkedIn Engagements - history of all LinkedIn interactions
+export const linkedinEngagements = pgTable("linkedin_engagements", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  contactId: integer("contact_id").references(() => contacts.id, { onDelete: 'set null' }),
+  engagementType: text("engagement_type").notNull(), // 'profile_view', 'post_like', 'post_comment', 'connection_sent', 'connection_accepted', 'message_sent'
+  linkedinPostUrn: text("linkedin_post_urn"),
+  linkedinPostContent: text("linkedin_post_content"),
+  commentText: text("comment_text"),
+  reactionType: text("reaction_type"), // 'LIKE', 'CELEBRATE', 'SUPPORT', 'LOVE', 'INSIGHTFUL', 'FUNNY'
+  metadata: jsonb("metadata").default({}),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow()
+}, (table) => [
+  index('idx_linkedin_engagements_user_id').on(table.userId),
+  index('idx_linkedin_engagements_contact_id').on(table.contactId),
+  index('idx_linkedin_engagements_type').on(table.engagementType),
+  index('idx_linkedin_engagements_created').on(table.createdAt)
+]);
+
+// LinkedIn schemas
+export const linkedinAccountSchema = z.object({
+  linkedinPublicId: z.string().optional(),
+  linkedinName: z.string().optional(),
+  linkedinHeadline: z.string().optional(),
+  linkedinPhotoUrl: z.string().optional(),
+  sessionStatus: z.enum(['connected', 'disconnected', 'pending_verification', 'expired']).default('disconnected')
+});
+
+export const insertLinkedinAccountSchema = linkedinAccountSchema.extend({
+  userId: z.number()
+});
+
+export const linkedinActionSchema = z.object({
+  contactId: z.number().optional(),
+  actionType: z.enum(['view_profile', 'like_post', 'comment_post', 'react_post', 'send_connection', 'send_message']),
+  payload: z.record(z.unknown()).default({}),
+  scheduledAt: z.date()
+});
+
+export const insertLinkedinActionSchema = linkedinActionSchema.extend({
+  userId: z.number()
+});
+
+export const linkedinEngagementSchema = z.object({
+  contactId: z.number().optional(),
+  engagementType: z.enum(['profile_view', 'post_like', 'post_comment', 'post_reaction', 'connection_sent', 'connection_accepted', 'message_sent', 'message_received']),
+  linkedinPostUrn: z.string().optional(),
+  linkedinPostContent: z.string().optional(),
+  commentText: z.string().optional(),
+  reactionType: z.enum(['LIKE', 'CELEBRATE', 'SUPPORT', 'LOVE', 'INSIGHTFUL', 'FUNNY']).optional(),
+  metadata: z.record(z.unknown()).optional()
+});
+
+export const insertLinkedinEngagementSchema = linkedinEngagementSchema.extend({
+  userId: z.number()
+});
+
+// LinkedIn types
+export type LinkedinAccount = typeof linkedinAccounts.$inferSelect;
+export type InsertLinkedinAccount = z.infer<typeof insertLinkedinAccountSchema>;
+export type LinkedinAction = typeof linkedinActionQueue.$inferSelect;
+export type InsertLinkedinAction = z.infer<typeof insertLinkedinActionSchema>;
+export type LinkedinEngagement = typeof linkedinEngagements.$inferSelect;
+export type InsertLinkedinEngagement = z.infer<typeof insertLinkedinEngagementSchema>;
+
 // Backward compatibility exports
 export const targetCustomerProfiles = customerProfiles;
 

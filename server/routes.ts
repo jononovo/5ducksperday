@@ -57,6 +57,7 @@ import { registerAccessApplicationsRoutes } from "./features/access-applications
 import { registerFeedbackRoutes } from "./features/feedback/routes";
 import { registerFindIdealCustomerRoutes } from "./features/find-ideal-customer/routes";
 import { attributionRoutes } from "./features/attribution";
+import linkedinRoutes from "./features/linkedin";
 
 
 // Import centralized auth utilities
@@ -206,6 +207,9 @@ export function registerRoutes(app: Express) {
   
   // Register attribution tracking routes
   app.use('/api/attribution', requireAuth, attributionRoutes);
+  
+  // Register LinkedIn integration routes
+  app.use('/api/linkedin', requireAuth, linkedinRoutes);
 
   // Register campaigns module (includes sender profiles, customer profiles, and products)
   registerCampaignsRoutes(app, requireAuth);

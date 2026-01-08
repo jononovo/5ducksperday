@@ -1,9 +1,10 @@
-modules = ["nodejs-20", "web", "postgresql-16"]
+modules = ["nodejs-20", "web", "python-3.11", "postgresql-16"]
 run = "npm run dev"
 hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
 channel = "stable-24_05"
+packages = ["libxcrypt"]
 
 [deployment]
 deploymentTarget = "cloudrun"
@@ -51,3 +52,6 @@ integrations = ["javascript_sendgrid:1.0.0", "javascript_database:1.0.0", "javas
 [userenv]
 
 [userenv.shared]
+LINKEDIN_INTERNAL_TOKEN = "5ducks-linkedin-internal-token-2026"
+LINKEDIN_SERVICE_URL = "http://127.0.0.1:8001"
+LINKEDIN_SERVICE_PORT = "8001"
