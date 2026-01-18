@@ -1567,7 +1567,7 @@ export default function Home({ isNewSearch = false }: HomeProps) {
                   <div className="flex flex-col-reverse md:flex-row items-center gap-4 mb-3">
                     <div className="flex items-center gap-3">
                       <EggAnimation />
-                      <h2 className="text-2xl sm:text-3xl md:text-4xl mt-2 md:mt-0 font-serif text-amber-800 dark:text-amber-200">Find your ideal <em>business</em> customers</h2>
+                      <h2 className="text-2xl sm:text-3xl md:text-4xl mt-2 md:mt-0 font-serif text-accent dark:text-accent">Find your ideal <em>business</em> customers</h2>
                     </div>
                   </div>
                 )}
@@ -1687,7 +1687,7 @@ export default function Home({ isNewSearch = false }: HomeProps) {
                             setCurrentQuery(suggestion);
                             setInputHasChanged(true);
                           }}
-                          className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-full transition-colors hover:shadow-sm"
+                          className="px-3 py-1.5 text-sm bg-transparent border border-secondary-foreground/60 hover:border-secondary-foreground text-secondary-foreground/60 hover:text-secondary-foreground rounded-lg transition-colors"
                           data-testid={`button-suggestion-${suggestion.toLowerCase().replace(/\s+/g, '-').slice(0, 30)}`}
                         >
                           {suggestion}
