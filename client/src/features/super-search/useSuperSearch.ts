@@ -64,8 +64,26 @@ export function useSuperSearch() {
 
         for (const line of lines) {
           if (line.startsWith('data: ')) {
+            const payload = line.slice(6);
+            
+            // Handle [DONE] signal as fallback completion
+            if (payload === '[DONE]') {
+              setState(prev => {
+                if (!prev.isComplete) {
+                  return {
+                    ...prev,
+                    isSearching: false,
+                    isComplete: true,
+                    progress: `Search complete! Found ${prev.results.length} results.`,
+                  };
+                }
+                return prev;
+              });
+              continue;
+            }
+            
             try {
-              const event: StreamEvent = JSON.parse(line.slice(6));
+              const event: StreamEvent = JSON.parse(payload);
               
               switch (event.type) {
                 case 'plan':

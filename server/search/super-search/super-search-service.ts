@@ -41,6 +41,10 @@ export class SuperSearchService {
         console.log(`[SuperSearchService] Deducted 250 credits for super search`);
       }
 
+      // Emit completion event
+      yield { type: 'complete', data: { totalResults: results.length } };
+      console.log(`[SuperSearchService] Search complete with ${results.length} results`);
+
     } catch (error) {
       console.error('[SuperSearchService] Error:', error);
       yield { type: 'error', data: error instanceof Error ? error.message : 'Unknown error' };
