@@ -1,0 +1,186 @@
+Super Search Technical Plan (Revised)OverviewSingle Perplexity streaming call that:
+
+Analyzes query → outputs search plan (displayMode, columns, targetCount)
+Executes search → streams results conforming to plan
+Saves to DB with flexible superSearchMeta JSON field
+Phase 1: Database ChangesMigration: Add Super Search fieldsql-- Companies table
+ALTER TABLE companies ADD COLUMN super_search_meta JSONB;
+
+-- Contacts table
+ALTER TABLE contacts ADD COLUMN super_search_meta JSONB;Usage of superSearchMeta:
+json{
+  "note": "Short insight (optional)",
+  "research": "Longer analysis (optional)",
+  "Annual Revenue": "$50M",
+  "Tech Stack": "AWS, React",
+  "...any custom fields": "..."
+}Phase 2: BackendNew files:
+server/search/super-search/
+├── index.ts                    # Exports
+├── super-search-service.ts     # Main orchestration + DB save
+├── perplexity-stream.ts        # Streaming handler + parsing
+├── system-prompt.ts            # Super Search prompt
+└── routes.ts                   # SSE endpointSSE Endpoint:
+POST /api/super-search/stream
+Body: { query: string, listId?: number }
+Response: Server-Sent EventsStream event types:
+typescripttype StreamEvent = 
+  | { type: 'plan', data: SearchPlan }
+  | { type: 'progress', data: string }
+  | { type: 'result', data: CompanyResult | ContactResult }
+  | { type: 'complete', data: { totalResults: number } }
+  | { type: 'error', data: string }SearchPlan interface:
+typescriptinterface SearchPlan {
+  queryType: 'person' | 'role' | 'company' | 'signals';
+  displayMode: 'list' | 'table';
+  targetCount: 5 | 10 | 20;
+  columns?: string[];  // For table view only
+  searchStrategy: string;  // Shown to user during streaming
+}Result interfaces:
+typescriptinterface CompanyResult {
+  type: 'company';
+  name: string;
+  website?: string;
+  city?: string;
+  country?: string;
+  industry?: string;
+  superSearchMeta?: Record<string, string>;
+}
+
+interface ContactResult {
+  type: 'contact';
+  name: string;
+  role?: string;
+  company: string;
+  companyWebsite?: string;
+  linkedinUrl?: string;
+  city?: string;
+  country?: string;
+  superSearchMeta?: Record<string, string>;
+}Phase 3: Perplexity System Prompttypescriptconst SUPER_SEARCH_SYSTEM_PROMPT = `You are Super Search, an advanced B2B lead discovery agent.
+
+STEP 1 - OUTPUT SEARCH PLAN:
+Analyze the query and output a JSON plan:
+###PLAN###
+{
+  "queryType": "person|role|company|signals",
+  "displayMode": "list|table",
+  "targetCount": 5|10|20,
+  "columns": ["Name", "Company", ...],
+  "searchStrategy": "Brief explanation of approach..."
+}
+###END_PLAN###
+
+DECISION LOGIC:
+- displayMode "list" → Standard company/contact search, uses existing card UI
+- displayMode "table" → Complex queries with custom attributes, signal-based searches
+
+WHEN TO USE TABLE:
+- Query requires 3+ custom attributes
+- Query asks for rankings, comparisons, or statistics
+- Primary output is neither companies nor contacts (e.g., "top markets for X")
+
+WHEN TO USE LIST:
+- Standard people search ("find VPs of Marketing")
+- Standard company search ("SaaS startups in Austin")
+- Results fit naturally into company or contact cards
+
+TARGET COUNT LOGIC:
+- Specific person search → 5
+- Role/function search → 10
+- Company type search → 10-20
+- Signal/niche search → 10
+
+STEP 2 - STREAM RESULTS:
+Output each result as JSON:
+###RESULT###
+{
+  "type": "company|contact",
+  "name": "...",
+  "role": "...",
+  "company": "...",
+  "linkedinUrl": "...",
+  "city": "...",
+  "country": "...",
+  "superSearchMeta": {
+    "note": "Short insight if useful",
+    "research": "Longer analysis if query warrants it",
+    "Custom Field": "Custom value"
+  }
+}
+###END_RESULT###
+
+Between results, stream plain text progress updates explaining what you're searching for.
+
+RULES:
+- superSearchMeta is optional - only include when genuinely useful
+- superSearchMeta.note should be under 100 characters
+- superSearchMeta.research should be under 2000 characters
+- Custom field keys in superSearchMeta should match column names (for table view)
+- Be accurate - do not fabricate contacts or companies
+- Include linkedinUrl when findable
+- Stream progress updates between results`;Phase 4: FrontendNew files:
+client/src/features/super-search/
+├── components/
+│   ├── super-search-stream.tsx     # Streaming progress display
+│   └── super-search-table.tsx      # Flexible table view
+├── hooks/
+│   └── use-super-search.ts         # SSE connection hook
+└── types.tsIntegration point:
+
+Add "Super Search" option to existing search type dropdown in /app
+Cost badge: "250 credits"
+Display logic:
+typescriptfunction SuperSearchResults({ plan, results }) {
+  if (plan.displayMode === 'table') {
+    return <SuperSearchTable columns={plan.columns} rows={results} />;
+  }
+  
+  // List mode - use existing components
+  const hasContacts = results.some(r => r.type === 'contact');
+  
+  if (hasContacts) {
+    return <TopProspects contacts={results} showMeta />;
+  }
+  
+  return <CompanyCards companies={results} showMeta />;
+}Streaming display:
+typescriptfunction SuperSearchStream({ events }) {
+  return (
+    <div>
+      {/* Show plan immediately */}
+      {events.plan && (
+        <div className="search-plan">
+          <span>Finding {events.plan.targetCount} results...</span>
+          <span>{events.plan.searchStrategy}</span>
+        </div>
+      )}
+      
+      {/* Stream progress text */}
+      {events.progress.map(text => (
+        <p className="progress-text">{text}</p>
+      ))}
+      
+      {/* Results appear as they stream */}
+      <SuperSearchResults 
+        plan={events.plan} 
+        results={events.results} 
+      />
+    </div>
+  );
+}Phase 5: Save to DBAfter stream completes:
+Parse all results from stream
+For each company result:
+
+storage.createCompany({ ...fields, superSearchMeta })
+
+
+For each contact result:
+
+Find or create associated company
+storage.createContact({ ...fields, superSearchMeta })
+
+
+Deduct 250 credits via CreditService.deductCredits()
+Add to user's list (existing listId or create new)
+File Changes SummaryFileChangeshared/schema.tsAdd superSearchMeta: Record<string, string> to Company and Contact typesserver/storage.tsUpdate create/update methods to handle new fieldserver/routes.tsMount super-search routesserver/search/super-search/*New directory (4 files)client/src/features/super-search/*New directory (4 files)client/src/pages/app.tsxAdd Super Search option to search type dropdowndb/migrations/xxx_add_super_search_meta.sqlAdd 2 columns (1 per table)
