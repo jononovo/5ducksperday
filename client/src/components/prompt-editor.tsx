@@ -20,6 +20,7 @@ import { triggerInsufficientCreditsGlobally } from "@/hooks/use-insufficient-cre
 import ContactSearchChips, { ContactSearchConfig } from "./contact-search-chips";
 import SearchTypeSelector, { SearchType } from "./search-type-selector";
 import IndividualSearchModal, { IndividualSearchFormData } from "./individual-search-modal";
+import { useSuperSearch, SuperSearchResults } from "@/features/super-search";
 import {
   Tooltip,
   TooltipContent,
@@ -142,6 +143,10 @@ export default function PromptEditor({
   // Individual search modal state
   const [isIndividualSearchModalOpen, setIsIndividualSearchModalOpen] = useState(false);
   const [isIndividualSearching, setIsIndividualSearching] = useState(false);
+
+  // Super Search hook for AI-powered lead discovery
+  const superSearch = useSuperSearch();
+  const [showSuperSearchResults, setShowSuperSearchResults] = useState(false);
 
   // Handle search type change - intercept individual_search to show modal
   const handleSearchTypeChange = (type: SearchType) => {
@@ -1157,7 +1162,12 @@ export default function PromptEditor({
     onAnalyze();
     
     // Choose search strategy based on selected search type
-    if (searchType === 'companies') {
+    if (searchType === 'super_search') {
+      // Super Search - AI-powered streaming lead discovery
+      setShowSuperSearchResults(true);
+      superSearch.startSearch(value);
+      return; // Early return - Super Search handles its own flow
+    } else if (searchType === 'companies') {
       // Companies-only search - use quick search without contact enrichment
       quickSearchMutation.mutate(value);
     } else {
@@ -1464,6 +1474,20 @@ export default function PromptEditor({
         {/* Progress Bar is now rendered in Home.tsx via onProgressUpdate callback */}
 
       </div>
+
+      {/* Super Search Results */}
+      {showSuperSearchResults && (
+        <div className="mt-6">
+          <SuperSearchResults
+            plan={superSearch.plan}
+            results={superSearch.results}
+            isSearching={superSearch.isSearching}
+            progress={superSearch.progress}
+            error={superSearch.error}
+            isComplete={superSearch.isComplete}
+          />
+        </div>
+      )}
 
       {/* Individual Search Modal */}
       <IndividualSearchModal
