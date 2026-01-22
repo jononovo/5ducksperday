@@ -6,7 +6,7 @@ import { CREDIT_COSTS } from '../../features/billing/credits/types';
 const router = Router();
 
 router.post('/stream', async (req: Request, res: Response) => {
-  const userId = (req as any).userId;
+  const userId = (req as any).user?.id;
   if (!userId) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
