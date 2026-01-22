@@ -31,11 +31,13 @@ export type StreamEvent =
   | { type: 'complete'; data: SuperSearchTableResult }
   | { type: 'error'; data: string };
 
-export interface SuperSearchState {
-  isSearching: boolean;
-  plan: SearchPlan | null;
-  status: string;
-  rows: TableRow[];
-  error: string | null;
-  isComplete: boolean;
+export interface SuperSearchRequest {
+  query: string;
+  variant?: string;
+}
+
+export interface SuperSearchVariant {
+  name: string;
+  description: string;
+  execute(query: string, onEvent: (event: StreamEvent) => void): Promise<SuperSearchTableResult>;
 }

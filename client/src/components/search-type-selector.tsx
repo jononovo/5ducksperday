@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-export type SearchType = "companies" | "contacts" | "emails" | "individual_search" | "super_search";
+export type SearchType = "companies" | "contacts" | "emails" | "individual_search" | "super_search_v1";
 
 export interface SearchTypeConfig {
   type: SearchType;
@@ -60,8 +60,8 @@ const searchTypeConfigs: SearchTypeConfig[] = [
     creditCost: 100
   },
   {
-    type: "super_search",
-    label: "Super Search (AI)",
+    type: "super_search_v1",
+    label: "Super Search v1",
     icons: [<Sparkles key="super-search" className="h-3 w-3 md:h-[14px] md:w-[14px] lg:h-[18px] lg:w-[18px]" />],
     estimatedTime: "30-60 seconds",
     creditCost: 250

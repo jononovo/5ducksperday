@@ -1,9 +1,14 @@
 import { Router, Request, Response } from 'express';
-import { SuperSearchService } from './super-search-service';
 import { CreditService } from '../../features/billing/credits/service';
 import { CREDIT_COSTS } from '../../features/billing/credits/types';
+import { search1Variant } from './search1';
+import type { StreamEvent } from './shared/types';
 
 const router = Router();
+
+const variants: Record<string, typeof search1Variant> = {
+  'v1': search1Variant,
+};
 
 router.post('/stream', async (req: Request, res: Response) => {
   const userId = (req as any).user?.id;
@@ -11,9 +16,14 @@ router.post('/stream', async (req: Request, res: Response) => {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  const { query, listId } = req.body;
+  const { query, variant = 'v1' } = req.body;
   if (!query || typeof query !== 'string') {
     return res.status(400).json({ error: 'Query is required' });
+  }
+
+  const selectedVariant = variants[variant];
+  if (!selectedVariant) {
+    return res.status(400).json({ error: `Unknown variant: ${variant}` });
   }
 
   try {
@@ -33,15 +43,20 @@ router.post('/stream', async (req: Request, res: Response) => {
     res.setHeader('Connection', 'keep-alive');
     res.setHeader('X-Accel-Buffering', 'no');
 
-    console.log(`[SuperSearch] SSE connection established for user ${userId}`);
+    console.log(`[SuperSearch] SSE connection established for user ${userId}, variant: ${variant}`);
 
-    for await (const event of SuperSearchService.executeSearch(userId, query, listId)) {
+    const onEvent = (event: StreamEvent) => {
       const eventData = JSON.stringify(event);
       res.write(`data: ${eventData}\n\n`);
+    };
+
+    try {
+      await selectedVariant.execute(query, onEvent);
       
-      if (event.type === 'error' || event.type === 'complete') {
-        break;
-      }
+      await CreditService.deductCredits(userId, 'super_search', true);
+      console.log(`[SuperSearch] Deducted ${requiredCredits} credits from user ${userId}`);
+    } catch (err) {
+      console.error('[SuperSearch] Variant execution error:', err);
     }
 
     res.write('data: [DONE]\n\n');

@@ -1,11 +1,11 @@
 import { useState, useCallback, useRef } from 'react';
-import type { SearchPlan, SuperSearchResult, SuperSearchState, StreamEvent } from './types';
+import type { SearchPlan, TableRow, SuperSearchState, StreamEvent } from './types';
 
 const initialState: SuperSearchState = {
   isSearching: false,
   plan: null,
-  progress: '',
-  results: [],
+  status: '',
+  rows: [],
   error: null,
   isComplete: false,
 };
@@ -14,7 +14,7 @@ export function useSuperSearch() {
   const [state, setState] = useState<SuperSearchState>(initialState);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  const startSearch = useCallback(async (query: string, listId?: number) => {
+  const startSearch = useCallback(async (query: string, variant: string = 'v1') => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -24,8 +24,8 @@ export function useSuperSearch() {
     setState({
       isSearching: true,
       plan: null,
-      progress: 'Initializing AI search...',
-      results: [],
+      status: 'Initializing AI search...',
+      rows: [],
       error: null,
       isComplete: false,
     });
@@ -36,7 +36,7 @@ export function useSuperSearch() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ query, listId }),
+        body: JSON.stringify({ query, variant }),
         signal: abortControllerRef.current.signal,
         credentials: 'include',
       });
@@ -66,7 +66,6 @@ export function useSuperSearch() {
           if (line.startsWith('data: ')) {
             const payload = line.slice(6);
             
-            // Handle [DONE] signal as fallback completion
             if (payload === '[DONE]') {
               setState(prev => {
                 if (!prev.isComplete) {
@@ -74,7 +73,7 @@ export function useSuperSearch() {
                     ...prev,
                     isSearching: false,
                     isComplete: true,
-                    progress: `Search complete! Found ${prev.results.length} results.`,
+                    status: `Search complete! Found ${prev.rows.length} results.`,
                   };
                 }
                 return prev;
@@ -90,22 +89,22 @@ export function useSuperSearch() {
                   setState(prev => ({
                     ...prev,
                     plan: event.data as SearchPlan,
-                    progress: `Strategy: ${(event.data as SearchPlan).searchStrategy}`,
+                    status: `Strategy: ${(event.data as SearchPlan).searchStrategy}`,
                   }));
                   break;
                   
-                case 'progress':
+                case 'status':
                   setState(prev => ({
                     ...prev,
-                    progress: event.data as string,
+                    status: event.data as string,
                   }));
                   break;
                   
-                case 'result':
+                case 'row':
                   setState(prev => ({
                     ...prev,
-                    results: [...prev.results, event.data as SuperSearchResult],
-                    progress: `Found ${prev.results.length + 1} results...`,
+                    rows: [...prev.rows, event.data as TableRow],
+                    status: `Found ${prev.rows.length + 1} results...`,
                   }));
                   break;
                   
@@ -114,7 +113,7 @@ export function useSuperSearch() {
                     ...prev,
                     isSearching: false,
                     isComplete: true,
-                    progress: `Search complete! Found ${prev.results.length} results.`,
+                    status: `Search complete! Found ${prev.rows.length} results.`,
                   }));
                   break;
                   
@@ -137,7 +136,7 @@ export function useSuperSearch() {
         setState(prev => ({
           ...prev,
           isSearching: false,
-          progress: 'Search cancelled',
+          status: 'Search cancelled',
         }));
         return;
       }

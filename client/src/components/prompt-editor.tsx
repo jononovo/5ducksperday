@@ -1162,10 +1162,10 @@ export default function PromptEditor({
     onAnalyze();
     
     // Choose search strategy based on selected search type
-    if (searchType === 'super_search') {
-      // Super Search - AI-powered streaming lead discovery
+    if (searchType === 'super_search_v1') {
+      // Super Search v1 - AI-powered streaming lead discovery
       setShowSuperSearchResults(true);
-      superSearch.startSearch(value);
+      superSearch.startSearch(value, 'v1');
       return; // Early return - Super Search handles its own flow
     } else if (searchType === 'companies') {
       // Companies-only search - use quick search without contact enrichment
@@ -1480,9 +1480,9 @@ export default function PromptEditor({
         <div className="mt-6">
           <SuperSearchResults
             plan={superSearch.plan}
-            results={superSearch.results}
+            rows={superSearch.rows}
             isSearching={superSearch.isSearching}
-            progress={superSearch.progress}
+            status={superSearch.status}
             error={superSearch.error}
             isComplete={superSearch.isComplete}
           />
