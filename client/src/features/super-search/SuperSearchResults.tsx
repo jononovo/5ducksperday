@@ -25,8 +25,8 @@ function ResultsTable({ rows, plan }: { rows: TableRow[]; plan: SearchPlan | nul
   const columns = plan?.columns || [];
   
   return (
-    <div className="rounded-md border overflow-x-auto">
-      <Table>
+    <div className="rounded-md border overflow-auto max-h-[600px]">
+      <Table className="w-max min-w-full">
         <TableHeader>
           <UITableRow>
             <TableHead className="min-w-[150px]">Name</TableHead>
