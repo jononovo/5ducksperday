@@ -37,6 +37,7 @@ import { registerSearchRoutes, SessionManager } from "./search";
 import { registerSitemapRoutes } from "./features/sitemap";
 import { registerSearchJobRoutes } from "./search/routes/search-jobs";
 import { jobProcessor } from "./search/services/job-processor";
+import { superSearchRoutes } from "./search/super-search";
 
 // Import inactive module registration functions
 
@@ -250,6 +251,9 @@ export function registerRoutes(app: Express) {
   
   // Register attribution tracking routes
   app.use('/api/attribution', requireAuth, attributionRoutes);
+
+  // Register super search routes (AI-powered lead discovery)
+  app.use('/api/super-search', requireAuth, superSearchRoutes);
 
   // Register campaigns module (includes sender profiles, customer profiles, and products)
   registerCampaignsRoutes(app, requireAuth);

@@ -242,6 +242,7 @@ export const companies = pgTable("companies", {
   city: text("city"),
   state: text("state"),
   country: text("country"),
+  superSearchMeta: jsonb("super_search_meta").$type<Record<string, string>>(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow()
 }, (table) => [
   index('idx_companies_user_id').on(table.userId),
@@ -291,7 +292,8 @@ export const contacts = pgTable("contacts", {
   // Apollo mobile phone webhook fields
   apolloPersonId: text("apollo_person_id"), // Apollo's person ID for webhook correlation
   mobilePhoneStatus: text("mobile_phone_status"), // 'pending' | 'found' | 'not_found' | null
-  mobilePhoneRequestedAt: timestamp("mobile_phone_requested_at", { withTimezone: true })
+  mobilePhoneRequestedAt: timestamp("mobile_phone_requested_at", { withTimezone: true }),
+  superSearchMeta: jsonb("super_search_meta").$type<Record<string, string>>()
 }, (table) => [
   index('idx_contacts_company_id').on(table.companyId),
   index('idx_contacts_user_id').on(table.userId),
