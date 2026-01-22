@@ -6,6 +6,7 @@ import { SEOHead } from "@/components/ui/seo-head";
 import { slugify } from "@/lib/url-utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SearchProgressIndicator, type SearchProgressState } from "@/features/search-progress";
+import { SuperSearchResults, type SearchPlan, type TableRow as SuperSearchRow } from "@/features/super-search";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
 
 // Lazy load heavy components that appear after search
@@ -166,6 +167,25 @@ export default function Home({ isNewSearch = false }: HomeProps) {
     completed: 0,
     total: 5,
     isVisible: false
+  });
+  
+  // Super Search state (lifted from PromptEditor for rendering outside collapsible section)
+  const [superSearchState, setSuperSearchState] = useState<{
+    isSearching: boolean;
+    plan: SearchPlan | null;
+    rows: SuperSearchRow[];
+    status: string;
+    error: string | null;
+    isComplete: boolean;
+    showResults: boolean;
+  }>({
+    isSearching: false,
+    plan: null,
+    rows: [],
+    status: '',
+    error: null,
+    isComplete: false,
+    showResults: false,
   });
   
   // Track app page view for attribution (GTM handles Google Ads conversion via page view trigger on /app)
@@ -1769,6 +1789,7 @@ export default function Home({ isNewSearch = false }: HomeProps) {
                     }}
                     onOpenSearchDrawer={() => searchManagementDrawer.openDrawer()}
                     onProgressUpdate={setPromptEditorProgress}
+                    onSuperSearchStateChange={setSuperSearchState}
                     onCacheHit={async (cachedResult) => {
                       console.log(`🎯 Cache hit detected, loading list ${cachedResult.listId}`);
                       setIsAnalyzing(false);
@@ -1835,6 +1856,20 @@ export default function Home({ isNewSearch = false }: HomeProps) {
               </div>
             </div>
           </div>
+
+          {/* Super Search Results - Rendered outside collapsible section */}
+          {superSearchState.showResults && (
+            <div className="mt-6">
+              <SuperSearchResults
+                plan={superSearchState.plan}
+                rows={superSearchState.rows}
+                isSearching={superSearchState.isSearching}
+                status={superSearchState.status}
+                error={superSearchState.error}
+                isComplete={superSearchState.isComplete}
+              />
+            </div>
+          )}
 
           {/* Companies Analysis Section - Moved to top */}
           {currentResults && currentResults.length > 0 ? (

@@ -20,7 +20,7 @@ import { triggerInsufficientCreditsGlobally } from "@/hooks/use-insufficient-cre
 import ContactSearchChips, { ContactSearchConfig } from "./contact-search-chips";
 import SearchTypeSelector, { SearchType } from "./search-type-selector";
 import IndividualSearchModal, { IndividualSearchFormData } from "./individual-search-modal";
-import { useSuperSearch, SuperSearchResults } from "@/features/super-search";
+import { useSuperSearch } from "@/features/super-search";
 import {
   Tooltip,
   TooltipContent,
@@ -34,6 +34,16 @@ interface CachedSearchResult {
   prompt: string;
   resultCount: number;
   createdAt: Date;
+}
+
+interface SuperSearchStateForParent {
+  isSearching: boolean;
+  plan: import('@/features/super-search/types').SearchPlan | null;
+  rows: import('@/features/super-search/types').TableRow[];
+  status: string;
+  error: string | null;
+  isComplete: boolean;
+  showResults: boolean;
 }
 
 interface PromptEditorProps {
@@ -55,6 +65,7 @@ interface PromptEditorProps {
   onOpenSearchDrawer?: () => void; // Callback to open the search management drawer
   onProgressUpdate?: (progress: SearchProgressState) => void; // Callback to report progress changes to parent
   onCacheHit?: (cachedResult: CachedSearchResult) => void; // Callback when a cached search is found
+  onSuperSearchStateChange?: (state: SuperSearchStateForParent) => void; // Callback for super search state
 }
 
 export default function PromptEditor({ 
@@ -75,7 +86,8 @@ export default function PromptEditor({
   onSearchMetricsUpdate,
   onOpenSearchDrawer,
   onProgressUpdate,
-  onCacheHit
+  onCacheHit,
+  onSuperSearchStateChange
 }: PromptEditorProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -147,6 +159,30 @@ export default function PromptEditor({
   // Super Search hook for AI-powered lead discovery
   const superSearch = useSuperSearch();
   const [showSuperSearchResults, setShowSuperSearchResults] = useState(false);
+
+  // Report super search state changes to parent
+  useEffect(() => {
+    if (onSuperSearchStateChange) {
+      onSuperSearchStateChange({
+        isSearching: superSearch.isSearching,
+        plan: superSearch.plan,
+        rows: superSearch.rows,
+        status: superSearch.status,
+        error: superSearch.error,
+        isComplete: superSearch.isComplete,
+        showResults: showSuperSearchResults,
+      });
+    }
+  }, [
+    superSearch.isSearching,
+    superSearch.plan,
+    superSearch.rows,
+    superSearch.status,
+    superSearch.error,
+    superSearch.isComplete,
+    showSuperSearchResults,
+    onSuperSearchStateChange,
+  ]);
 
   // Handle search type change - intercept individual_search to show modal
   const handleSearchTypeChange = (type: SearchType) => {
@@ -1474,20 +1510,6 @@ export default function PromptEditor({
         {/* Progress Bar is now rendered in Home.tsx via onProgressUpdate callback */}
 
       </div>
-
-      {/* Super Search Results */}
-      {showSuperSearchResults && (
-        <div className="mt-6">
-          <SuperSearchResults
-            plan={superSearch.plan}
-            rows={superSearch.rows}
-            isSearching={superSearch.isSearching}
-            status={superSearch.status}
-            error={superSearch.error}
-            isComplete={superSearch.isComplete}
-          />
-        </div>
-      )}
 
       {/* Individual Search Modal */}
       <IndividualSearchModal
