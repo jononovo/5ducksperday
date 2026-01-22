@@ -151,7 +151,12 @@ export async function* streamSuperSearch(query: string): AsyncGenerator<StreamEv
       }
     }
 
+    // DEBUG: Log the full content received from Perplexity
+    console.log(`[SuperSearch] ========== RAW RESPONSE START ==========`);
+    console.log(fullContent);
+    console.log(`[SuperSearch] ========== RAW RESPONSE END ==========`);
     console.log(`[SuperSearch] Stream complete. Found ${parser.getResults().length} results`);
+    console.log(`[SuperSearch] Plan parsed:`, parser.getPlan());
     yield { type: 'complete', data: { totalResults: parser.getResults().length } };
 
   } catch (error) {
